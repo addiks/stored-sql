@@ -10,7 +10,7 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredFunctions\Types;
+namespace Addiks\StoredSQL\Types;
 
 interface ReturnType
 {

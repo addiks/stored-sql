@@ -10,7 +10,7 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredFunctions\Statements;
+namespace Addiks\StoredSQL\Statements;
 
 interface Statement
 {

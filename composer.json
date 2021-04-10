@@ -1,23 +1,24 @@
 {
-    "name": "addiks/stored-functions",
+    "name": "addiks/stored-sql",
     "license": "MIT",
     "type": "library",
-    "description": "For handling, modeling and executing stored functions in different contexts",
+    "description": "For handling, modeling and executing stored SQL (functions, queries, conditions, ...) in different contexts",
 
     "autoload": {
         "psr-4": {
-            "Addiks\\StoredFunctions\\Tests\\Unit\\": "php-tests/unit/",
-            "Addiks\\StoredFunctions\\": "php/"
+            "Addiks\\StoredSQL\\Tests\\Unit\\": "php-tests/unit/",
+            "Addiks\\StoredSQL\\": "php/"
         }
     },
 
     "require": {
         "php": ">=7.4",
-        "webmozart/assert": "^1.9"
+        "webmozart/assert": "^1.9",
+        "dasprid/enum": "^1.0",
+        "infection/infection": "^0.21.4"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5",
-        "infection/infection": "^0.21.0",
         "vimeo/psalm": "^4.5",
         "phpstan/phpstan": "^0.12.0"
     }

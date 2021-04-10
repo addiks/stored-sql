@@ -10,12 +10,14 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Statements;
+namespace Addiks\StoredSQL\Arguments;
 
-use Addiks\StoredSQL\Statements\Statement;
-use IteratorAggregate;
+use Addiks\StoredSQL\Statements\Expression;
+use Addiks\StoredSQL\Arguments\Argument;
 
-/** @extends IteratorAggregate<int, Statement> */
-interface Statements extends IteratorAggregate
+interface InputArgument extends Argument
 {
+
+    public function defaultValue(): ?Expression;
+
 }

@@ -10,12 +10,20 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Statements;
+namespace Addiks\StoredSQL\Lexing;
 
-use Addiks\StoredSQL\Statements\Statement;
 use IteratorAggregate;
+use ArrayAccess;
+use Addiks\StoredSQL\Lexing\SqlTokenInstance;
 
-/** @extends IteratorAggregate<int, Statement> */
-interface Statements extends IteratorAggregate
+/** @extends IteratorAggregate<int, SqlTokenInstance> */
+interface SqlTokens extends IteratorAggregate, ArrayAccess
 {
+
+    public function withoutWhitespace(): SqlTokens;
+
+    public function withoutComments(): SqlTokens;
+
+    public function sql(): string;
+
 }

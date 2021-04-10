@@ -10,12 +10,16 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Statements;
+namespace Addiks\StoredSQL\Parsing\AST;
 
-use Addiks\StoredSQL\Statements\Statement;
-use IteratorAggregate;
+use Addiks\StoredSQL\Parsing\AST\SqlAbstractSyntaxTreeNode;
 
-/** @extends IteratorAggregate<int, Statement> */
-interface Statements extends IteratorAggregate
+final class SqlAbstractSyntaxTree implements SqlAbstractSyntaxTreeNode
 {
+
+    public function children(): array
+    {
+        return [];
+    }
+
 }

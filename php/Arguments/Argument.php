@@ -10,8 +10,15 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredFunctions\Arguments;
+namespace Addiks\StoredSQL\Arguments;
+
+use Addiks\StoredSQL\Types\Type;
 
 interface Argument
 {
+
+    public function name(): string;
+
+    public function type(): Type;
+
 }

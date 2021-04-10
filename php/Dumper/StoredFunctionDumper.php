@@ -10,9 +10,9 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredFunctions\Dumper;
+namespace Addiks\StoredSQL\Dumper;
 
-use Addiks\StoredFunctions\StoredFunction;
+use Addiks\StoredSQL\StoredFunction;
 
 interface StoredFunctionDumper
 {

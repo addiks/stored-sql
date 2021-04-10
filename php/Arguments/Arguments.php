@@ -10,10 +10,10 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredFunctions\Arguments;
+namespace Addiks\StoredSQL\Arguments;
 
 use IteratorAggregate;
-use Addiks\StoredFunctions\Arguments\Argument;
+use Addiks\StoredSQL\Arguments\Argument;
 
 /** @extends IteratorAggregate<int, Argument> */
 interface Arguments extends IteratorAggregate

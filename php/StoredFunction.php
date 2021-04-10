@@ -10,14 +10,17 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredFunctions;
+namespace Addiks\StoredSQL;
 
-use Addiks\StoredFunctions\Types\ReturnType;
-use Addiks\StoredFunctions\Arguments\Arguments;
-use Addiks\StoredFunctions\Statements\Statements;
+use Addiks\StoredSQL\Types\ReturnType;
+use Addiks\StoredSQL\Arguments\Arguments;
+use Addiks\StoredSQL\ControlStructures\CodeBlock;
+use Addiks\StoredSQL\Aliases\AliasMap;
 
 interface StoredFunction
 {
+
+    public function aliasMap(): AliasMap;
 
     public function name(): string;
 
@@ -25,6 +28,6 @@ interface StoredFunction
 
     public function arguments(): Arguments;
 
-    public function statements(): Statements;
+    public function statements(): CodeBlock;
 
 }

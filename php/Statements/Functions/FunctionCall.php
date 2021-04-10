@@ -10,12 +10,17 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Statements;
+namespace Addiks\StoredSQL\Statements\Functions;
 
-use Addiks\StoredSQL\Statements\Statement;
-use IteratorAggregate;
+use Addiks\StoredSQL\Statements\Functions\NamedFunction;
+use Addiks\StoredSQL\Statements\Expression;
+use Addiks\StoredSQL\Statements\Functions\FunctionCallArguments;
 
-/** @extends IteratorAggregate<int, Statement> */
-interface Statements extends IteratorAggregate
+interface FunctionCall extends Expression
 {
+
+    public function calledFunction(): NamedFunction;
+
+    public function arguments(): FunctionCallArguments;
+
 }

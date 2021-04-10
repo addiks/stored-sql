@@ -10,12 +10,15 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Statements;
+namespace Addiks\StoredSQL\ControlStructures;
 
-use Addiks\StoredSQL\Statements\Statement;
+use Addiks\StoredSQL\ControlStructures\ControlStructure;
 use IteratorAggregate;
 
-/** @extends IteratorAggregate<int, Statement> */
-interface Statements extends IteratorAggregate
+/** @extends IteratorAggregate<int, ConditionalCodeBlock> */
+interface ConditionalCodeBlocks extends ControlStructure
 {
+
+    public function elseBlock(): ?CodeBlock;
+
 }

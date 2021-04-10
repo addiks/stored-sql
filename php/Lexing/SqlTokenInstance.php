@@ -10,12 +10,21 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Statements;
+namespace Addiks\StoredSQL\Lexing;
 
-use Addiks\StoredSQL\Statements\Statement;
-use IteratorAggregate;
+use Addiks\StoredSQL\Lexing\SqlToken;
 
-/** @extends IteratorAggregate<int, Statement> */
-interface Statements extends IteratorAggregate
+interface SqlTokenInstance
 {
+
+    public function code(): string;
+
+    public function token(): SqlToken;
+
+    public function is(SqlToken $token): bool;
+
+    public function line(): int;
+
+    public function offset(): int;
+
 }

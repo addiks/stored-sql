@@ -12,10 +12,6 @@
 
 namespace Addiks\StoredSQL\Statements;
 
-use Addiks\StoredSQL\Statements\Statement;
-use IteratorAggregate;
-
-/** @extends IteratorAggregate<int, Statement> */
-interface Statements extends IteratorAggregate
+interface Expression
 {
 }

@@ -10,12 +10,19 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Statements;
+namespace Addiks\StoredSQL;
 
-use Addiks\StoredSQL\Statements\Statement;
-use IteratorAggregate;
+use Addiks\StoredSQL\Statements\Queries\Joins\Joins;
+use Addiks\StoredSQL\Statements\Expression;
+use Addiks\StoredSQL\Aliases\AliasMap;
 
-/** @extends IteratorAggregate<int, Statement> */
-interface Statements extends IteratorAggregate
+interface StoredCondition
 {
+
+    public function aliasMap(): AliasMap;
+
+    public function joins(): Joins;
+
+    public function condition(): Expression;
+
 }

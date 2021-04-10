@@ -12,10 +12,14 @@
 
 namespace Addiks\StoredSQL\Statements;
 
-use Addiks\StoredSQL\Statements\Statement;
-use IteratorAggregate;
+use Addiks\StoredSQL\Statements\Expression;
+use Addiks\StoredSQL\ControlStructures\CodeBlock;
 
-/** @extends IteratorAggregate<int, Statement> */
-interface Statements extends IteratorAggregate
+interface Variable extends Expression
 {
+
+    public function name(): string;
+
+    public function scope(): CodeBlock;
+
 }

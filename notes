@@ -1,0 +1,7 @@
+ - stored functions as pl/sql
+ - stored conditions: 'LEFT JOIN prdocuts p ON(p.id = product_id) WHERE p.group = 4'
+    - contains joins
+ - stored queries (only SELECT?)
+
+name:
+    - stored sql?

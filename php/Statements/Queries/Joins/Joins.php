@@ -10,12 +10,12 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Statements;
+namespace Addiks\StoredSQL\Statements\Queries\Joins;
 
-use Addiks\StoredSQL\Statements\Statement;
 use IteratorAggregate;
+use Addiks\StoredSQL\Statements\Queries\Joins\Join;
 
-/** @extends IteratorAggregate<int, Statement> */
-interface Statements extends IteratorAggregate
+/** @extends IteratorAggregate<int, Join> */
+interface Joins extends IteratorAggregate
 {
 }

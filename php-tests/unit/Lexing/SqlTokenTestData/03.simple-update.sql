@@ -1,0 +1,2 @@
+UPDATE foo
+SET a = 123
