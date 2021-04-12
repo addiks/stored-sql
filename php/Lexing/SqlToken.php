@@ -21,6 +21,7 @@ final class SqlToken extends AbstractEnum
 {
     protected const SPACE = null;
     protected const COMMENT = null;
+    protected const DOT = null;
     protected const SYMBOL = null;
     protected const LITERAL = null;
     protected const NUMERIC = null;
@@ -137,8 +138,8 @@ final class SqlToken extends AbstractEnum
             return SqlToken::SYMBOL();
         }
 
-        if (preg_match("/^([a-zA-Z_][a-zA-Z0-9_]*)/is", $sql, $match)) {
-            $readSql = $match[1];
+        if (preg_match("/^[a-zA-Z_][a-zA-Z0-9_]*/is", $sql, $match)) {
+            $readSql = $match[0];
             return SqlToken::SYMBOL();
         }
 
@@ -158,6 +159,7 @@ final class SqlToken extends AbstractEnum
 
                 '(' => self::BRACKET_OPENING(),
                 ')' => self::BRACKET_CLOSING(),
+                '.' => self::DOT(),
                 ',' => self::COMMA(),
                 ';' => self::SEMICOLON(),
                 '=' => self::EQUALS(),

@@ -1,0 +1,12 @@
+language: php
+php:
+  - 7.4
+notifications:
+  email: notifications.github@addiks.de
+install:
+- composer install
+script:
+- vendor/bin/psalm
+#- vendor/bin/phpstan analyze php/ --level 7
+- vendor/bin/phpunit php-tests/unit/
+- vendor/bin/infection -s -vv --initial-tests-php-options="-d xdebug.mode=coverage"

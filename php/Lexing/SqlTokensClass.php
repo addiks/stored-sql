@@ -34,10 +34,10 @@ final class SqlTokensClass implements SqlTokens
     {
         $this->originalSql = $originalSql;
 
-        foreach (array_values($tokens) as $index => $token) {
+        foreach ($tokens as $token) {
             Assert::isInstanceOf($token, SqlTokenInstance::class);
 
-            $this->tokens[$index] = $token;
+            $this->tokens[] = $token;
         }
     }
 
@@ -66,6 +66,8 @@ final class SqlTokensClass implements SqlTokens
                 throw new UnlexableSqlException($originalSql, $line, $offset);
             }
 
+            $tokens[] = new SqlTokenInstanceClass($tokenSql, $token, $line, $offset);
+
             $sql = substr($sql, strlen($tokenSql));
 
             /** @var int $newLines */
@@ -74,13 +76,11 @@ final class SqlTokensClass implements SqlTokens
             $line += $newLines;
 
             if ($newLines > 0) {
-                $offset = strlen($tokenSql) - strrpos($tokenSql, "\n");
+                $offset = strlen($tokenSql) - (strrpos($tokenSql, "\n") + 1);
 
             } else {
                 $offset += strlen($tokenSql);
             }
-
-            $tokens[] = new SqlTokenInstanceClass($tokenSql, $token, $line, $offset);
         }
 
         return new SqlTokensClass($tokens, $originalSql);

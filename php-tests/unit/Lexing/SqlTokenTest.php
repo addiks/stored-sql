@@ -29,12 +29,12 @@ final class SqlTokenTest extends TestCase
 
     /**
      * @test
-     * @dataProvider dataProviderForShouldDetectCorrectTokens
-     *
-     * @param array<int, SqlToken> $expectedTokens
+     * @dataProvider dataProvider
      */
-    public function shouldDetectCorrectTokens(string $sql, array $expectedTokens): void
-    {
+    public function shouldDetectCorrectTokens(
+        string $sql,
+        string $expectedDump
+    ): void {
         try {
             /** @var SqlTokens $tokens */
             $tokens = SqlToken::readTokens($sql);
@@ -46,26 +46,29 @@ final class SqlTokenTest extends TestCase
             throw $exception;
         }
 
-        /** @var array<int, SqlToken> $tokenList */
-        $tokenList = array_map(function (SqlTokenInstance $token) {
-            return $token->token();
-        }, iterator_to_array($tokens));
+        /** @var array<string> $actualLines */
+        $actualLines = array();
 
-        /** @var string $expected */
-        $expected = $this->tokenListToString($expectedTokens);
+        /** @var SqlTokenInstance $token */
+        foreach ($tokens as $index => $token) {
+            $actualLines[] = sprintf("%d,%d,%s",
+                $token->line(),
+                $token->offset(),
+                $token->token()
+            );
+        }
 
-        /** @var string $actual */
-        $actual = $this->tokenListToString($tokenList);
+        $actualDump = implode("\n", $actualLines);
 
-        $this->assertEquals($expected, $actual);
+        $this->assertEquals($expectedDump, $actualDump);
     }
 
-    public function dataProviderForShouldDetectCorrectTokens(): array
+    public function dataProvider(): array
     {
         /** @var array<string> $sqlFiles */
         $sqlFiles = glob(sprintf("%s/%s/*.sql", __DIR__, self::DATA_FOLDER_NAME));
 
-        /** @var array<array{0:string,1:array<SqlToken>}> $dataSets */
+        /** @var array<string, array{0:string, 1:int, 2:int, 3:array<SqlToken>}> $dataSets */
         $dataSets = array();
 
         /** @var string $sqlFile */
@@ -75,88 +78,9 @@ final class SqlTokenTest extends TestCase
             $tokenFile = $sqlFile . ".tokens";
 
             if (file_exists($tokenFile)) {
-                /** @var array<string> $tokenNames */
-                $tokenNames = explode("\n", file_get_contents($tokenFile));
-                $tokenNames = array_filter($tokenNames);
-
-                /** @var array<SqlToken> $tokens */
-                $tokens = array_map(function (string $tokenName): SqlToken {
-                    return SqlToken::valueOf($tokenName);
-                }, $tokenNames);
-
                 $dataSets[basename($tokenFile)] = [
                     file_get_contents($sqlFile),
-                    $tokens
-                ];
-            }
-        }
-
-        return $dataSets;
-    }
-
-    /**
-     * @test
-     * @dataProvider dataProviderForShouldProduceCorrectLinesAndOffsets
-     */
-    public function shouldProduceCorrectLinesAndOffsets(string $sql, array $lines, array $offsets): void
-    {
-        try {
-            /** @var SqlTokens $tokens */
-            $tokens = SqlToken::readTokens($sql);
-            $tokens = $tokens->withoutWhitespace();
-
-        } catch (UnlexableSqlException $exception) {
-            echo $exception->asciiLocationDump();
-
-            throw $exception;
-        }
-
-        /** @var SqlTokenInstance $token */
-        foreach ($tokens as $index => $token) {
-            $this->assertEquals($lines[$index], $token->line(), sprintf(
-                "Wrong line-number '%d' at token #%d, expected line-number '%d'",
-                $token->line(),
-                $index,
-                $lines[$index]
-            ));
-
-            $this->assertEquals($offsets[$index], $token->offset(), sprintf(
-                "Wrong offset-number '%d' at token #%d, expected offset-number '%d'",
-                $token->offset(),
-                $index,
-                $offsets[$index]
-            ));
-        }
-    }
-
-    public function dataProviderForShouldProduceCorrectLinesAndOffsets(): array
-    {
-        /** @var array<string> $sqlFiles */
-        $sqlFiles = glob(sprintf("%s/%s/*.sql", __DIR__, self::DATA_FOLDER_NAME));
-
-        /** @var array<array{0:string,1:array<SqlToken>}> $dataSets */
-        $dataSets = array();
-
-        /** @var string $sqlFile */
-        foreach ($sqlFiles as $sqlFile) {
-
-            /** @var string $positionsFile */
-            $positionsFile = $sqlFile . ".positions";
-
-            if (file_exists($positionsFile)) {
-                /** @var array<string> $positions */
-                $positions = explode("\n", file_get_contents($positionsFile));
-                $positions = array_filter($positions);
-
-                /** @var array{0: int, 1: int} $linesAndOffsets */
-                $linesAndOffsets = array_map(function (string $position): array {
-                    return explode(",", $position);
-                }, $positions);
-
-                $dataSets[basename($positionsFile)] = [
-                    file_get_contents($sqlFile),
-                    array_column($linesAndOffsets, 0),
-                    array_column($linesAndOffsets, 1),
+                    trim(file_get_contents($tokenFile)),
                 ];
             }
         }
@@ -169,7 +93,7 @@ final class SqlTokenTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        new SqlTokensClass(['foo']);
+        new SqlTokensClass(['foo'], "");
     }
 
     /** @param array<int, SqlToken> $tokens */
