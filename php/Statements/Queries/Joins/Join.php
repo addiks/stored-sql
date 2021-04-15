@@ -14,6 +14,4 @@ namespace Addiks\StoredSQL\Statements\Queries\Joins;
 
 interface Join
 {
-
-
 }

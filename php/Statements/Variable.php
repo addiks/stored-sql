@@ -17,9 +17,7 @@ use Addiks\StoredSQL\ControlStructures\CodeBlock;
 
 interface Variable extends Expression
 {
-
     public function name(): string;
 
     public function scope(): CodeBlock;
-
 }

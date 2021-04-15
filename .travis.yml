@@ -6,7 +6,9 @@ notifications:
 install:
 - composer install
 script:
-- vendor/bin/psalm
-#- vendor/bin/phpstan analyze php/ --level 7
+- vendor/bin/psalm --no-cache
+- vendor/bin/phpstan analyze php/ --level 7
+- vendor/bin/php-cs-fixer php/ src/ --dry-run -v --using-cache=no --diff
+- vendor/bin/php-cs-fixer php-tests/ src/ --dry-run -v --using-cache=no --diff
 - vendor/bin/phpunit php-tests/unit/
 - vendor/bin/infection -s -vv --initial-tests-php-options="-d xdebug.mode=coverage"

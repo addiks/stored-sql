@@ -16,5 +16,4 @@ use Addiks\StoredSQL\Arguments\Argument;
 
 interface OutputArgument extends Argument
 {
-
 }

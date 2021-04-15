@@ -14,9 +14,7 @@ namespace Addiks\StoredSQL\Statements\Functions;
 
 interface NamedFunction
 {
-
     public function name(): string;
 
     public function __toString(): string;
-
 }

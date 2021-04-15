@@ -14,7 +14,5 @@ namespace Addiks\StoredSQL\Statements\Operations;
 
 interface Operator
 {
-
     public function name(): string;
-
 }

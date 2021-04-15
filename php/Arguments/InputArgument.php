@@ -17,7 +17,5 @@ use Addiks\StoredSQL\Arguments\Argument;
 
 interface InputArgument extends Argument
 {
-
     public function defaultValue(): ?Expression;
-
 }

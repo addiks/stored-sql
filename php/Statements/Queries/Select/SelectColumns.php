@@ -10,9 +10,10 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredFunctions\Statements\Queries\Select;
+namespace Addiks\StoredSQL\Statements\Queries\Select;
 
 use IteratorAggregate;
+use Addiks\StoredSQL\Statements\Queries\Select\SelectColumn;
 
 /** @extends IteratorAggregate<SelectColumn> */
 interface SelectColumns extends IteratorAggregate

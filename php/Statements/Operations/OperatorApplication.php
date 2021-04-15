@@ -17,11 +17,9 @@ use Addiks\StoredSQL\Statements\Operations\Operator;
 
 interface OperatorApplication extends Expression
 {
-
     public function operator(): Operator;
 
     public function leftSide(): Expression;
 
     public function rightSide(): Expression;
-
 }

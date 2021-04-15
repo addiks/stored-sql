@@ -16,7 +16,6 @@ use Exception;
 
 final class UnlexableSqlException extends Exception
 {
-
     private string $sql;
     private int $sqlLine;
     private int $sqlOffset;
@@ -64,7 +63,6 @@ final class UnlexableSqlException extends Exception
         foreach ($lines as $lineIndex => &$line) {
             if ($lineIndex === $this->sqlLine) {
                 $line = " \u{2192} " . $line . " \u{2190}";
-
             } else {
                 $line = "   " . $line;
             }
@@ -77,5 +75,4 @@ final class UnlexableSqlException extends Exception
             str_pad("\u{2191}", $this->sqlOffset + 6, " ", STR_PAD_LEFT)
         );
     }
-
 }

@@ -13,17 +13,16 @@
 namespace Addiks\StoredSQL\Lexing;
 
 use Addiks\StoredSQL\Lexing\SqlTokenInstance;
-use Addiks\StoredSQL\Lexing\SqlToken;
+use Addiks\StoredSQL\Lexing\AbstractSqlToken;
 
 final class SqlTokenInstanceClass implements SqlTokenInstance
 {
-
     private string $code;
-    private SqlToken $token;
+    private AbstractSqlToken $token;
     private int $line;
     private int $offset;
 
-    public function __construct(string $code, SqlToken $token, int $line, int $offset)
+    public function __construct(string $code, AbstractSqlToken $token, int $line, int $offset)
     {
         $this->code = $code;
         $this->token = $token;
@@ -36,12 +35,12 @@ final class SqlTokenInstanceClass implements SqlTokenInstance
         return $this->code;
     }
 
-    public function token(): SqlToken
+    public function token(): AbstractSqlToken
     {
         return $this->token;
     }
 
-    public function is(SqlToken $token): bool
+    public function is(AbstractSqlToken $token): bool
     {
         return $this->token === $token;
     }
@@ -55,5 +54,4 @@ final class SqlTokenInstanceClass implements SqlTokenInstance
     {
         return $this->offset;
     }
-
 }

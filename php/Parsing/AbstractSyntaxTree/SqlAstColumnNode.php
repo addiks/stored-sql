@@ -10,14 +10,27 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Statements;
+namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
-use Addiks\StoredSQL\Statements\Variable;
-use Addiks\StoredSQL\Statements\Expression;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
 
-interface Assignment extends Statement
+final class SqlAstColumnNode implements SqlAstNode
 {
-    public function variable(): Variable;
 
-    public function expression(): Expression;
+    public function __construct(
+        string $column,
+        ?string $table,
+        ?string $database
+    ) {
+
+    }
+
+    public function children(): array
+    {
+    }
+
+    public function hash(): string
+    {
+    }
+
 }

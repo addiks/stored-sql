@@ -16,7 +16,5 @@ use Addiks\StoredSQL\Statements\Statements;
 
 interface CodeBlock extends Statements
 {
-
     public function container(): ?CodeBlock;
-
 }

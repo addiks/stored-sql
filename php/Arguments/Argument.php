@@ -16,9 +16,7 @@ use Addiks\StoredSQL\Types\Type;
 
 interface Argument
 {
-
     public function name(): string;
 
     public function type(): Type;
-
 }

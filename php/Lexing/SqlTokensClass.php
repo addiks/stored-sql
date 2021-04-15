@@ -21,6 +21,9 @@ use Iterator;
 use Addiks\StoredSQL\Lexing\SqlTokenInstance;
 use Addiks\StoredSQL\Lexing\SqlTokenInstanceClass;
 use Addiks\StoredSQL\Exception\UnlexableSqlException;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstTokenNode;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAst;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
 
 final class SqlTokensClass implements SqlTokens
 {
@@ -30,60 +33,27 @@ final class SqlTokensClass implements SqlTokens
 
     private string $originalSql;
 
+    /** @param array<int, SqlTokenInstance> $tokens */
     public function __construct(array $tokens, string $originalSql)
     {
         $this->originalSql = $originalSql;
 
         foreach ($tokens as $token) {
+            /** @psalm-suppress RedundantConditionGivenDocblockType */
             Assert::isInstanceOf($token, SqlTokenInstance::class);
 
             $this->tokens[] = $token;
         }
     }
 
-    public static function readTokens(string $sql): SqlTokens
+    public function convertToSyntaxTree(): SqlAstRoot
     {
-        /** @var array<int, SqlTokenInstance> $tokens */
-        $tokens = array();
+        /** @var array<SqlAstTokenNode> $tokenNodes */
+        $tokenNodes = array_map(function (SqlTokenInstance $token) {
+            return new SqlAstTokenNode($token);
+        }, $this->tokens);
 
-        /** @var string $originalSql */
-        $originalSql = $sql;
-
-        /** @var int $line */
-        $line = 0;
-
-        /** @var int $offset */
-        $offset = 0;
-
-        while (strlen($sql) > 0) {
-            /** @var string $tokenSql */
-            $tokenSql = "";
-
-            /** @var SqlToken|null $token */
-            $token = SqlToken::readToken($sql, $tokenSql);
-
-            if (is_null($token)) {
-                throw new UnlexableSqlException($originalSql, $line, $offset);
-            }
-
-            $tokens[] = new SqlTokenInstanceClass($tokenSql, $token, $line, $offset);
-
-            $sql = substr($sql, strlen($tokenSql));
-
-            /** @var int $newLines */
-            $newLines = substr_count($tokenSql, "\n");
-
-            $line += $newLines;
-
-            if ($newLines > 0) {
-                $offset = strlen($tokenSql) - (strrpos($tokenSql, "\n") + 1);
-
-            } else {
-                $offset += strlen($tokenSql);
-            }
-        }
-
-        return new SqlTokensClass($tokens, $originalSql);
+        return new SqlAstRoot($tokenNodes, $this);
     }
 
     public function withoutWhitespace(): SqlTokens
@@ -105,11 +75,13 @@ final class SqlTokensClass implements SqlTokens
         return $this->originalSql;
     }
 
+    /** @return Iterator<SqlTokenInstance> */
     public function getIterator(): Iterator
     {
         return new ArrayIterator($this->tokens);
     }
 
+    /** @param array-key $offset */
     public function offsetGet($offset): ?SqlTokenInstance
     {
         Assert::numeric($offset);
@@ -117,6 +89,7 @@ final class SqlTokensClass implements SqlTokens
         return $this->tokens[(int)$offset] ?? null;
     }
 
+    /** @param array-key $offset */
     public function offsetExists($offset): bool
     {
         Assert::numeric($offset);
@@ -124,14 +97,18 @@ final class SqlTokensClass implements SqlTokens
         return isset($this->tokens[(int)$offset]);
     }
 
+    /**
+     * @param array-key        $offset
+     * @param SqlTokenInstance $value
+     */
     public function offsetSet($offset, $value): void
     {
         throw new ErrorException(sprintf("Objects of %s are immutable!", __CLASS__));
     }
 
+    /** @param array-key $offset */
     public function offsetUnset($offset): void
     {
         throw new ErrorException(sprintf("Objects of %s are immutable!", __CLASS__));
     }
-
 }

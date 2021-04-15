@@ -12,19 +12,17 @@
 
 namespace Addiks\StoredSQL\Lexing;
 
-use Addiks\StoredSQL\Lexing\SqlToken;
+use Addiks\StoredSQL\Lexing\AbstractSqlToken;
 
 interface SqlTokenInstance
 {
-
     public function code(): string;
 
-    public function token(): SqlToken;
+    public function token(): AbstractSqlToken;
 
-    public function is(SqlToken $token): bool;
+    public function is(AbstractSqlToken $token): bool;
 
     public function line(): int;
 
     public function offset(): int;
-
 }

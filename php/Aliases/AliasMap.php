@@ -14,7 +14,5 @@ namespace Addiks\StoredSQL\Aliases;
 
 interface AliasMap
 {
-
     public function mapAlias(string $alias): string;
-
 }

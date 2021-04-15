@@ -16,5 +16,4 @@ use Addiks\StoredSQL\Statements\Statement;
 
 interface QueryStatement extends Statement
 {
-
 }

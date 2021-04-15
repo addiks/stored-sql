@@ -15,15 +15,19 @@ namespace Addiks\StoredSQL\Lexing;
 use IteratorAggregate;
 use ArrayAccess;
 use Addiks\StoredSQL\Lexing\SqlTokenInstance;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
 
-/** @extends IteratorAggregate<int, SqlTokenInstance> */
+/**
+ * @extends IteratorAggregate<int, SqlTokenInstance>
+ * @extends ArrayAccess<int, SqlTokenInstance>
+ */
 interface SqlTokens extends IteratorAggregate, ArrayAccess
 {
-
     public function withoutWhitespace(): SqlTokens;
 
     public function withoutComments(): SqlTokens;
 
     public function sql(): string;
 
+    public function convertToSyntaxTree(): SqlAstRoot;
 }

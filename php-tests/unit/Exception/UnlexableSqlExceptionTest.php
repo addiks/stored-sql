@@ -12,12 +12,12 @@ namespace Addiks\StoredSQL\Tests\Unit\Exception;
 
 use PHPUnit\Framework\TestCase;
 use Addiks\StoredSQL\Exception\UnlexableSqlException;
+use Webmozart\Assert\Assert;
 
 /** @covers Addiks\StoredSQL\Exception\UnlexableSqlException */
 final class UnlexableSqlExceptionTest extends TestCase
 {
-
-    private UnlexableSqlException $exception;
+    private ?UnlexableSqlException $exception = null;
 
     public function setUp(): void
     {
@@ -27,6 +27,8 @@ final class UnlexableSqlExceptionTest extends TestCase
     /** @test */
     public function shouldProduceAsciiLocationDump(): void
     {
+        Assert::object($this->exception);
+
         /** @var mixed $expectedOutput */
         $expectedOutput = <<<EOL
 
@@ -44,19 +46,21 @@ EOL;
     /** @test */
     public function shouldProvideSql(): void
     {
+        Assert::object($this->exception);
         $this->assertEquals("SELECT foo\nFROM bar", $this->exception->sql());
     }
 
     /** @test */
     public function shouldProvideSqlLine(): void
     {
+        Assert::object($this->exception);
         $this->assertEquals(1, $this->exception->sqlLine());
     }
 
     /** @test */
     public function shouldProvideSqlOffset(): void
     {
+        Assert::object($this->exception);
         $this->assertEquals(6, $this->exception->sqlOffset());
     }
-
 }

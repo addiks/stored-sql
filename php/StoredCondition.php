@@ -18,11 +18,9 @@ use Addiks\StoredSQL\Aliases\AliasMap;
 
 interface StoredCondition
 {
-
     public function aliasMap(): AliasMap;
 
     public function joins(): Joins;
 
     public function condition(): Expression;
-
 }

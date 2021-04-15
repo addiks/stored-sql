@@ -14,5 +14,4 @@ namespace Addiks\StoredSQL\ControlStructures;
 
 interface ConditionalCodeBlock extends ControlStructure
 {
-
 }

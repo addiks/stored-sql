@@ -14,7 +14,5 @@ namespace Addiks\StoredSQL\Types;
 
 interface Type
 {
-
     public function name(): string;
-
 }

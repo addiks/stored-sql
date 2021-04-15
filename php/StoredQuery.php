@@ -17,9 +17,7 @@ use Addiks\StoredSQL\Aliases\AliasMap;
 
 interface StoredQuery
 {
-
     public function aliasMap(): AliasMap;
 
     public function statement(): QueryStatement;
-
 }

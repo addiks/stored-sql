@@ -10,16 +10,25 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Parsing\AST;
+namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
-use Addiks\StoredSQL\Parsing\AST\SqlAbstractSyntaxTreeNode;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAst;
 
-final class SqlAbstractSyntaxTree implements SqlAbstractSyntaxTreeNode
+final class SqlAstRoot extends SqlAst
 {
 
-    public function children(): array
+    private SqlTokens $tokens;
+
+    public function __construct(array $children, SqlTokens $tokens)
     {
-        return [];
+        parent::__construct($children);
+
+        $this->tokens = $tokens;
+    }
+
+    public function tokens(): SqlTokens
+    {
+        return $this->tokens;
     }
 
 }

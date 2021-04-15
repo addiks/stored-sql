@@ -21,7 +21,6 @@ use Addiks\StoredSQL\Statements\Queries\QuerySorting;
 
 interface SelectStatement extends QueryStatement
 {
-
     public function columns(): SelectColumns;
 
     public function source(): ?QuerySource;
@@ -37,5 +36,4 @@ interface SelectStatement extends QueryStatement
     public function rowCountLimit(): ?int;
 
     public function rowOffset(): int;
-
 }

@@ -18,9 +18,7 @@ use Addiks\StoredSQL\Statements\Functions\FunctionCallArguments;
 
 interface FunctionCall extends Expression
 {
-
     public function calledFunction(): NamedFunction;
 
     public function arguments(): FunctionCallArguments;
-
 }

@@ -10,14 +10,8 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Statements;
+namespace Addiks\StoredSQL\Statements\Queries\Select;
 
-use Addiks\StoredSQL\Statements\Variable;
-use Addiks\StoredSQL\Statements\Expression;
-
-interface Assignment extends Statement
+interface SelectColumn
 {
-    public function variable(): Variable;
-
-    public function expression(): Expression;
 }

@@ -14,7 +14,5 @@ namespace Addiks\StoredSQL\Types;
 
 interface ReturnType
 {
-
     public function name(): string;
-
 }

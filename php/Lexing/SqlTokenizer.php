@@ -10,14 +10,11 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Parsing\AST;
+namespace Addiks\StoredSQL\Lexing;
 
-use Addiks\StoredSQL\Parsing\AST\SqlAbstractSyntaxTreeNode;
+use Addiks\StoredSQL\Lexing\SqlTokens;
 
-interface SqlAbstractSyntaxTreeNode
+interface SqlTokenizer
 {
-
-    /** @return array<SqlAbstractSyntaxTreeNode> */
-    public function children(): array;
-
+    public function tokenize(string $sql): SqlTokens;
 }

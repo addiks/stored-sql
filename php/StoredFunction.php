@@ -19,7 +19,6 @@ use Addiks\StoredSQL\Aliases\AliasMap;
 
 interface StoredFunction
 {
-
     public function aliasMap(): AliasMap;
 
     public function name(): string;
@@ -29,5 +28,4 @@ interface StoredFunction
     public function arguments(): Arguments;
 
     public function statements(): CodeBlock;
-
 }

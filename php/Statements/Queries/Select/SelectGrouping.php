@@ -10,9 +10,8 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredFunctions\Statements\Queries\Select;
+namespace Addiks\StoredSQL\Statements\Queries\Select;
 
 interface SelectGrouping
 {
-
 }

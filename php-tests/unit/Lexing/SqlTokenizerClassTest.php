@@ -17,15 +17,25 @@ use Addiks\StoredSQL\Lexing\SqlTokensClass;
 use Addiks\StoredSQL\Lexing\SqlTokenInstance;
 use Addiks\StoredSQL\Exception\UnlexableSqlException;
 use InvalidArgumentException;
+use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
+use Addiks\StoredSQL\Lexing\AbstractSqlToken;
+use Webmozart\Assert\Assert;
 
 /**
  * @covers Addiks\StoredSQL\Lexing\SqlToken
  * @covers Addiks\StoredSQL\Lexing\SqlTokensClass
  * @covers Addiks\StoredSQL\Lexing\SqlTokenInstanceClass
  */
-final class SqlTokenTest extends TestCase
+final class SqlTokenizerClassTest extends TestCase
 {
-    const DATA_FOLDER_NAME = "SqlTokenTestData";
+    const DATA_FOLDER_NAME = "SqlTokenizerClassTestData";
+
+    private ?SqlTokenizerClass $tokenizer = null;
+
+    public function setUp(): void
+    {
+        $this->tokenizer = SqlTokenizerClass::defaultTokenizer();
+    }
 
     /**
      * @test
@@ -35,11 +45,12 @@ final class SqlTokenTest extends TestCase
         string $sql,
         string $expectedDump
     ): void {
+        Assert::object($this->tokenizer);
+
         try {
             /** @var SqlTokens $tokens */
-            $tokens = SqlToken::readTokens($sql);
+            $tokens = $this->tokenizer->tokenize($sql);
             $tokens = $tokens->withoutWhitespace();
-
         } catch (UnlexableSqlException $exception) {
             echo $exception->asciiLocationDump();
 
@@ -51,10 +62,11 @@ final class SqlTokenTest extends TestCase
 
         /** @var SqlTokenInstance $token */
         foreach ($tokens as $index => $token) {
-            $actualLines[] = sprintf("%d,%d,%s",
+            $actualLines[] = sprintf(
+                "%d,%d,%s",
                 $token->line(),
                 $token->offset(),
-                $token->token()
+                $token->token()->name()
             );
         }
 
@@ -68,7 +80,7 @@ final class SqlTokenTest extends TestCase
         /** @var array<string> $sqlFiles */
         $sqlFiles = glob(sprintf("%s/%s/*.sql", __DIR__, self::DATA_FOLDER_NAME));
 
-        /** @var array<string, array{0:string, 1:int, 2:int, 3:array<SqlToken>}> $dataSets */
+        /** @var array<string, array{0:string, 1:int, 2:int, 3:array<AbstractSqlToken>}> $dataSets */
         $dataSets = array();
 
         /** @var string $sqlFile */
@@ -93,15 +105,15 @@ final class SqlTokenTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
+        /** @psalm-suppress InvalidArgument */
         new SqlTokensClass(['foo'], "");
     }
 
-    /** @param array<int, SqlToken> $tokens */
+    /** @param array<int, AbstractSqlToken> $tokens */
     private function tokenListToString(array $tokens): string
     {
-        return implode("\n", array_map(function (SqlToken $token) {
+        return implode("\n", array_map(function (AbstractSqlToken $token) {
             return $token->name();
         }, $tokens));
     }
-
 }

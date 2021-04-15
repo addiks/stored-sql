@@ -12,13 +12,10 @@
 
 namespace Addiks\StoredSQL\ControlStructures;
 
-use Addiks\StoredSQL\ControlStructures\ControlStructure;
 use IteratorAggregate;
 
 /** @extends IteratorAggregate<int, ConditionalCodeBlock> */
-interface ConditionalCodeBlocks extends ControlStructure
+interface ConditionalCodeBlocks extends ControlStructure, IteratorAggregate
 {
-
     public function elseBlock(): ?CodeBlock;
-
 }

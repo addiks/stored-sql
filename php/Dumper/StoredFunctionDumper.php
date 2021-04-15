@@ -16,7 +16,5 @@ use Addiks\StoredSQL\StoredFunction;
 
 interface StoredFunctionDumper
 {
-
     public function dumpStoredFunction(StoredFunction $function): string;
-
 }
