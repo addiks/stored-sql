@@ -6,18 +6,15 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Statements\Queries\Select;
 
 use Addiks\StoredSQL\Statements\Expression;
-use Addiks\StoredSQL\Statements\Queries\Select\SelectColumns;
-use Addiks\StoredSQL\Statements\Queries\Select\SelectGrouping;
-use Addiks\StoredSQL\Statements\Queries\QueryStatement;
-use Addiks\StoredSQL\Statements\Queries\QuerySource;
 use Addiks\StoredSQL\Statements\Queries\QuerySorting;
+use Addiks\StoredSQL\Statements\Queries\QuerySource;
+use Addiks\StoredSQL\Statements\Queries\QueryStatement;
 
 interface SelectStatement extends QueryStatement
 {

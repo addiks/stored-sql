@@ -6,22 +6,20 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Lexing;
 
-use IteratorAggregate;
-use ArrayAccess;
-use Addiks\StoredSQL\Lexing\SqlTokenInstance;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
+use ArrayAccess;
+use IteratorAggregate;
 
 /**
  * @extends IteratorAggregate<int, SqlTokenInstance>
  * @extends ArrayAccess<int, SqlTokenInstance>
  */
-interface SqlTokens extends IteratorAggregate, ArrayAccess
+interface SqlTokens extends ArrayAccess, IteratorAggregate
 {
     public function withoutWhitespace(): SqlTokens;
 

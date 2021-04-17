@@ -6,15 +6,12 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Statements\Functions;
 
-use Addiks\StoredSQL\Statements\Functions\NamedFunction;
 use Addiks\StoredSQL\Statements\Expression;
-use Addiks\StoredSQL\Statements\Functions\FunctionCallArguments;
 
 interface FunctionCall extends Expression
 {

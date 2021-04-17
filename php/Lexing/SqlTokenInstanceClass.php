@@ -6,20 +6,19 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Lexing;
 
-use Addiks\StoredSQL\Lexing\SqlTokenInstance;
-use Addiks\StoredSQL\Lexing\AbstractSqlToken;
-
 final class SqlTokenInstanceClass implements SqlTokenInstance
 {
     private string $code;
+
     private AbstractSqlToken $token;
+
     private int $line;
+
     private int $offset;
 
     public function __construct(string $code, AbstractSqlToken $token, int $line, int $offset)

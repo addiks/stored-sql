@@ -6,20 +6,17 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
 use IteratorAggregate;
-use Addiks\StoredSQL\Lexing\SqlTokens;
 
 /** @extends IteratorAggregate<SqlAstNode> */
 interface SqlAstNode extends IteratorAggregate
 {
-
-    /** @return array<SqlAstNode> */
+    /** @return array<self> */
     public function children(): array;
 
     /**

@@ -6,28 +6,20 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Lexing;
 
-use Addiks\StoredSQL\Lexing\SqlTokens;
-use Addiks\StoredSQL\Lexing\SqlToken;
-use Webmozart\Assert\Assert;
-use ErrorException;
-use ArrayIterator;
-use Iterator;
-use Addiks\StoredSQL\Lexing\SqlTokenInstance;
-use Addiks\StoredSQL\Lexing\SqlTokenInstanceClass;
-use Addiks\StoredSQL\Exception\UnlexableSqlException;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstTokenNode;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAst;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstTokenNode;
+use ArrayIterator;
+use ErrorException;
+use Iterator;
+use Webmozart\Assert\Assert;
 
 final class SqlTokensClass implements SqlTokens
 {
-
     /** @var array<int, SqlTokenInstance> */
     private array $tokens = array();
 
@@ -86,7 +78,7 @@ final class SqlTokensClass implements SqlTokens
     {
         Assert::numeric($offset);
 
-        return $this->tokens[(int)$offset] ?? null;
+        return $this->tokens[(int) $offset] ?? null;
     }
 
     /** @param array-key $offset */
@@ -94,7 +86,7 @@ final class SqlTokensClass implements SqlTokens
     {
         Assert::numeric($offset);
 
-        return isset($this->tokens[(int)$offset]);
+        return isset($this->tokens[(int) $offset]);
     }
 
     /**
@@ -103,12 +95,12 @@ final class SqlTokensClass implements SqlTokens
      */
     public function offsetSet($offset, $value): void
     {
-        throw new ErrorException(sprintf("Objects of %s are immutable!", __CLASS__));
+        throw new ErrorException(sprintf('Objects of %s are immutable!', __CLASS__));
     }
 
     /** @param array-key $offset */
     public function offsetUnset($offset): void
     {
-        throw new ErrorException(sprintf("Objects of %s are immutable!", __CLASS__));
+        throw new ErrorException(sprintf('Objects of %s are immutable!', __CLASS__));
     }
 }

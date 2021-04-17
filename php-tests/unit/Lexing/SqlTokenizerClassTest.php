@@ -4,21 +4,21 @@
  * This package (including this file) was released under the terms of the GPL-3.0.
  * You should have received a copy of the GNU General Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
+ *
  * @license GPL-3.0
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Tests\Unit\Lexing;
 
-use PHPUnit\Framework\TestCase;
-use Addiks\StoredSQL\Lexing\SqlToken;
+use Addiks\StoredSQL\Exception\UnlexableSqlException;
+use Addiks\StoredSQL\Lexing\AbstractSqlToken;
+use Addiks\StoredSQL\Lexing\SqlTokenInstance;
+use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
 use Addiks\StoredSQL\Lexing\SqlTokens;
 use Addiks\StoredSQL\Lexing\SqlTokensClass;
-use Addiks\StoredSQL\Lexing\SqlTokenInstance;
-use Addiks\StoredSQL\Exception\UnlexableSqlException;
 use InvalidArgumentException;
-use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
-use Addiks\StoredSQL\Lexing\AbstractSqlToken;
+use PHPUnit\Framework\TestCase;
 use Webmozart\Assert\Assert;
 
 /**
@@ -28,7 +28,7 @@ use Webmozart\Assert\Assert;
  */
 final class SqlTokenizerClassTest extends TestCase
 {
-    const DATA_FOLDER_NAME = "SqlTokenizerClassTestData";
+    const DATA_FOLDER_NAME = 'SqlTokenizerClassTestData';
 
     private ?SqlTokenizerClass $tokenizer = null;
 
@@ -51,6 +51,7 @@ final class SqlTokenizerClassTest extends TestCase
             /** @var SqlTokens $tokens */
             $tokens = $this->tokenizer->tokenize($sql);
             $tokens = $tokens->withoutWhitespace();
+
         } catch (UnlexableSqlException $exception) {
             echo $exception->asciiLocationDump();
 
@@ -63,7 +64,7 @@ final class SqlTokenizerClassTest extends TestCase
         /** @var SqlTokenInstance $token */
         foreach ($tokens as $index => $token) {
             $actualLines[] = sprintf(
-                "%d,%d,%s",
+                '%d,%d,%s',
                 $token->line(),
                 $token->offset(),
                 $token->token()->name()
@@ -78,7 +79,7 @@ final class SqlTokenizerClassTest extends TestCase
     public function dataProvider(): array
     {
         /** @var array<string> $sqlFiles */
-        $sqlFiles = glob(sprintf("%s/%s/*.sql", __DIR__, self::DATA_FOLDER_NAME));
+        $sqlFiles = glob(sprintf('%s/%s/*.sql', __DIR__, self::DATA_FOLDER_NAME));
 
         /** @var array<string, array{0:string, 1:int, 2:int, 3:array<AbstractSqlToken>}> $dataSets */
         $dataSets = array();
@@ -87,7 +88,7 @@ final class SqlTokenizerClassTest extends TestCase
         foreach ($sqlFiles as $sqlFile) {
 
             /** @var string $tokenFile */
-            $tokenFile = $sqlFile . ".tokens";
+            $tokenFile = $sqlFile . '.tokens';
 
             if (file_exists($tokenFile)) {
                 $dataSets[basename($tokenFile)] = [
@@ -106,7 +107,7 @@ final class SqlTokenizerClassTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
 
         /** @psalm-suppress InvalidArgument */
-        new SqlTokensClass(['foo'], "");
+        new SqlTokensClass(['foo'], '');
     }
 
     /** @param array<int, AbstractSqlToken> $tokens */

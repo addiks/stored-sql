@@ -6,21 +6,18 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Parsing;
 
-use Addiks\StoredSQL\Lexing\SqlTokens;
-use Addiks\StoredSQL\Lexing\SqlToken;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\MutableSqlAstNode;
-use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
 use Addiks\StoredSQL\Lexing\SqlTokenizer;
 use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
+use Addiks\StoredSQL\Lexing\SqlTokens;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstColumnNode;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstTokenNode;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
+use Closure;
+use Webmozart\Assert\Assert;
 
 final class SqlParserClass implements SqlParser
 {
@@ -55,44 +52,7 @@ final class SqlParserClass implements SqlParser
     public static function defaultMutators(): array
     {
         return array(
-            function (SqlAstNode $node, int $offset, MutableSqlAstNode $parent) {
-
-                if ($node instanceof SqlAstTokenNode && $node->token()->is(SqlToken::SYMBOL())) {
-
-                    /** @var int $length */
-                    $length = 1;
-
-                    /** @var string $column */
-                    $column = $node->token()->code();
-
-                    /** @var string|null $table */
-                    $table = null;
-
-                    /** @var string|null $database */
-                    $database = null;
-
-                    if ($parent[$offset + 1]->is(SqlToken::DOT()) && $parent[$offset + 2]->is(SqlToken::SYMBOL())) {
-                        $length += 2;
-
-                        $table = $column;
-                        $column = $parent[$offset + 2]->token()->code();
-
-                        if ($parent[$offset + 3]->is(SqlToken::DOT()) && $parent[$offset + 4]->is(SqlToken::SYMBOL())) {
-                            $length += 2;
-
-                            $database = $table;
-                            $table = $column;
-                            $column = $parent[$offset + 4]->token()->code();
-                        }
-                    }
-
-                    $parent->replace($offset, $length, new SqlAstColumnNode(
-                        $column,
-                        $table,
-                        $database
-                    ));
-                }
-            }
+            Closure::fromCallable([SqlAstColumnNode::class, 'mutateAstNode']),
         );
     }
 

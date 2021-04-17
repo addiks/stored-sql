@@ -23,6 +23,8 @@
         "infection/infection": "^0.21.4",
         "friendsofphp/php-cs-fixer": "^2.18",
         "addiks/more-php-cs-fixers": "^0.1.0",
-        "kubawerlos/php-cs-fixer-custom-fixers": "^2.4"
+        "kubawerlos/php-cs-fixer-custom-fixers": "^2.4",
+        "phpstan/phpstan-webmozart-assert": "^0.12.12",
+        "symfony/yaml": "^5.2"
     }
 }

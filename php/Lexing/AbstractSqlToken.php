@@ -6,17 +6,14 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Lexing;
 
 use DASPRiD\Enum\AbstractEnum;
-use Addiks\StoredSQL\Exception\UnlexableSqlException;
-use Addiks\StoredSQL\Lexing\SqlTokens;
-use Addiks\StoredSQL\Lexing\SqlTokensClass;
-use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
+
+
 
 /**
  * If you want to extend the tokenizing capabilities and / or build your own tokenizer that knows about other
@@ -25,6 +22,7 @@ use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
  *
  * If you just want to add a few tokens without any special new mechanics,
  * then you can simply use a custom keywords-mapping with the default tokenizer.
+ *
  * @see SqlTokenizerClass::defaultKeywords()
  */
 abstract class AbstractSqlToken extends AbstractEnum

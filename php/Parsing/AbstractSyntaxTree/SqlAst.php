@@ -6,22 +6,18 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
-use Iterator;
 use ArrayIterator;
-use Webmozart\Assert\Assert;
-use Closure;
 use ErrorException;
+use Iterator;
+use Webmozart\Assert\Assert;
 
 abstract class SqlAst implements MutableSqlAstNode
 {
-
     /** @var array<SqlAstNode> $children */
     private array $children;
 
@@ -50,7 +46,7 @@ abstract class SqlAst implements MutableSqlAstNode
             return $child->hash();
         }, $this->children);
 
-        return md5(implode(".", $childHashes));
+        return md5(implode('.', $childHashes));
     }
 
     public function walk(array $mutators = array()): void
@@ -69,7 +65,7 @@ abstract class SqlAst implements MutableSqlAstNode
                         $callback($child, $offset, $this);
                         $child->walk($mutators);
                     }
-                };
+                }
             }
         } while ($hashBefore !== $this->hash());
     }
@@ -95,6 +91,7 @@ abstract class SqlAst implements MutableSqlAstNode
     {
         return new ArrayIterator($this->children());
     }
+
     /** @param int $offset */
     public function offsetGet($offset): ?SqlAstNode
     {
@@ -125,6 +122,6 @@ abstract class SqlAst implements MutableSqlAstNode
     /** @param int $offset */
     public function offsetUnset($offset): void
     {
-        throw new ErrorException(sprintf("Objects of %s are immutable!", __CLASS__));
+        throw new ErrorException(sprintf('Objects of %s are immutable!', __CLASS__));
     }
 }

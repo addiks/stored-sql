@@ -1,0 +1,4 @@
+parameters:
+    phpVersion: 70400
+includes:
+    - vendor/phpstan/phpstan-webmozart-assert/extension.neon

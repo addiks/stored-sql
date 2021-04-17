@@ -6,19 +6,18 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAst;
+use Addiks\StoredSQL\Lexing\SqlTokens;
 
 final class SqlAstRoot extends SqlAst
 {
-
     private SqlTokens $tokens;
 
+    /** @param array<SqlAstNode> $children */
     public function __construct(array $children, SqlTokens $tokens)
     {
         parent::__construct($children);
@@ -30,5 +29,4 @@ final class SqlAstRoot extends SqlAst
     {
         return $this->tokens;
     }
-
 }

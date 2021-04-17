@@ -6,18 +6,15 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
+use Addiks\StoredSQL\Lexing\AbstractSqlToken;
+use Addiks\StoredSQL\Lexing\SqlTokenInstance;
 use ArrayIterator;
 use Iterator;
-use Addiks\StoredSQL\Lexing\SqlTokenInstance;
-use ErrorException;
-use Addiks\StoredSQL\Lexing\SqlTokens;
 
 final class SqlAstTokenNode implements SqlAstNode
 {
@@ -33,6 +30,11 @@ final class SqlAstTokenNode implements SqlAstNode
         return $this->token;
     }
 
+    public function is(AbstractSqlToken $token): bool
+    {
+        return $this->token->is($token);
+    }
+
     public function children(): array
     {
         return [];
@@ -41,7 +43,7 @@ final class SqlAstTokenNode implements SqlAstNode
     public function hash(): string
     {
         return sprintf(
-            "%d:%d:%s",
+            '%d:%d:%s',
             $this->token->line(),
             $this->token->offset(),
             $this->token->token()->name()

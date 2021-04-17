@@ -6,7 +6,6 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
@@ -17,7 +16,9 @@ use Exception;
 final class UnlexableSqlException extends Exception
 {
     private string $sql;
+
     private int $sqlLine;
+
     private int $sqlOffset;
 
     public function __construct(string $sql, int $line, int $offset)
@@ -27,10 +28,15 @@ final class UnlexableSqlException extends Exception
         $this->sqlOffset = $offset;
 
         parent::__construct(sprintf(
-            "There was an error while lexing the given SQL code at line %d, offset %d!",
+            'There was an error while lexing the given SQL code at line %d, offset %d!',
             $line + 1,
             $offset
         ));
+    }
+
+    public function __toString(): string
+    {
+        return parent::__toString() . $this->asciiLocationDump();
     }
 
     public function sql(): string
@@ -48,11 +54,6 @@ final class UnlexableSqlException extends Exception
         return $this->sqlOffset;
     }
 
-    public function __toString(): string
-    {
-        return parent::__toString() . $this->asciiLocationDump();
-    }
-
     public function asciiLocationDump(): string
     {
         /** @var array<string> $lines */
@@ -63,16 +64,17 @@ final class UnlexableSqlException extends Exception
         foreach ($lines as $lineIndex => &$line) {
             if ($lineIndex === $this->sqlLine) {
                 $line = " \u{2192} " . $line . " \u{2190}";
+
             } else {
-                $line = "   " . $line;
+                $line = '   ' . $line;
             }
         }
 
         return sprintf(
             "\n\n%s\n%s\n%s\n",
-            str_pad("\u{2193}", $this->sqlOffset + 6, " ", STR_PAD_LEFT),
+            str_pad("\u{2193}", $this->sqlOffset + 6, ' ', STR_PAD_LEFT),
             implode("\n", $lines),
-            str_pad("\u{2191}", $this->sqlOffset + 6, " ", STR_PAD_LEFT)
+            str_pad("\u{2191}", $this->sqlOffset + 6, ' ', STR_PAD_LEFT)
         );
     }
 }

@@ -6,20 +6,16 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
-use IteratorAggregate;
 use ArrayAccess;
 
 /** @extends ArrayAccess<int, SqlAstNode> */
-interface MutableSqlAstNode extends SqlAstNode, ArrayAccess
+interface MutableSqlAstNode extends ArrayAccess, SqlAstNode
 {
-
     /**
      * Executes the given callback for every child-node in this AST recursively.
      * If AST was modified during execution, the callback will also be executed for any newly added nodes.
