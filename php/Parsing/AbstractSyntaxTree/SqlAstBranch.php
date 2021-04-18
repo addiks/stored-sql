@@ -16,7 +16,7 @@ use ErrorException;
 use Iterator;
 use Webmozart\Assert\Assert;
 
-abstract class SqlAst implements MutableSqlAstNode
+abstract class SqlAstBranch implements SqlAstMutableNode
 {
     /** @var array<SqlAstNode> $children */
     private array $children;
@@ -61,7 +61,7 @@ abstract class SqlAst implements MutableSqlAstNode
 
                 /** SqlAstNode $child */
                 foreach ($this->children as $offset => $child) {
-                    if ($child instanceof MutableSqlAstNode) {
+                    if ($child instanceof SqlAstMutableNode) {
                         $callback($child, $offset, $this);
                         $child->walk($mutators);
                     }

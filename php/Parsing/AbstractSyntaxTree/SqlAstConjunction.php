@@ -39,7 +39,7 @@ final class SqlAstConjunction implements SqlAstExpression
     public static function mutateAstNode(
         SqlAstNode $node,
         int $offset,
-        MutableSqlAstNode $parent
+        SqlAstMutableNode $parent
     ): void {
     }
 

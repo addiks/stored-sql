@@ -13,7 +13,7 @@ namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlTokens;
 
-final class SqlAstRootClass extends SqlAst implements SqlAstRoot
+final class SqlAstRootClass extends SqlAstBranch implements SqlAstRoot
 {
     private SqlTokens $tokens;
 

@@ -14,9 +14,9 @@ namespace Addiks\StoredSQL\Tests\Unit\Parsing;
 use Addiks\StoredSQL\Lexing\SqlTokenizer;
 use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
 use Addiks\StoredSQL\Lexing\SqlTokens;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstColumnNode;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstColumn;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstConjunction;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstOperationNode;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstOperation;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
 use Addiks\StoredSQL\Parsing\SqlParserClass;
 use Closure;
@@ -75,8 +75,8 @@ final class SqlParserClassTest extends TestCase
     public function shouldProvideDefaultMutators(): void
     {
         $this->assertEquals([
-            Closure::fromCallable([SqlAstColumnNode::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstOperationNode::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstColumn::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstOperation::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstConjunction::class, 'mutateAstNode']),
         ], SqlParserClass::defaultMutators());
     }

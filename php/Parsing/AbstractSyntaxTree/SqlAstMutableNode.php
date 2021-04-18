@@ -14,7 +14,7 @@ namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 use ArrayAccess;
 
 /** @extends ArrayAccess<int, SqlAstNode> */
-interface MutableSqlAstNode extends ArrayAccess, SqlAstNode
+interface SqlAstMutableNode extends ArrayAccess, SqlAstNode
 {
     /**
      * Executes the given callback for every child-node in this AST recursively.

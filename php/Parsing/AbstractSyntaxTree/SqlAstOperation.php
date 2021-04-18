@@ -15,7 +15,7 @@ use Addiks\StoredSQL\Lexing\SqlToken;
 use ArrayIterator;
 use Iterator;
 
-final class SqlAstOperationNode implements SqlAstExpression
+final class SqlAstOperation implements SqlAstExpression
 {
     private SqlAstExpression $leftSide;
 
@@ -36,7 +36,7 @@ final class SqlAstOperationNode implements SqlAstExpression
     public static function mutateAstNode(
         SqlAstNode $node,
         int $offset,
-        MutableSqlAstNode $parent
+        SqlAstMutableNode $parent
     ): void {
         if ($node instanceof SqlAstExpression) {
             /** @var SqlAstExpression $leftSide */
@@ -50,7 +50,7 @@ final class SqlAstOperationNode implements SqlAstExpression
 
             if ($operator instanceof SqlAstTokenNode && $operator->is(SqlToken::OPERATOR())) {
                 if ($rightSide instanceof SqlAstExpression) {
-                    $parent->replace($offset, 3, new SqlAstOperationNode(
+                    $parent->replace($offset, 3, new SqlAstOperation(
                         $leftSide,
                         $operator,
                         $rightSide

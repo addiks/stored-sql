@@ -16,7 +16,7 @@ use ArrayIterator;
 use Iterator;
 use Webmozart\Assert\Assert;
 
-final class SqlAstColumnNode implements SqlAstExpression
+final class SqlAstColumn implements SqlAstExpression
 {
     private string $column;
 
@@ -37,7 +37,7 @@ final class SqlAstColumnNode implements SqlAstExpression
     public static function mutateAstNode(
         SqlAstNode $node,
         int $offset,
-        MutableSqlAstNode $parent
+        SqlAstMutableNode $parent
     ): void {
         if ($node instanceof SqlAstTokenNode && $node->token()->is(SqlToken::SYMBOL())) {
 
@@ -83,7 +83,7 @@ final class SqlAstColumnNode implements SqlAstExpression
                 }
             }
 
-            $parent->replace($offset, $length, new SqlAstColumnNode(
+            $parent->replace($offset, $length, new SqlAstColumn(
                 $column,
                 $table,
                 $database
