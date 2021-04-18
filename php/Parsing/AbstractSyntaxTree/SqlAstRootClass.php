@@ -13,8 +13,20 @@ namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlTokens;
 
-
-interface SqlAstRoot extends MutableSqlAstNode
+final class SqlAstRootClass extends SqlAst implements SqlAstRoot
 {
-    public function tokens(): SqlTokens;
+    private SqlTokens $tokens;
+
+    /** @param array<SqlAstNode> $children */
+    public function __construct(array $children, SqlTokens $tokens)
+    {
+        parent::__construct($children);
+
+        $this->tokens = $tokens;
+    }
+
+    public function tokens(): SqlTokens
+    {
+        return $this->tokens;
+    }
 }

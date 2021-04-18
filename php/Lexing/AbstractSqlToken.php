@@ -13,8 +13,6 @@ namespace Addiks\StoredSQL\Lexing;
 
 use DASPRiD\Enum\AbstractEnum;
 
-
-
 /**
  * If you want to extend the tokenizing capabilities and / or build your own tokenizer that knows about other
  * tokens then the ones this package ships with, then create a new sql-token enumeration class that inherits from this

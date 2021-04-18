@@ -12,6 +12,7 @@
 namespace Addiks\StoredSQL\Lexing;
 
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRootClass;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstTokenNode;
 use ArrayIterator;
 use ErrorException;
@@ -45,7 +46,7 @@ final class SqlTokensClass implements SqlTokens
             return new SqlAstTokenNode($token);
         }, $this->tokens);
 
-        return new SqlAstRoot($tokenNodes, $this);
+        return new SqlAstRootClass($tokenNodes, $this);
     }
 
     public function withoutWhitespace(): SqlTokens

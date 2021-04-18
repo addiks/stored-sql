@@ -76,12 +76,13 @@ final class SqlTokenizerClassTest extends TestCase
         $this->assertEquals($expectedDump, $actualDump);
     }
 
+    /** @return array<string, array{0:string, 1:string}> */
     public function dataProvider(): array
     {
         /** @var array<string> $sqlFiles */
         $sqlFiles = glob(sprintf('%s/%s/*.sql', __DIR__, self::DATA_FOLDER_NAME));
 
-        /** @var array<string, array{0:string, 1:int, 2:int, 3:array<AbstractSqlToken>}> $dataSets */
+        /** @var array<string, array{0:string, 1:string}> $dataSets */
         $dataSets = array();
 
         /** @var string $sqlFile */

@@ -11,8 +11,6 @@
 
 namespace Addiks\StoredSQL\Lexing;
 
-
-
 /**
  * @method static self SPACE()
  * @method static self COMMENT()
@@ -20,7 +18,7 @@ namespace Addiks\StoredSQL\Lexing;
  * @method static self SYMBOL()
  * @method static self LITERAL()
  * @method static self NUMERIC()
- * @method static self EQUALS()
+ * @method static self OPERATOR()
  * @method static self BRACKET_OPENING()
  * @method static self BRACKET_CLOSING()
  * @method static self COMMA()
@@ -33,6 +31,9 @@ namespace Addiks\StoredSQL\Lexing;
  * @method static self ON()
  * @method static self USING()
  * @method static self WHERE()
+ * @method static self IN()
+ * @method static self AND()
+ * @method static self OR()
  * @method static self HAVING()
  * @method static self LIMIT()
  * @method static self ORDER_BY()
@@ -61,7 +62,7 @@ final class SqlToken extends AbstractSqlToken
     protected const SYMBOL = null;
     protected const LITERAL = null;
     protected const NUMERIC = null;
-    protected const EQUALS = null;
+    protected const OPERATOR = null;
 
     protected const BRACKET_OPENING = null;
     protected const BRACKET_CLOSING = null;
@@ -76,6 +77,9 @@ final class SqlToken extends AbstractSqlToken
     protected const ON = null;
     protected const USING = null;
     protected const WHERE = null;
+    protected const IN = null;
+    protected const AND = null;
+    protected const OR = null;
     protected const HAVING = null;
     protected const LIMIT = null;
     protected const ORDER_BY = null;

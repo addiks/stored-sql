@@ -11,10 +11,6 @@
 
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
-use Addiks\StoredSQL\Lexing\SqlTokens;
-
-
-interface SqlAstRoot extends MutableSqlAstNode
+interface SqlAstExpression extends SqlAstNode
 {
-    public function tokens(): SqlTokens;
 }

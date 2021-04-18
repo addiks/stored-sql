@@ -16,7 +16,7 @@ use ArrayIterator;
 use Iterator;
 use Webmozart\Assert\Assert;
 
-final class SqlAstColumnNode implements SqlAstNode
+final class SqlAstColumnNode implements SqlAstExpression
 {
     private string $column;
 
