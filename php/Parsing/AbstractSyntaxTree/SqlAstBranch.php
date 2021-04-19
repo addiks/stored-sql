@@ -61,8 +61,13 @@ abstract class SqlAstBranch implements SqlAstMutableNode
 
                 /** SqlAstNode $child */
                 foreach ($this->children as $offset => $child) {
+                    $callback($child, $offset, $this);
+
+                    if ($hashBefore !== $this->hash()) {
+                        break;
+                    }
+
                     if ($child instanceof SqlAstMutableNode) {
-                        $callback($child, $offset, $this);
                         $child->walk($mutators);
                     }
                 }
@@ -77,7 +82,7 @@ abstract class SqlAstBranch implements SqlAstMutableNode
     ): void {
         Assert::greaterThanEq($offset, 0);
         Assert::greaterThanEq($length, 0);
-        Assert::lessThan($offset + $length, count($this->children));
+        Assert::lessThanEq($offset + $length, count($this->children));
 
         $this->children = array_merge(
             array_slice($this->children, 0, $offset),

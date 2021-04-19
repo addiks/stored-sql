@@ -11,7 +11,10 @@
 
 namespace Addiks\StoredSQL\Parsing;
 
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
+
 interface SqlParser
 {
-    public function parseSql(string $sql): void;
+    /** @return array<SqlAstNode> */
+    public function parseSql(string $sql): array;
 }

@@ -20,6 +20,7 @@ use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstOperation;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
 use Closure;
 use Webmozart\Assert\Assert;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstLiteral;
 
 final class SqlParserClass implements SqlParser
 {
@@ -54,13 +55,14 @@ final class SqlParserClass implements SqlParser
     public static function defaultMutators(): array
     {
         return array(
+            Closure::fromCallable([SqlAstLiteral::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstColumn::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstOperation::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstConjunction::class, 'mutateAstNode']),
         );
     }
 
-    public function parseSql(string $sql): void
+    public function parseSql(string $sql): array
     {
         /** @var SqlTokens $tokens */
         $tokens = $this->tokenizer->tokenize($sql);
@@ -72,6 +74,13 @@ final class SqlParserClass implements SqlParser
         $syntaxTree = $tokens->convertToSyntaxTree();
 
         $syntaxTree->walk($this->mutators);
+
+        /** @var array<SqlAstNode> $detectedContent */
+        $detectedContent = $syntaxTree->children();
+
+        # TODO: make sure all detected nodes are "final" nodes (like a select statement)
+
+        return $detectedContent;
     }
 
     public function tokenizer(): SqlTokenizer

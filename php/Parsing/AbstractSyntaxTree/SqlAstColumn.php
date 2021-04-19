@@ -69,7 +69,7 @@ final class SqlAstColumn implements SqlAstExpression
                     $dot = $parent[$offset + 3];
 
                     if ($dot instanceof SqlAstTokenNode && $dot->is(SqlToken::DOT())) {
-                        $node = $parent[$offset + 2];
+                        $node = $parent[$offset + 4];
                         Assert::isInstanceOf($node, SqlAstTokenNode::class);
 
                         if ($node->is(SqlToken::SYMBOL())) {
@@ -81,13 +81,13 @@ final class SqlAstColumn implements SqlAstExpression
                         }
                     }
                 }
-            }
 
-            $parent->replace($offset, $length, new SqlAstColumn(
-                $column,
-                $table,
-                $database
-            ));
+                $parent->replace($offset, $length, new SqlAstColumn(
+                    $column,
+                    $table,
+                    $database
+                ));
+            }
         }
     }
 

@@ -48,8 +48,16 @@ final class SqlAstOperation implements SqlAstExpression
             /** @var SqlAstNode $rightSide */
             $rightSide = $parent[$offset + 2];
 
-            if ($operator instanceof SqlAstTokenNode && $operator->is(SqlToken::OPERATOR())) {
-                if ($rightSide instanceof SqlAstExpression) {
+            if ($operator instanceof SqlAstTokenNode && $rightSide instanceof SqlAstExpression) {
+
+                /** @var bool $isOperator */
+                $isOperator = max(
+                    $operator->is(SqlToken::OPERATOR()),
+                    $operator->is(SqlToken::LIKE()),
+                    $operator->is(SqlToken::IS()),
+                );
+
+                if ($isOperator) {
                     $parent->replace($offset, 3, new SqlAstOperation(
                         $leftSide,
                         $operator,

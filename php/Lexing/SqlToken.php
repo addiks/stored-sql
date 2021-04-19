@@ -32,11 +32,14 @@ namespace Addiks\StoredSQL\Lexing;
  * @method static self USING()
  * @method static self WHERE()
  * @method static self IN()
+ * @method static self IS()
  * @method static self AND()
  * @method static self OR()
+ * @method static self LIKE()
  * @method static self HAVING()
  * @method static self LIMIT()
- * @method static self ORDER_BY()
+ * @method static self ORDER()
+ * @method static self BY()
  * @method static self DISTINCT()
  * @method static self FUNCTION_NAME()
  * @method static self UPDATE()
@@ -49,7 +52,8 @@ namespace Addiks\StoredSQL\Lexing;
  * @method static self KEY()
  * @method static self CREATE()
  * @method static self DATA_TYPE()
- * @method static self NOT_NULL()
+ * @method static self NOT()
+ * @method static self T_NULL()
  * @method static self PRIMARY_KEY()
  * @method static self SET()
  * @method static self SHOW()
@@ -78,11 +82,14 @@ final class SqlToken extends AbstractSqlToken
     protected const USING = null;
     protected const WHERE = null;
     protected const IN = null;
+    protected const IS = null;
     protected const AND = null;
     protected const OR = null;
+    protected const LIKE = null;
     protected const HAVING = null;
     protected const LIMIT = null;
-    protected const ORDER_BY = null;
+    protected const ORDER = null;
+    protected const BY = null;
     protected const DISTINCT = null;
     protected const FUNCTION_NAME = null;
 
@@ -99,7 +106,8 @@ final class SqlToken extends AbstractSqlToken
 
     protected const CREATE = null;
     protected const DATA_TYPE = null;
-    protected const NOT_NULL = null;
+    protected const NOT = null;
+    protected const T_NULL = null;
     protected const PRIMARY_KEY = null;
 
     protected const SET = null;

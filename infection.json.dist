@@ -6,5 +6,6 @@
     },
     "mutators": {
         "@default": true
-    }
+    },
+    "testFrameworkOptions": "--testsuite=unit"
 }
