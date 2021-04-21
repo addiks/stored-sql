@@ -6,22 +6,27 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
+ *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Lexing;
+namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
-interface SqlTokenInstance
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
+
+final class SqlAstFrom implements SqlAstNode
 {
-    public function code(): string;
 
-    public function token(): AbstractSqlToken;
+    public function __construct()
+    {
 
-    public function is(AbstractSqlToken $token): bool;
+    }
 
-    public function isCode(string $code): bool;
+    public function children(): array
+    {
+    }
 
-    public function line(): int;
-
-    public function offset(): int;
+    public function hash(): string
+    {
+    }
 }

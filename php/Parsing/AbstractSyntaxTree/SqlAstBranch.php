@@ -91,12 +91,6 @@ abstract class SqlAstBranch implements SqlAstMutableNode
         );
     }
 
-    /** @return Iterator<SqlAstNode> */
-    public function getIterator(): Iterator
-    {
-        return new ArrayIterator($this->children());
-    }
-
     /** @param int $offset */
     public function offsetGet($offset): ?SqlAstNode
     {

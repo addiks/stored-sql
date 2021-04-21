@@ -21,6 +21,9 @@ use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
 use Closure;
 use Webmozart\Assert\Assert;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstLiteral;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstWhereCondition;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstOrderBy;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstParenthesis;
 
 final class SqlParserClass implements SqlParser
 {
@@ -59,6 +62,9 @@ final class SqlParserClass implements SqlParser
             Closure::fromCallable([SqlAstColumn::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstOperation::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstConjunction::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstWhereCondition::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstOrderBy::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstParenthesis::class, 'mutateAstNode']),
         );
     }
 

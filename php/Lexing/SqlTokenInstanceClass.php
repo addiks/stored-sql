@@ -44,6 +44,11 @@ final class SqlTokenInstanceClass implements SqlTokenInstance
         return $this->token === $token;
     }
 
+    public function isCode(string $code): bool
+    {
+        return $this->code === $code;
+    }
+
     public function line(): int
     {
         return $this->line;

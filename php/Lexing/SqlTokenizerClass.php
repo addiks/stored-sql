@@ -108,6 +108,8 @@ final class SqlTokenizerClass implements SqlTokenizer
             'AND' => SqlToken::AND(),
             'ORDER' => SqlToken::ORDER(),
             'BY' => SqlToken::BY(),
+            'ASC' => SqlToken::ASC(),
+            'DESC' => SqlToken::DESC(),
             'OR' => SqlToken::OR(),
             'LIKE' => SqlToken::LIKE(),
             'USING' => SqlToken::USING(),

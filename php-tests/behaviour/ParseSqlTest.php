@@ -32,7 +32,7 @@ final class ParseSqlTest extends TestCase
             WHERE f.name LIKE '%.pdf'
             AND f.type = 'symbolic'
             OR f.foo IS NULL
-            ORDER BY f.size DESC
+            ORDER BY f.size DESC, f.owner ASC
         ");
 
         var_dump($detectedContent);

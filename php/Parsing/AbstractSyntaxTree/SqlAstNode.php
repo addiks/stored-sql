@@ -13,8 +13,7 @@ namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
 use IteratorAggregate;
 
-/** @extends IteratorAggregate<SqlAstNode> */
-interface SqlAstNode extends IteratorAggregate
+interface SqlAstNode
 {
     /** @return array<self> */
     public function children(): array;

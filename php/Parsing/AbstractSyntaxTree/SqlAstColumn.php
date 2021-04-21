@@ -105,10 +105,4 @@ final class SqlAstColumn implements SqlAstExpression
             $this->column
         );
     }
-
-    /** @return Iterator<SqlAstNode> */
-    public function getIterator(): Iterator
-    {
-        return new ArrayIterator($this->children());
-    }
 }

@@ -86,10 +86,4 @@ final class SqlAstOperation implements SqlAstExpression
             $this->rightSide->hash()
         );
     }
-
-    /** @return Iterator<SqlAstNode> */
-    public function getIterator(): Iterator
-    {
-        return new ArrayIterator($this->children());
-    }
 }

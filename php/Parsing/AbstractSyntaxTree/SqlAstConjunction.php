@@ -91,10 +91,4 @@ final class SqlAstConjunction implements SqlAstExpression
     {
         return '';
     }
-
-    /** @return Iterator<SqlAstNode> */
-    public function getIterator(): Iterator
-    {
-        return new ArrayIterator($this->children());
-    }
 }

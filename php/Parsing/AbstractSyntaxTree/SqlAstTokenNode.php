@@ -35,6 +35,11 @@ final class SqlAstTokenNode implements SqlAstNode
         return $this->token->is($token);
     }
 
+    public function isCode(string $code): bool
+    {
+        return $this->token->isCode($code);
+    }
+
     public function children(): array
     {
         return [];
@@ -48,11 +53,5 @@ final class SqlAstTokenNode implements SqlAstNode
             $this->token->offset(),
             $this->token->token()->name()
         );
-    }
-
-    /** @return Iterator<SqlAstNode> */
-    public function getIterator(): Iterator
-    {
-        return new ArrayIterator([]);
     }
 }

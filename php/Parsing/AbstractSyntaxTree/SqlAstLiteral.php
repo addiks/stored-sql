@@ -59,10 +59,4 @@ final class SqlAstLiteral implements SqlAstExpression
     {
         return $this->literal->hash();
     }
-
-    /** @return Iterator<SqlAstNode> */
-    public function getIterator(): Iterator
-    {
-        return new ArrayIterator($this->children());
-    }
 }

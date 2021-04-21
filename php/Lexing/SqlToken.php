@@ -40,6 +40,8 @@ namespace Addiks\StoredSQL\Lexing;
  * @method static self LIMIT()
  * @method static self ORDER()
  * @method static self BY()
+ * @method static self ASC()
+ * @method static self DESC()
  * @method static self DISTINCT()
  * @method static self FUNCTION_NAME()
  * @method static self UPDATE()
@@ -90,6 +92,8 @@ final class SqlToken extends AbstractSqlToken
     protected const LIMIT = null;
     protected const ORDER = null;
     protected const BY = null;
+    protected const ASC = null;
+    protected const DESC = null;
     protected const DISTINCT = null;
     protected const FUNCTION_NAME = null;
 
