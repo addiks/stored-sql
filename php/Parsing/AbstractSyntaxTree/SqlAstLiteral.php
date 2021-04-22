@@ -12,10 +12,6 @@
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
-use ArrayIterator;
-use Iterator;
-use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstTokenNode;
 use Addiks\StoredSQL\Lexing\SqlTokenInstance;
 
 final class SqlAstLiteral implements SqlAstExpression

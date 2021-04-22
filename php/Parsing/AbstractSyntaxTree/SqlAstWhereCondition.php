@@ -6,23 +6,16 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstExpression;
-use ArrayIterator;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstMutableNode;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstTokenNode;
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
 
 final class SqlAstWhereCondition implements SqlAstNode
 {
-
     private SqlAstExpression $expression;
 
     public function __construct(SqlAstExpression $expression)
@@ -54,5 +47,4 @@ final class SqlAstWhereCondition implements SqlAstNode
     {
         return $this->expression->hash();
     }
-
 }

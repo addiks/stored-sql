@@ -16,14 +16,15 @@ use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
 use Addiks\StoredSQL\Lexing\SqlTokens;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstColumn;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstConjunction;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstOperation;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
-use Closure;
-use Webmozart\Assert\Assert;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstLiteral;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstWhereCondition;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstOperation;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstOrderBy;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstParenthesis;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstWhereCondition;
+use Closure;
+use Webmozart\Assert\Assert;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstFrom;
 
 final class SqlParserClass implements SqlParser
 {
@@ -65,6 +66,7 @@ final class SqlParserClass implements SqlParser
             Closure::fromCallable([SqlAstWhereCondition::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstOrderBy::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstParenthesis::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstFrom::class, 'mutateAstNode']),
         );
     }
 

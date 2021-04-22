@@ -6,22 +6,16 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstExpression;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstMutableNode;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstTokenNode;
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
 
 final class SqlAstParenthesis implements SqlAstExpression
 {
-
     private SqlAstExpression $expression;
 
     public function __construct(SqlAstExpression $expression)
@@ -37,6 +31,8 @@ final class SqlAstParenthesis implements SqlAstExpression
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::BRACKET_OPENING())) {
             /** @var mixed $expression */
             $expression = $parent[$offset + 1];
+
+            # TODO: also allow SELECT in here, for sub-selects
 
             Assert::isInstanceOf($expression, SqlAstExpression::class);
 
@@ -59,5 +55,4 @@ final class SqlAstParenthesis implements SqlAstExpression
     {
         return $this->expression->hash();
     }
-
 }

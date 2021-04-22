@@ -11,11 +11,8 @@
 
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
-use ArrayIterator;
-use Iterator;
-use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstTokenNode;
 use Addiks\StoredSQL\Lexing\SqlToken;
+use Webmozart\Assert\Assert;
 
 final class SqlAstConjunction implements SqlAstExpression
 {

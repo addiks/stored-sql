@@ -93,8 +93,8 @@ final class SqlTokenizerClassTest extends TestCase
 
             if (file_exists($tokenFile)) {
                 $dataSets[basename($tokenFile)] = [
-                    (string)file_get_contents($sqlFile),
-                    trim((string)file_get_contents($tokenFile)),
+                    (string) file_get_contents($sqlFile),
+                    trim((string) file_get_contents($tokenFile)),
                 ];
             }
         }

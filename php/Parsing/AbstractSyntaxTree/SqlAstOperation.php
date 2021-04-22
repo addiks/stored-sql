@@ -12,8 +12,6 @@
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
-use ArrayIterator;
-use Iterator;
 
 final class SqlAstOperation implements SqlAstExpression
 {

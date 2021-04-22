@@ -4,20 +4,20 @@
  * This package (including this file) was released under the terms of the GPL-3.0.
  * You should have received a copy of the GNU General Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
+ *
  * @license GPL-3.0
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks;
 
-use PHPUnit\Framework\TestCase;
-use Addiks\StoredSQL\Parsing\SqlParserClass;
-use Addiks\StoredSQL\Parsing\SqlParser;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
+use Addiks\StoredSQL\Parsing\SqlParser;
+use Addiks\StoredSQL\Parsing\SqlParserClass;
+use PHPUnit\Framework\TestCase;
 
 final class ParseSqlTest extends TestCase
 {
-
     /** @test */
     public function shouldParseSomeSql(): void
     {
@@ -37,5 +37,4 @@ final class ParseSqlTest extends TestCase
 
         var_dump($detectedContent);
     }
-
 }

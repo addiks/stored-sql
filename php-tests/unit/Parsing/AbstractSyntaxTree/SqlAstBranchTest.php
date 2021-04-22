@@ -4,22 +4,21 @@
  * This package (including this file) was released under the terms of the GPL-3.0.
  * You should have received a copy of the GNU General Public License along with this program.
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
+ *
  * @license GPL-3.0
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Tests\Unit\Parsing\AbstractSyntaxTree;
 
-use PHPUnit\Framework\TestCase;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstBranch;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstMutableNode;
-use Closure;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 
 final class SqlAstBranchTest extends TestCase
 {
-
     private SqlAstBranch $subject;
 
     /** @var MockObject&SqlAstNode $childA */
@@ -38,7 +37,7 @@ final class SqlAstBranchTest extends TestCase
         $this->childC = $this->createMock(SqlAstNode::class);
 
         $this->subject = $this->getMockForAbstractClass(SqlAstBranch::class, [
-            [$this->childA, $this->childB, $this->childC]
+            [$this->childA, $this->childB, $this->childC],
         ]);
     }
 
@@ -57,11 +56,11 @@ final class SqlAstBranchTest extends TestCase
      */
     public function shouldGenerateHash(): void
     {
-        $this->childA->method('hash')->willReturn("hashA");
-        $this->childB->method('hash')->willReturn("hashB");
-        $this->childC->method('hash')->willReturn("hashC");
+        $this->childA->method('hash')->willReturn('hashA');
+        $this->childB->method('hash')->willReturn('hashB');
+        $this->childC->method('hash')->willReturn('hashC');
 
-        $this->assertSame(md5("hashA.hashB.hashC"), $this->subject->hash());
+        $this->assertSame(md5('hashA.hashB.hashC'), $this->subject->hash());
     }
 
     /**
@@ -107,6 +106,7 @@ final class SqlAstBranchTest extends TestCase
             if (is_string($input) && isset($this->{$input})) {
                 $input = $this->{$input};
             }
+
             return $input;
         }, $expectedChilds);
 
@@ -131,6 +131,4 @@ final class SqlAstBranchTest extends TestCase
             [3, 0, $newNode, ['childA', 'childB', 'childC', $newNode]],
         ];
     }
-
-
 }

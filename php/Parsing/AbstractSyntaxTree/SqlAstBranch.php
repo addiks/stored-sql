@@ -11,9 +11,7 @@
 
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
-use ArrayIterator;
 use ErrorException;
-use Iterator;
 use Webmozart\Assert\Assert;
 
 abstract class SqlAstBranch implements SqlAstMutableNode

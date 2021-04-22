@@ -13,8 +13,6 @@ namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\AbstractSqlToken;
 use Addiks\StoredSQL\Lexing\SqlTokenInstance;
-use ArrayIterator;
-use Iterator;
 
 final class SqlAstTokenNode implements SqlAstNode
 {

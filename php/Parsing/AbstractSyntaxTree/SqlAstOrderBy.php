@@ -6,22 +6,16 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstExpression;
-use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstTokenNode;
 use Addiks\StoredSQL\Lexing\SqlToken;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstMutableNode;
+use Webmozart\Assert\Assert;
 
 final class SqlAstOrderBy implements SqlAstNode
 {
-
     /** @var array<array{0:SqlAstExpression, 1:SqlAstTokenNode}> */
     private array $columns;
 
@@ -110,7 +104,6 @@ final class SqlAstOrderBy implements SqlAstNode
             return $child->hash();
         }, $this->children());
 
-        return md5(implode(".", $hashes));
+        return md5(implode('.', $hashes));
     }
-
 }
