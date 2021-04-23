@@ -51,25 +51,16 @@ final class SqlAstFrom implements SqlAstNode
 
     public function children(): array
     {
-        /** @var array<SqlAstNode> $children */
-        $children = [$this->tableName];
-
-        if (is_object($this->alias)) {
-            $children[] = $this->alias;
-        }
-
-        return $children;
+        return array_filter([
+            $this->tableName,
+            $this->alias,
+        ]);
     }
 
     public function hash(): string
     {
-        /** @var string $hash */
-        $hash = $this->tableName->hash();
-
-        if (is_object($this->alias)) {
-            $hash = md5($hash . $this->alias->hash());
-        }
-
-        return $hash;
+        return md5(implode('.', array_map(function (SqlAstNode $node) {
+            return $node->hash();
+        }, $this->children())));
     }
 }
