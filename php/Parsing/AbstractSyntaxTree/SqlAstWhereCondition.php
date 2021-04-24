@@ -16,10 +16,19 @@ use Webmozart\Assert\Assert;
 
 final class SqlAstWhereCondition implements SqlAstNode
 {
+    private SqlAstNode $parent;
+
+    private SqlAstTokenNode $whereToken;
+
     private SqlAstExpression $expression;
 
-    public function __construct(SqlAstExpression $expression)
-    {
+    public function __construct(
+        SqlAstNode $parent,
+        SqlAstTokenNode $whereToken,
+        SqlAstExpression $expression
+    ) {
+        $this->parent = $parent;
+        $this->whereToken = $whereToken;
         $this->expression = $expression;
     }
 
@@ -34,7 +43,7 @@ final class SqlAstWhereCondition implements SqlAstNode
 
             Assert::isInstanceOf($expression, SqlAstExpression::class);
 
-            $parent->replace($offset, 2, new SqlAstWhereCondition($expression));
+            $parent->replace($offset, 2, new SqlAstWhereCondition($parent, $node, $expression));
         }
     }
 
@@ -46,5 +55,25 @@ final class SqlAstWhereCondition implements SqlAstNode
     public function hash(): string
     {
         return $this->expression->hash();
+    }
+
+    public function parent(): ?SqlAstNode
+    {
+        return $this->parent;
+    }
+
+    public function root(): SqlAstRoot
+    {
+        return $this->parent->root();
+    }
+
+    public function line(): int
+    {
+        return $this->whereToken->line();
+    }
+
+    public function column(): int
+    {
+        return $this->whereToken->column();
     }
 }

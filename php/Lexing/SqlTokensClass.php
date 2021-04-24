@@ -41,12 +41,22 @@ final class SqlTokensClass implements SqlTokens
 
     public function convertToSyntaxTree(): SqlAstRoot
     {
+        /** @var SqlAstRootClass $root */
+        $root = new SqlAstRootClass([], $this);
+
         /** @var array<SqlAstTokenNode> $tokenNodes */
-        $tokenNodes = array_map(function (SqlTokenInstance $token) {
-            return new SqlAstTokenNode($token);
+        $tokenNodes = array_map(function (SqlTokenInstance $token) use ($root) {
+            return new SqlAstTokenNode($root, $token);
         }, $this->tokens);
 
-        return new SqlAstRootClass($tokenNodes, $this);
+        /** @var SqlAstTokenNode $tokenNode */
+        foreach ($tokenNodes as $tokenNode) {
+            $root->addToken($tokenNode);
+        }
+
+        $root->markLexingFinished();
+
+        return $root;
     }
 
     public function withoutWhitespace(): SqlTokens

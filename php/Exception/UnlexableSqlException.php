@@ -15,6 +15,8 @@ use Exception;
 
 final class UnlexableSqlException extends Exception
 {
+    use AsciiLocationDumpTrait;
+
     private string $sql;
 
     private int $sqlLine;
@@ -52,29 +54,5 @@ final class UnlexableSqlException extends Exception
     public function sqlOffset(): int
     {
         return $this->sqlOffset;
-    }
-
-    public function asciiLocationDump(): string
-    {
-        /** @var array<string> $lines */
-        $lines = explode("\n", $this->sql);
-
-        # \u{219X} are unicode arrow-characters
-
-        foreach ($lines as $lineIndex => &$line) {
-            if ($lineIndex === $this->sqlLine) {
-                $line = " \u{2192} " . $line . " \u{2190}";
-
-            } else {
-                $line = '   ' . $line;
-            }
-        }
-
-        return sprintf(
-            "\n\n%s\n%s\n%s\n",
-            str_pad("\u{2193}", $this->sqlOffset + 6, ' ', STR_PAD_LEFT),
-            implode("\n", $lines),
-            str_pad("\u{2191}", $this->sqlOffset + 6, ' ', STR_PAD_LEFT)
-        );
     }
 }

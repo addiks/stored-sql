@@ -80,7 +80,7 @@ abstract class SqlAstBranch implements SqlAstMutableNode
     ): void {
         Assert::greaterThanEq($offset, 0);
         Assert::greaterThanEq($length, 0);
-        Assert::lessThanEq($offset + $length, count($this->children));
+        Assert::lessThanEq($offset + $length, count($this->children) + 1);
 
         $this->children = array_merge(
             array_slice($this->children, 0, $offset),

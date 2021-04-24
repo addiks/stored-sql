@@ -16,12 +16,22 @@ use Webmozart\Assert\Assert;
 
 final class SqlAstFrom implements SqlAstNode
 {
+    private SqlAstNode $parent;
+
+    private SqlAstTokenNode $fromToken;
+
     private SqlAstTokenNode $tableName;
 
     private ?SqlAstTokenNode $alias;
 
-    public function __construct(SqlAstTokenNode $tableName, ?SqlAstTokenNode $alias)
-    {
+    public function __construct(
+        SqlAstNode $parent,
+        SqlAstTokenNode $fromToken,
+        SqlAstTokenNode $tableName,
+        ?SqlAstTokenNode $alias
+    ) {
+        $this->parent = $parent;
+        $this->fromToken = $fromToken;
         $this->tableName = $tableName;
         $this->alias = $alias;
     }
@@ -45,7 +55,7 @@ final class SqlAstFrom implements SqlAstNode
                 $alias = null;
             }
 
-            $parent->replace($offset, is_object($alias) ? 3 : 2, new SqlAstFrom($tableName, $alias));
+            $parent->replace($offset, is_object($alias) ? 3 : 2, new SqlAstFrom($parent, $node, $tableName, $alias));
         }
     }
 
@@ -62,5 +72,25 @@ final class SqlAstFrom implements SqlAstNode
         return md5(implode('.', array_map(function (SqlAstNode $node) {
             return $node->hash();
         }, $this->children())));
+    }
+
+    public function parent(): ?SqlAstNode
+    {
+        return $this->parent;
+    }
+
+    public function root(): SqlAstRoot
+    {
+        return $this->parent->root();
+    }
+
+    public function line(): int
+    {
+        return $this->fromToken->line();
+    }
+
+    public function column(): int
+    {
+        return $this->fromToken->column();
     }
 }

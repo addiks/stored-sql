@@ -11,6 +11,7 @@
 
 namespace Addiks\StoredSQL\Parsing;
 
+use Addiks\StoredSQL\Exception\UnparsableSqlException;
 use Addiks\StoredSQL\Lexing\SqlTokenizer;
 use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
 use Addiks\StoredSQL\Lexing\SqlTokens;
@@ -23,6 +24,7 @@ use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstOperation;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstOrderBy;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstParenthesis;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstSelect;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstWhereCondition;
 use Closure;
 use Webmozart\Assert\Assert;
@@ -69,10 +71,11 @@ final class SqlParserClass implements SqlParser
             Closure::fromCallable([SqlAstParenthesis::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstFrom::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstJoin::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstSelect::class, 'mutateAstNode']),
         );
     }
 
-    public function parseSql(string $sql): array
+    public function parseSql(string $sql, array $expectedResultTypes = null): array
     {
         /** @var SqlTokens $tokens */
         $tokens = $this->tokenizer->tokenize($sql);
@@ -83,10 +86,32 @@ final class SqlParserClass implements SqlParser
         /** @var SqlAstRoot $syntaxTree */
         $syntaxTree = $tokens->convertToSyntaxTree();
 
-        $syntaxTree->walk($this->mutators);
+        /** @var callable $mutator */
+        foreach ($this->mutators as $mutator) {
+            $syntaxTree->walk([$mutator]);
+        }
 
         /** @var array<SqlAstNode> $detectedContent */
         $detectedContent = $syntaxTree->children();
+
+        /** @var SqlAstNode $detectedNode */
+        foreach ($detectedContent as $detectedNode) {
+
+            /** @var class-string $expectedClass */
+            foreach ($expectedResultTypes as $expectedClass) {
+                Assert::classExists($expectedClass);
+
+                if ($detectedNode instanceof $expectedClass) {
+                    continue 2;
+                }
+            }
+
+            throw new UnparsableSqlException(sprintf(
+                "Unexpected node of type '%s' detected, expected one of: [%s]!",
+                get_class($detectedNode),
+                implode(', ', $expectedResultTypes)
+            ), $detectedNode);
+        }
 
         # TODO: make sure all detected nodes are "final" nodes (like a select statement)
 

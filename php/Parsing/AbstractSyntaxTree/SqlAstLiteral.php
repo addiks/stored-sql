@@ -16,11 +16,15 @@ use Addiks\StoredSQL\Lexing\SqlTokenInstance;
 
 final class SqlAstLiteral implements SqlAstExpression
 {
+    private SqlAstNode $parent;
+
     private SqlAstTokenNode $literal;
 
     public function __construct(
+        SqlAstNode $parent,
         SqlAstTokenNode $literal
     ) {
+        $this->parent = $parent;
         $this->literal = $literal;
     }
 
@@ -41,7 +45,7 @@ final class SqlAstLiteral implements SqlAstExpression
             );
 
             if ($isSomeLiteralNode) {
-                $parent->replace($offset, 1, new SqlAstLiteral($node));
+                $parent->replace($offset, 1, new SqlAstLiteral($parent, $node));
             }
         }
     }
@@ -54,5 +58,25 @@ final class SqlAstLiteral implements SqlAstExpression
     public function hash(): string
     {
         return $this->literal->hash();
+    }
+
+    public function parent(): ?SqlAstNode
+    {
+        return $this->parent;
+    }
+
+    public function root(): SqlAstRoot
+    {
+        return $this->parent->root();
+    }
+
+    public function line(): int
+    {
+        return $this->literal->line();
+    }
+
+    public function column(): int
+    {
+        return $this->literal->column();
     }
 }

@@ -16,10 +16,19 @@ use Webmozart\Assert\Assert;
 
 final class SqlAstParenthesis implements SqlAstExpression
 {
+    private SqlAstNode $parent;
+
+    private SqlAstTokenNode $bracketOpening;
+
     private SqlAstExpression $expression;
 
-    public function __construct(SqlAstExpression $expression)
-    {
+    public function __construct(
+        SqlAstNode $parent,
+        SqlAstTokenNode $bracketOpening,
+        SqlAstExpression $expression
+    ) {
+        $this->parent = $parent;
+        $this->bracketOpening = $bracketOpening;
         $this->expression = $expression;
     }
 
@@ -42,7 +51,7 @@ final class SqlAstParenthesis implements SqlAstExpression
             Assert::isInstanceOf($close, SqlAstTokenNode::class);
             Assert::same($close->token()->token(), SqlToken::BRACKET_CLOSING());
 
-            $parent->replace($offset, 3, new SqlAstParenthesis($expression));
+            $parent->replace($offset, 3, new SqlAstParenthesis($parent, $node, $expression));
         }
     }
 
@@ -53,6 +62,26 @@ final class SqlAstParenthesis implements SqlAstExpression
 
     public function hash(): string
     {
-        return $this->expression->hash();
+        return md5($this->expression->hash());
+    }
+
+    public function parent(): ?SqlAstNode
+    {
+        return $this->parent;
+    }
+
+    public function root(): SqlAstRoot
+    {
+        return $this->parent->root();
+    }
+
+    public function line(): int
+    {
+        return $this->bracketOpening->line();
+    }
+
+    public function column(): int
+    {
+        return $this->bracketOpening->column();
     }
 }

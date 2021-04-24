@@ -12,10 +12,13 @@
 namespace Addiks\StoredSQL\Parsing\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlTokens;
+use Webmozart\Assert\Assert;
 
 final class SqlAstRootClass extends SqlAstBranch implements SqlAstRoot
 {
     private SqlTokens $tokens;
+
+    private bool $lexingFinished = false;
 
     /** @param array<SqlAstNode> $children */
     public function __construct(array $children, SqlTokens $tokens)
@@ -25,8 +28,50 @@ final class SqlAstRootClass extends SqlAstBranch implements SqlAstRoot
         $this->tokens = $tokens;
     }
 
+    public function addToken(SqlAstTokenNode $token): void
+    {
+        Assert::false($this->lexingFinished);
+
+        parent::replace(count($this->children()), 1, $token);
+    }
+
+    public function markLexingFinished(): void
+    {
+        $this->lexingFinished = true;
+    }
+
+    public function replace(
+        int $offset,
+        int $length,
+        SqlAstNode $newNode
+    ): void {
+        Assert::true($this->lexingFinished);
+
+        parent::replace($offset, $length, $newNode);
+    }
+
     public function tokens(): SqlTokens
     {
         return $this->tokens;
+    }
+
+    public function parent(): ?SqlAstNode
+    {
+        return null;
+    }
+
+    public function root(): SqlAstRoot
+    {
+        return $this;
+    }
+
+    public function line(): int
+    {
+        return 1;
+    }
+
+    public function column(): int
+    {
+        return 0;
     }
 }

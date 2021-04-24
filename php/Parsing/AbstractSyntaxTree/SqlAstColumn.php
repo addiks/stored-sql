@@ -16,17 +16,21 @@ use Webmozart\Assert\Assert;
 
 final class SqlAstColumn implements SqlAstExpression
 {
-    private string $column;
+    private SqlAstNode $parent;
 
-    private ?string $table;
+    private SqlAstTokenNode $column;
 
-    private ?string $database;
+    private ?SqlAstTokenNode $table;
+
+    private ?SqlAstTokenNode $database;
 
     public function __construct(
-        string $column,
-        ?string $table,
-        ?string $database
+        SqlAstNode $parent,
+        SqlAstTokenNode $column,
+        ?SqlAstTokenNode $table,
+        ?SqlAstTokenNode $database
     ) {
+        $this->parent = $parent;
         $this->column = $column;
         $this->table = $table;
         $this->database = $database;
@@ -42,13 +46,13 @@ final class SqlAstColumn implements SqlAstExpression
             /** @var int $length */
             $length = 1;
 
-            /** @var string $column */
-            $column = $node->token()->code();
+            /** @var SqlAstTokenNode $column */
+            $column = $node;
 
-            /** @var string|null $table */
+            /** @var SqlAstTokenNode|null $table */
             $table = null;
 
-            /** @var string|null $database */
+            /** @var SqlAstTokenNode|null $database */
             $database = null;
 
             /** @var SqlAstNode $dot */
@@ -62,7 +66,7 @@ final class SqlAstColumn implements SqlAstExpression
                     $length += 2;
 
                     $table = $column;
-                    $column = $node->token()->code();
+                    $column = $node;
 
                     $dot = $parent[$offset + 3];
 
@@ -75,12 +79,13 @@ final class SqlAstColumn implements SqlAstExpression
 
                             $database = $table;
                             $table = $column;
-                            $column = $node->token()->code();
+                            $column = $node;
                         }
                     }
                 }
 
                 $parent->replace($offset, $length, new SqlAstColumn(
+                    $parent,
                     $column,
                     $table,
                     $database
@@ -91,16 +96,37 @@ final class SqlAstColumn implements SqlAstExpression
 
     public function children(): array
     {
-        return [];
+        return array_filter([
+            $this->column,
+            $this->table,
+            $this->database,
+        ]);
     }
 
     public function hash(): string
     {
-        return sprintf(
-            '`%s`.`%s`.`%s`',
-            $this->database ?? '?',
-            $this->table ?? '?',
-            $this->column
-        );
+        return md5(implode('.', array_map(function (SqlAstNode $node) {
+            return $node->hash();
+        }, $this->children())));
+    }
+
+    public function parent(): ?SqlAstNode
+    {
+        return $this->parent;
+    }
+
+    public function root(): SqlAstRoot
+    {
+        return $this->parent->root();
+    }
+
+    public function line(): int
+    {
+        return $this->column->line();
+    }
+
+    public function column(): int
+    {
+        return $this->column->column();
     }
 }

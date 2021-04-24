@@ -16,10 +16,13 @@ use Addiks\StoredSQL\Lexing\SqlTokenInstance;
 
 final class SqlAstTokenNode implements SqlAstNode
 {
+    private SqlAstNode $parent;
+
     private SqlTokenInstance $token;
 
-    public function __construct(SqlTokenInstance $token)
+    public function __construct(SqlAstNode $parent, SqlTokenInstance $token)
     {
+        $this->parent = $parent;
         $this->token = $token;
     }
 
@@ -51,5 +54,25 @@ final class SqlAstTokenNode implements SqlAstNode
             $this->token->offset(),
             $this->token->token()->name()
         );
+    }
+
+    public function parent(): ?SqlAstNode
+    {
+        return $this->parent;
+    }
+
+    public function root(): SqlAstRoot
+    {
+        return $this->parent->root();
+    }
+
+    public function line(): int
+    {
+        return $this->token->line();
+    }
+
+    public function column(): int
+    {
+        return $this->token->offset();
     }
 }

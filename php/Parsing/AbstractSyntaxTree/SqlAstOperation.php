@@ -15,6 +15,8 @@ use Addiks\StoredSQL\Lexing\SqlToken;
 
 final class SqlAstOperation implements SqlAstExpression
 {
+    private SqlAstNode $parent;
+
     private SqlAstExpression $leftSide;
 
     private SqlAstTokenNode $operator;
@@ -22,10 +24,12 @@ final class SqlAstOperation implements SqlAstExpression
     private SqlAstExpression $rightSide;
 
     public function __construct(
+        SqlAstNode $parent,
         SqlAstExpression $leftSide,
         SqlAstTokenNode $operator,
         SqlAstExpression $rightSide
     ) {
+        $this->parent = $parent;
         $this->leftSide = $leftSide;
         $this->operator = $operator;
         $this->rightSide = $rightSide;
@@ -57,6 +61,7 @@ final class SqlAstOperation implements SqlAstExpression
 
                 if ($isOperator) {
                     $parent->replace($offset, 3, new SqlAstOperation(
+                        $parent,
                         $leftSide,
                         $operator,
                         $rightSide
@@ -83,5 +88,25 @@ final class SqlAstOperation implements SqlAstExpression
             $this->operator->hash(),
             $this->rightSide->hash()
         );
+    }
+
+    public function parent(): ?SqlAstNode
+    {
+        return $this->parent;
+    }
+
+    public function root(): SqlAstRoot
+    {
+        return $this->parent->root();
+    }
+
+    public function line(): int
+    {
+        return $this->operator->line();
+    }
+
+    public function column(): int
+    {
+        return $this->operator->column();
     }
 }

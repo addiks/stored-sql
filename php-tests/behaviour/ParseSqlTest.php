@@ -9,9 +9,14 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks;
+namespace Addiks\StoredSQL\Tests\Behaviour;
 
+use Addiks\StoredSQL\Exception\UnlexableSqlException;
+use Addiks\StoredSQL\Exception\UnparsableSqlException;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstJoin;
 use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstSelect;
+use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstWhereCondition;
 use Addiks\StoredSQL\Parsing\SqlParser;
 use Addiks\StoredSQL\Parsing\SqlParserClass;
 use PHPUnit\Framework\TestCase;
@@ -19,22 +24,66 @@ use PHPUnit\Framework\TestCase;
 final class ParseSqlTest extends TestCase
 {
     /** @test */
-    public function shouldParseSomeSql(): void
+    public function shouldParseSelectSql(): void
     {
         /** @var SqlParser $parser */
         $parser = SqlParserClass::defaultParser();
 
-        /** @var array<SqlAstNode> $detectedContent */
-        $detectedContent = $parser->parseSql("
-            SELECT u.name, u.email, f.name, f.size
-            FROM users u
-            LEFT JOIN files f ON(u.id = f.owner_id)
-            WHERE f.name LIKE '%.pdf'
-            AND f.type = 'symbolic'
-            OR f.foo IS NULL
-            ORDER BY f.size DESC, f.owner ASC
-        ");
+        try {
+            /** @var array<SqlAstNode> $detectedContent */
+            $detectedContent = $parser->parseSql("
+                SELECT u.name, u.email, f.name, f.size
+                FROM users u
+                LEFT JOIN files f ON(u.id = f.owner_id)
+                WHERE f.name LIKE '%.pdf'
+                AND f.type = 'symbolic'
+                OR f.foo IS NULL
+                ORDER BY f.size DESC, f.owner ASC
+            ", [SqlAstSelect::class]);
 
-        var_dump($detectedContent);
+        } catch (UnparsableSqlException $exception) {
+            echo $exception->asciiLocationDump();
+
+            throw $exception;
+
+        } catch (UnlexableSqlException $exception) {
+            echo $exception->asciiLocationDump();
+
+            throw $exception;
+        }
+
+        $this->assertEquals(1, count($detectedContent));
+        $this->assertTrue($detectedContent[0] instanceof SqlAstSelect);
+    }
+
+    /** @test */
+    public function shouldParseConditionalSql(): void
+    {
+        /** @var SqlParser $parser */
+        $parser = SqlParserClass::defaultParser();
+
+        try {
+            /** @var array<SqlAstNode> $detectedContent */
+            $detectedContent = $parser->parseSql("
+                LEFT JOIN files f ON(u.id = f.owner_id)
+                WHERE f.name LIKE '%.pdf'
+                AND f.type = 'symbolic'
+                OR f.foo IS NULL
+            ", [SqlAstJoin::class, SqlAstWhereCondition::class]);
+
+        } catch (UnparsableSqlException $exception) {
+            echo $exception->asciiLocationDump();
+
+            throw $exception;
+
+        } catch (UnlexableSqlException $exception) {
+            echo $exception->asciiLocationDump();
+
+            throw $exception;
+        }
+
+        $this->assertEquals(2, count($detectedContent));
+        $this->assertTrue($detectedContent[0] instanceof SqlAstJoin);
+        $this->assertTrue($detectedContent[1] instanceof SqlAstWhereCondition);
     }
 }

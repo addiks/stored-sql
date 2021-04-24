@@ -16,6 +16,10 @@ use Webmozart\Assert\Assert;
 
 final class SqlAstJoin implements SqlAstNode
 {
+    private SqlAstNode $parent;
+
+    private SqlAstTokenNode $joinToken;
+
     private SqlAstTokenNode $tableName;
 
     private ?SqlAstTokenNode $joinType;
@@ -25,11 +29,15 @@ final class SqlAstJoin implements SqlAstNode
     private ?SqlAstExpression $condition;
 
     public function __construct(
+        SqlAstNode $parent,
+        SqlAstTokenNode $joinToken,
         SqlAstTokenNode $tableName,
         ?SqlAstTokenNode $joinType,
         ?SqlAstTokenNode $alias,
         ?SqlAstExpression $condition
     ) {
+        $this->parent = $parent;
+        $this->joinToken = $joinToken;
         $this->joinType = $joinType;
         $this->tableName = $tableName;
         $this->alias = $alias;
@@ -81,6 +89,8 @@ final class SqlAstJoin implements SqlAstNode
             }
 
             $parent->replace($beginOffset, 1 + $endOffset - $beginOffset, new SqlAstJoin(
+                $parent,
+                $node,
                 $tableName,
                 $joinType,
                 $alias,
@@ -103,5 +113,25 @@ final class SqlAstJoin implements SqlAstNode
         return md5(implode('.', array_map(function (SqlAstNode $node) {
             return $node->hash();
         }, $this->children())));
+    }
+
+    public function parent(): ?SqlAstNode
+    {
+        return $this->parent;
+    }
+
+    public function root(): SqlAstRoot
+    {
+        return $this->parent->root();
+    }
+
+    public function line(): int
+    {
+        return $this->joinToken->line();
+    }
+
+    public function column(): int
+    {
+        return $this->joinToken->column();
     }
 }

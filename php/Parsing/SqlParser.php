@@ -15,6 +15,10 @@ use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
 
 interface SqlParser
 {
-    /** @return array<SqlAstNode> */
-    public function parseSql(string $sql): array;
+    /**
+     * @param array<class-string> $expectedResultTypes
+     *
+     * @return array<SqlAstNode>
+     */
+    public function parseSql(string $sql, array $expectedResultTypes = null): array;
 }

@@ -16,13 +16,20 @@ use Webmozart\Assert\Assert;
 
 final class SqlAstConjunction implements SqlAstExpression
 {
+    private SqlAstNode $parent;
+
     /** @var array<array{0:SqlAstTokenNode|null, 1:SqlAstExpression}> */
     private array $parts;
 
     /** @param array<array{0:SqlAstTokenNode|null, 1:SqlAstExpression}> $parts */
-    public function __construct(array $parts)
-    {
+    public function __construct(
+        SqlAstNode $parent,
+        array $parts
+    ) {
+        $this->parent = $parent;
         $this->parts = array();
+
+        Assert::minCount($parts, 2);
 
         foreach ($parts as [$operator, $expression]) {
             if (is_object($operator)) {
@@ -75,17 +82,47 @@ final class SqlAstConjunction implements SqlAstExpression
         }
 
         if (count($parts) > 1) {
-            $parent->replace($originalOffset, $offset - $originalOffset + 1, new SqlAstConjunction($parts));
+            $parent->replace($originalOffset, $offset - $originalOffset + 1, new SqlAstConjunction($parent, $parts));
         }
     }
 
     public function children(): array
     {
-        return [];
+        /** @var array<SqlAstNode|null> $children */
+        $children = array();
+
+        foreach ($this->parts as [$operator, $expression]) {
+            $children[] = $operator;
+            $children[] = $expression;
+        }
+
+        return array_filter($children);
     }
 
     public function hash(): string
     {
-        return '';
+        return md5(implode('.', array_map(function (SqlAstNode $node) {
+            return $node->hash();
+        }, $this->children())));
+    }
+
+    public function parent(): ?SqlAstNode
+    {
+        return $this->parent;
+    }
+
+    public function root(): SqlAstRoot
+    {
+        return $this->parent->root();
+    }
+
+    public function line(): int
+    {
+        return array_values($this->children())[0]->line();
+    }
+
+    public function column(): int
+    {
+        return array_values($this->children())[0]->column();
     }
 }

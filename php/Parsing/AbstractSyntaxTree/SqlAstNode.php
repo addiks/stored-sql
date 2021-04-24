@@ -22,4 +22,12 @@ interface SqlAstNode
      * Used to determine when the AST stops changing during parsing phase.
      */
     public function hash(): string;
+
+    public function parent(): ?SqlAstNode;
+
+    public function root(): SqlAstRoot;
+
+    public function line(): int;
+
+    public function column(): int;
 }

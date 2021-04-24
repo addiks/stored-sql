@@ -16,12 +16,21 @@ use Webmozart\Assert\Assert;
 
 final class SqlAstOrderBy implements SqlAstNode
 {
+    private SqlAstNode $parent;
+
+    private SqlAstTokenNode $orderToken;
+
     /** @var array<array{0:SqlAstExpression, 1:SqlAstTokenNode}> */
     private array $columns;
 
     /** @param array<array{0:SqlAstExpression, 1:SqlAstTokenNode}> $columns */
-    public function __construct(array $columns)
-    {
+    public function __construct(
+        SqlAstNode $parent,
+        SqlAstTokenNode $orderToken,
+        array $columns
+    ) {
+        $this->parent = $parent;
+        $this->orderToken = $orderToken;
         $this->columns = array();
 
         /**
@@ -76,7 +85,11 @@ final class SqlAstOrderBy implements SqlAstNode
                 $offset += 3;
             } while ($comma instanceof SqlAstTokenNode && $comma->isCode(','));
 
-            $parent->replace($originalOffset, $offset - $originalOffset - 1, new SqlAstOrderBy($columns));
+            $parent->replace(
+                $originalOffset,
+                $offset - $originalOffset - 1,
+                new SqlAstOrderBy($parent, $node, $columns)
+            );
         }
     }
 
@@ -105,5 +118,25 @@ final class SqlAstOrderBy implements SqlAstNode
         }, $this->children());
 
         return md5(implode('.', $hashes));
+    }
+
+    public function parent(): ?SqlAstNode
+    {
+        return $this->parent;
+    }
+
+    public function root(): SqlAstRoot
+    {
+        return $this->parent->root();
+    }
+
+    public function line(): int
+    {
+        return $this->orderToken->line();
+    }
+
+    public function column(): int
+    {
+        return $this->orderToken->column();
     }
 }
