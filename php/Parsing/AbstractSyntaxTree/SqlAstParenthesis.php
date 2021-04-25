@@ -84,4 +84,9 @@ final class SqlAstParenthesis implements SqlAstExpression
     {
         return $this->bracketOpening->column();
     }
+
+    public function toSql(): string
+    {
+        return '(' . $this->expression->toSql() . ')';
+    }
 }

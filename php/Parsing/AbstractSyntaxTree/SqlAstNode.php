@@ -30,4 +30,6 @@ interface SqlAstNode
     public function line(): int;
 
     public function column(): int;
+
+    public function toSql(): string;
 }

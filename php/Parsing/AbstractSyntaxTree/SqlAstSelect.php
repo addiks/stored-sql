@@ -21,7 +21,7 @@ final class SqlAstSelect implements SqlAstNode
 
     private SqlAstTokenNode $selectToken;
 
-    /** @var array<string, SqlAstExpression> */
+    /** @var array<string|int, SqlAstExpression> */
     private array $columns;
 
     private ?SqlAstFrom $from;
@@ -58,10 +58,6 @@ final class SqlAstSelect implements SqlAstNode
         foreach ($columns as $alias => $column) {
             Assert::isInstanceOf($column, SqlAstExpression::class);
 
-            if (is_int($alias)) {
-                $alias = $column->hash(); # TODO: regenerate expression SQL as alias
-            }
-
             $this->columns[$alias] = $column;
         }
 
@@ -97,10 +93,11 @@ final class SqlAstSelect implements SqlAstNode
                 $alias = null;
 
                 if (is_null($alias)) {
-                    $alias = $column->hash(); # TODO: regenerate expression SQL as alias
-                }
+                    $columns[] = $column;
 
-                $columns[$alias] = $column;
+                } else {
+                    $columns[$alias] = $column;
+                }
 
                 /** @var SqlAstNode|null $comma */
                 $comma = $parent[$offset + 1];
@@ -202,5 +199,40 @@ final class SqlAstSelect implements SqlAstNode
     public function column(): int
     {
         return $this->selectToken->column();
+    }
+
+    public function toSql(): string
+    {
+        /** @var string $sql */
+        $sql = "SELECT ";
+
+        /** @var array<string> $columnsSql */
+        $columnsSql = array();
+
+        /** @var SqlAstExpression $column */
+        foreach ($this->columns as $alias => $column) {
+            $columnsSql[] = $column->toSql() . (is_string($alias) ?(' ' . $alias) :'');
+        }
+
+        $sql .= implode(", ", $columnsSql);
+
+        if (is_object($this->from)) {
+            $sql .= ' ' . $this->from->toSql();
+        }
+
+        /** @var SqlAstJoin $join */
+        foreach ($this->joins as $join) {
+            $sql .= ' ' . $join->toSql();
+        }
+
+        if (is_object($this->where)) {
+            $sql .= ' ' . $this->where->toSql();
+        }
+
+        if (is_object($this->orderBy)) {
+            $sql .= ' ' . $this->orderBy->toSql();
+        }
+
+        return $sql;
     }
 }

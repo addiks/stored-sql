@@ -109,4 +109,9 @@ final class SqlAstOperation implements SqlAstExpression
     {
         return $this->operator->column();
     }
+
+    public function toSql(): string
+    {
+        return $this->leftSide->toSql() . ' ' . $this->operator->toSql() . ' ' . $this->rightSide->toSql();
+    }
 }

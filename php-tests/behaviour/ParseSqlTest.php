@@ -53,7 +53,16 @@ final class ParseSqlTest extends TestCase
         }
 
         $this->assertEquals(1, count($detectedContent));
-        $this->assertTrue($detectedContent[0] instanceof SqlAstSelect);
+
+        /** @var SqlAstSelect $select */
+        $select = $detectedContent[0];
+
+        $this->assertTrue($select instanceof SqlAstSelect);
+
+        /** @var string $regeneratedSql */
+        $regeneratedSql = $select->toSql();
+
+        var_dump($regeneratedSql);
     }
 
     /** @test */

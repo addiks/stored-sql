@@ -79,4 +79,9 @@ final class SqlAstLiteral implements SqlAstExpression
     {
         return $this->literal->column();
     }
+
+    public function toSql(): string
+    {
+        return $this->literal->toSql();
+    }
 }

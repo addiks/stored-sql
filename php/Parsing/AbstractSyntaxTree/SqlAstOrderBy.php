@@ -139,4 +139,22 @@ final class SqlAstOrderBy implements SqlAstNode
     {
         return $this->orderToken->column();
     }
+
+    public function toSql(): string
+    {
+        /** @var array<string> $columns */
+        $columns = array();
+
+        /**
+         * @var SqlAstExpression $expression
+         * @var SqlAstTokenNode  $direction
+         */
+        foreach ($this->columns as [$expression, $direction]) {
+            $columns[] = ' ' . $expression->toSql() . ' ' . $direction->toSql();
+        }
+
+        return 'ORDER BY' . implode(',', $columns);
+    }
+
+
 }

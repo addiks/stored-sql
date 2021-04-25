@@ -31,10 +31,13 @@ final class SqlAstConjunction implements SqlAstExpression
 
         Assert::minCount($parts, 2);
 
-        foreach ($parts as [$operator, $expression]) {
-            if (is_object($operator)) {
+        foreach ($parts as $index => [$operator, $expression]) {
+            if ($index > 0) {
                 /** @psalm-suppress RedundantConditionGivenDocblockType */
                 Assert::isInstanceOf($operator, SqlAstTokenNode::class);
+
+            } else {
+                Assert::null($operator);
             }
 
             /** @psalm-suppress RedundantConditionGivenDocblockType */
@@ -124,5 +127,25 @@ final class SqlAstConjunction implements SqlAstExpression
     public function column(): int
     {
         return array_values($this->children())[0]->column();
+    }
+
+    public function toSql(): string
+    {
+        /** @var string $sql */
+        $sql = "";
+
+        /**
+         * @var SqlAstTokenNode|null $operator
+         * @var SqlAstExpression     $expression
+         */
+        foreach ($this->parts as [$operator, $expression]) {
+            if (is_object($operator)) {
+                $sql .= ' ' . $operator->toSql();
+            }
+
+            $sql .= ' ' . $expression->toSql();
+        }
+
+        return trim($sql);
     }
 }

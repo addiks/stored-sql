@@ -76,4 +76,9 @@ final class SqlAstWhereCondition implements SqlAstNode
     {
         return $this->whereToken->column();
     }
+
+    public function toSql(): string
+    {
+        return 'WHERE ' . $this->expression->toSql();
+    }
 }

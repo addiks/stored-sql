@@ -97,9 +97,9 @@ final class SqlAstColumn implements SqlAstExpression
     public function children(): array
     {
         return array_filter([
-            $this->column,
-            $this->table,
             $this->database,
+            $this->table,
+            $this->column,
         ]);
     }
 
@@ -128,5 +128,12 @@ final class SqlAstColumn implements SqlAstExpression
     public function column(): int
     {
         return $this->column->column();
+    }
+
+    public function toSql(): string
+    {
+        return implode('.', array_map(function (SqlAstNode $node) {
+            return $node->toSql();
+        }, $this->children()));
     }
 }

@@ -93,4 +93,9 @@ final class SqlAstFrom implements SqlAstNode
     {
         return $this->fromToken->column();
     }
+
+    public function toSql(): string
+    {
+        return "FROM " . $this->tableName->toSql() . (is_object($this->alias) ?(' ' . $this->alias->toSql()) :'');
+    }
 }

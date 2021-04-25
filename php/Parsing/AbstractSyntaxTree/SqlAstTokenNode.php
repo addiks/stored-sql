@@ -75,4 +75,9 @@ final class SqlAstTokenNode implements SqlAstNode
     {
         return $this->token->offset();
     }
+
+    public function toSql(): string
+    {
+        return $this->token->code();
+    }
 }

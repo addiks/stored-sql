@@ -26,6 +26,8 @@ final class SqlAstJoin implements SqlAstNode
 
     private ?SqlAstTokenNode $alias;
 
+    private ?SqlAstTokenNode $onOrUsing;
+
     private ?SqlAstExpression $condition;
 
     public function __construct(
@@ -34,6 +36,7 @@ final class SqlAstJoin implements SqlAstNode
         SqlAstTokenNode $tableName,
         ?SqlAstTokenNode $joinType,
         ?SqlAstTokenNode $alias,
+        ?SqlAstTokenNode $onOrUsing,
         ?SqlAstExpression $condition
     ) {
         $this->parent = $parent;
@@ -41,6 +44,7 @@ final class SqlAstJoin implements SqlAstNode
         $this->joinType = $joinType;
         $this->tableName = $tableName;
         $this->alias = $alias;
+        $this->onOrUsing = $onOrUsing;
         $this->condition = $condition;
     }
 
@@ -94,6 +98,7 @@ final class SqlAstJoin implements SqlAstNode
                 $tableName,
                 $joinType,
                 $alias,
+                $onOrUsing,
                 $condition
             ));
         }
@@ -134,4 +139,21 @@ final class SqlAstJoin implements SqlAstNode
     {
         return $this->joinToken->column();
     }
+
+    public function toSql(): string
+    {
+        /** @var string $sql */
+        $sql = $this->joinType->toSql() . " JOIN " . $this->tableName->toSql();
+
+        if (is_object($this->alias)) {
+            $sql .= " " . $this->alias->toSql();
+        }
+
+        if (is_object($this->condition)) {
+            $sql .= " " . $this->onOrUsing->toSql() . " " . $this->condition->toSql() . "";
+        }
+
+        return $sql;
+    }
+
 }
