@@ -15,19 +15,19 @@ use Addiks\StoredSQL\Exception\UnparsableSqlException;
 use Addiks\StoredSQL\Lexing\SqlTokenizer;
 use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
 use Addiks\StoredSQL\Lexing\SqlTokens;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstColumn;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstConjunction;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstFrom;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstJoin;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstLiteral;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstOperation;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstOrderBy;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstParenthesis;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstSelect;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstWhereCondition;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstColumn;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstConjunction;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstFrom;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstJoin;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstLiteral;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstOperation;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstOrderBy;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstParenthesis;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstRoot;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstSelect;
 use Closure;
 use Webmozart\Assert\Assert;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWhere;
 
 final class SqlParserClass implements SqlParser
 {
@@ -66,7 +66,7 @@ final class SqlParserClass implements SqlParser
             Closure::fromCallable([SqlAstColumn::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstOperation::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstConjunction::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstWhereCondition::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstWhere::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstOrderBy::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstParenthesis::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstFrom::class, 'mutateAstNode']),
@@ -94,26 +94,26 @@ final class SqlParserClass implements SqlParser
         /** @var array<SqlAstNode> $detectedContent */
         $detectedContent = $syntaxTree->children();
 
-        /** @var SqlAstNode $detectedNode */
-        foreach ($detectedContent as $detectedNode) {
+        if (is_array($expectedResultTypes)) {
+            /** @var SqlAstNode $detectedNode */
+            foreach ($detectedContent as $detectedNode) {
 
-            /** @var class-string $expectedClass */
-            foreach ($expectedResultTypes as $expectedClass) {
-                Assert::classExists($expectedClass);
+                /** @var class-string $expectedClass */
+                foreach ($expectedResultTypes as $expectedClass) {
+                    Assert::classExists($expectedClass);
 
-                if ($detectedNode instanceof $expectedClass) {
-                    continue 2;
+                    if ($detectedNode instanceof $expectedClass) {
+                        continue 2;
+                    }
                 }
+
+                throw new UnparsableSqlException(sprintf(
+                    "Unexpected node of type '%s' detected, expected one of: [%s]!",
+                    get_class($detectedNode),
+                    implode(', ', $expectedResultTypes)
+                ), $detectedNode);
             }
-
-            throw new UnparsableSqlException(sprintf(
-                "Unexpected node of type '%s' detected, expected one of: [%s]!",
-                get_class($detectedNode),
-                implode(', ', $expectedResultTypes)
-            ), $detectedNode);
         }
-
-        # TODO: make sure all detected nodes are "final" nodes (like a select statement)
 
         return $detectedContent;
     }

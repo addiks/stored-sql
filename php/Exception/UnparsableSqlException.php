@@ -12,9 +12,9 @@
 namespace Addiks\StoredSQL\Exception;
 
 use Addiks\StoredSQL\Lexing\AbstractSqlToken;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstMutableNode;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstNode;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstTokenNode;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstMutableNode;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstTokenNode;
 use Exception;
 use Webmozart\Assert\Assert;
 

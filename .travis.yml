@@ -8,7 +8,7 @@ install:
 script:
 - vendor/bin/psalm --no-cache
 - vendor/bin/phpstan analyze php/ --level 7
-- vendor/bin/php-cs-fixer fix php/ --dry-run -v --using-cache=no --diff
-- vendor/bin/php-cs-fixer fix php-tests/ --dry-run -v --using-cache=no --diff
-- vendor/bin/phpunit php-tests/unit/
+- vendor/bin/php-cs-fixer fix php/       --dry-run -v --using-cache=no --diff
+- vendor/bin/php-cs-fixer fix tests/php/ --dry-run -v --using-cache=no --diff
+- vendor/bin/phpunit tests/php/unit/
 - vendor/bin/infection -s -vv --initial-tests-php-options="-d xdebug.mode=coverage"

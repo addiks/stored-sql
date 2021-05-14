@@ -8,7 +8,7 @@
 >
     <projectFiles>
         <directory name="php"/>
-        <directory name="php-tests/unit"/>
+        <directory name="tests/php/unit"/>
         <ignoreFiles>
             <directory name="vendor"/>
         </ignoreFiles>

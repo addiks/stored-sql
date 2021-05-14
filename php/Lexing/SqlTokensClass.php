@@ -11,9 +11,9 @@
 
 namespace Addiks\StoredSQL\Lexing;
 
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRoot;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstRootClass;
-use Addiks\StoredSQL\Parsing\AbstractSyntaxTree\SqlAstTokenNode;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstRoot;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstRootClass;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstTokenNode;
 use ArrayIterator;
 use ErrorException;
 use Iterator;
