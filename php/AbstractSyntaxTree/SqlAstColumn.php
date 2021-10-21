@@ -30,6 +30,16 @@ final class SqlAstColumn implements SqlAstExpression
         ?SqlAstTokenNode $table,
         ?SqlAstTokenNode $database
     ) {
+        Assert::true($column->is(SqlToken::SYMBOL()), 'Column-name must be symbol!');
+
+        if (is_object($table)) {
+            Assert::true($column->is(SqlToken::SYMBOL()), 'Table-name must be symbol!');
+        }
+
+        if (is_object($database)) {
+            Assert::true($column->is(SqlToken::SYMBOL()), 'Schema-name must be symbol!');
+        }
+
         $this->parent = $parent;
         $this->column = $column;
         $this->table = $table;
@@ -135,5 +145,23 @@ final class SqlAstColumn implements SqlAstExpression
         return implode('.', array_map(function (SqlAstNode $node) {
             return $node->toSql();
         }, $this->children()));
+    }
+
+    /**
+     * Calling this indicates that this occurence of a detected "column" (e.g.: 'foo.baz') is actually a table.
+     * To identify if 'foo.baz' refers to column 'baz' in table 'foo' or to table 'baz' in database 'foo' depends on
+     * the context, thus some other component (f.e.: the SELECT or UPDATE statement node) has to make this distinction.
+     */
+    public function convertToTable(): SqlAstTable
+    {
+        Assert::null($this->database);
+
+        $table = new SqlAstTable($this->parent, $this->column, $this->table);
+
+        if ($this->parent instanceof SqlAstMutableNode) {
+            $this->parent->replaceNode($this, $table);
+        }
+
+        return $table;
     }
 }

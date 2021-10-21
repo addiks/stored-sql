@@ -12,11 +12,8 @@
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
-use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstConjunction;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstTokenNode;
-use Addiks\StoredSQL\Lexing\SqlTokenInstance;
 use Addiks\StoredSQL\Lexing\SqlTokenInstanceClass;
+use Webmozart\Assert\Assert;
 
 final class SqlAstWhere implements SqlAstMergable
 {
@@ -96,7 +93,7 @@ final class SqlAstWhere implements SqlAstMergable
         Assert::isInstanceOf($toMerge, SqlAstWhere::class);
 
         $operator = new SqlAstTokenNode($this->parent, new SqlTokenInstanceClass(
-            "AND",
+            'AND',
             SqlToken::AND(),
             $this->line,
             $this->column
@@ -104,7 +101,7 @@ final class SqlAstWhere implements SqlAstMergable
 
         $mergedExpression = new SqlAstConjunction($this->parent, [
             [null, $this->expression],
-            [$operator, $toMerge->expression()]
+            [$operator, $toMerge->expression()],
         ]);
 
         $newWhere = new SqlAstWhere($this->parent, $this->whereToken, $mergedExpression);

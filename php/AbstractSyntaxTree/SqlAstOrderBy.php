@@ -155,6 +155,4 @@ final class SqlAstOrderBy implements SqlAstNode
 
         return 'ORDER BY' . implode(',', $columns);
     }
-
-
 }

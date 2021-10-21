@@ -1,4 +1,3 @@
-<?php
 /**
  * Copyright (C) 2019 Gerrit Addiks.
  * This package (including this file) was released under the terms of the GPL-3.0.
@@ -9,9 +8,9 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Lexing;
+import { SqlTokens } from './SqlTokens'
 
-interface SqlTokenizer
+export interface SqlTokenizer
 {
-    public function tokenize(string $sql): SqlTokens;
+    tokenize(sql: string): SqlTokens;
 }

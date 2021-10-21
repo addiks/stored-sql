@@ -6,17 +6,13 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
-
 interface SqlAstMergable extends SqlAstNode
 {
-
     /**
      * Merges (or add's) another node of the same type.
      * Depending on the semantics of the node-type, the original node might be removed of it's parent.
@@ -25,5 +21,4 @@ interface SqlAstMergable extends SqlAstNode
      *  - Merging a JOIN into another results in both (old and new) JOIN's be present in the parent node.
      */
     public function merge(SqlAstMergable $toMerge): SqlAstMergable;
-
 }

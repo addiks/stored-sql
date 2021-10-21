@@ -6,5 +6,7 @@ SqlAstSelect
 -SqlAstWhere
 --SqlAstOperation
 ---SqlAstColumn
+----SqlAstTokenNode
 ---SqlAstTokenNode
 ---SqlAstLiteral
+----SqlAstTokenNode

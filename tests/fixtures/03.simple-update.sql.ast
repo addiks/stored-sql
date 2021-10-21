@@ -1,4 +1,9 @@
 SqlAstUpdate
--SqlAstToken
--SqlAstColumn
--SqlAstLiteral
+-SqlAstTable
+--SqlAstTokenNode
+-SqlAstOperation
+--SqlAstColumn
+---SqlAstTokenNode
+--SqlAstTokenNode
+--SqlAstLiteral
+---SqlAstTokenNode

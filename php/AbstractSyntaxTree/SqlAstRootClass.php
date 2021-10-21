@@ -77,14 +77,8 @@ final class SqlAstRootClass extends SqlAstBranch implements SqlAstRoot
 
     public function toSql(): string
     {
-        /** @var string $sql */
-        $sql = "";
-
-        /** @var SqlAstNode $node */
-        foreach ($this->children() as $node) {
-            $sql .= $node->toSql();
-        }
-
-        return $sql;
+        return implode(' ', array_map(function (SqlAstNode $node) {
+            return $node->toSql();
+        }, $this->children()));
     }
 }

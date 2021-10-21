@@ -11,10 +11,10 @@
 
 namespace Addiks\StoredSQL\Exception;
 
-use Addiks\StoredSQL\Lexing\AbstractSqlToken;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstMutableNode;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstTokenNode;
+use Addiks\StoredSQL\Lexing\AbstractSqlToken;
 use Exception;
 use Webmozart\Assert\Assert;
 
@@ -38,6 +38,23 @@ final class UnparsableSqlException extends Exception
         $this->sqlOffset = $node->column();
 
         parent::__construct($message, 0, $parent);
+    }
+
+    public static function assertSql(SqlAstMutableNode $parent, int $offset, string $expectedSql): void
+    {
+        /** @var SqlAstNode|null $actualNode */
+        $actualNode = $parent[$offset];
+
+        $expectedSql = strtoupper($expectedSql);
+
+        if (!($actualNode instanceof SqlAstTokenNode) || strtoupper($actualNode->toSql()) !== $expectedSql) {
+            throw new UnparsableSqlException(sprintf(
+                "Expected SQL code '%s' at offset %d, found %s instead!",
+                $expectedSql,
+                $offset,
+                is_object($actualNode) ? get_class($actualNode) : 'nothing'
+            ), $actualNode);
+        }
     }
 
     public static function assertToken(SqlAstMutableNode $parent, int $offset, AbstractSqlToken $expectedToken): void
@@ -69,7 +86,7 @@ final class UnparsableSqlException extends Exception
                 $expectedClassName,
                 $offset,
                 is_object($actualNode) ? get_class($actualNode) : 'nothing'
-            ), $actualNode);
+            ), $actualNode ?? $parent);
         }
     }
 

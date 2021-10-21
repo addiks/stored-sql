@@ -96,6 +96,6 @@ final class SqlAstFrom implements SqlAstNode
 
     public function toSql(): string
     {
-        return "FROM " . $this->tableName->toSql() . (is_object($this->alias) ?(' ' . $this->alias->toSql()) :'');
+        return 'FROM ' . $this->tableName->toSql() . (is_object($this->alias) ? (' ' . $this->alias->toSql()) : '');
     }
 }

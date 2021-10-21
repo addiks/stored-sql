@@ -1,4 +1,3 @@
-<?php
 /**
  * Copyright (C) 2019 Gerrit Addiks.
  * This package (including this file) was released under the terms of the GPL-3.0.
@@ -9,19 +8,12 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Lexing;
+import { SqlAstRoot } from '../AbstractSyntaxTree/SqlAstRoot'
 
-interface SqlTokenInstance
+export interface SqlTokens
 {
-    public function code(): string;
-
-    public function token(): AbstractSqlToken;
-
-    public function is(AbstractSqlToken $token): bool;
-
-    public function isCode(string $code): bool;
-
-    public function line(): int;
-
-    public function offset(): int;
+    withoutWhitespace(): SqlTokens;
+    withoutComments(): SqlTokens;
+    sql(): string;
+    convertToSyntaxTree(): SqlAstRoot;
 }

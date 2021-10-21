@@ -15,16 +15,17 @@ use Addiks\StoredSQL\Exception\UnparsableSqlException;
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
 
-final class SqlAstSelect implements SqlAstNode
+
+final class SqlAstUpdate implements SqlAstNode
 {
     private SqlAstNode $parent;
 
-    private SqlAstTokenNode $selectToken;
+    private SqlAstTokenNode $updateToken;
 
-    /** @var array<string|int, SqlAstExpression> */
-    private array $columns;
+    private SqlAstTable $tableName;
 
-    private ?SqlAstFrom $from;
+    /** @var array<SqlAstOperation> */
+    private array $operations;
 
     /** @var array<SqlAstJoin> $joins */
     private array $joins;
@@ -33,32 +34,32 @@ final class SqlAstSelect implements SqlAstNode
 
     private ?SqlAstOrderBy $orderBy;
 
-    # TODO: HAVING, LIMIT,
-
     public function __construct(
         SqlAstNode $parent,
-        SqlAstTokenNode $selectToken,
-        array $columns,
-        ?SqlAstFrom $from,
+        SqlAstTokenNode $updateToken,
+        SqlAstTable $tableName,
+        array $operations,
         array $joins,
         ?SqlAstWhere $where,
         ?SqlAstOrderBy $orderBy
     ) {
-        Assert::notEmpty($columns);
+        Assert::notEmpty($operations);
 
         $this->parent = $parent;
-        $this->selectToken = $selectToken;
-        $this->columns = array();
-        $this->from = $from;
+        $this->updateToken = $updateToken;
+        $this->tableName = $tableName;
+        $this->operations = array();
         $this->joins = array();
         $this->where = $where;
         $this->orderBy = $orderBy;
 
-        /** @var SqlAstExpression $column */
-        foreach ($columns as $alias => $column) {
-            Assert::isInstanceOf($column, SqlAstExpression::class);
+        /** @var SqlAstOperation $operation */
+        foreach ($operations as $operation) {
+            Assert::isInstanceOf($operation, SqlAstOperation::class);
+            Assert::isInstanceOf($operation->leftSide(), SqlAstColumn::class);
+            Assert::same('=', $operation->operator()->toSql());
 
-            $this->columns[$alias] = $column;
+            $this->operations[] = $operation;
         }
 
         /** @var SqlAstJoin $join */
@@ -74,55 +75,22 @@ final class SqlAstSelect implements SqlAstNode
         int $offset,
         SqlAstMutableNode $parent
     ): void {
-        if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::SELECT())) {
+        if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::UPDATE())) {
             /** @var int $beginOffset */
             $beginOffset = $offset;
+            $offset++;
 
-            /** @var array<SqlAstExpression> $columns */
-            $columns = array();
+            if ($parent[$offset] instanceof SqlAstColumn) {
+                $parent[$offset]->convertToTable();
 
-            do {
-                $offset++;
-
-                if ($parent[$offset] instanceof SqlAstTokenNode) {
-                    $parent->replaceNode($parent[$offset], new SqlAstColumn($parent, $parent[$offset], null, null));
-                }
-
-                UnparsableSqlException::assertType($parent, $offset, SqlAstExpression::class);
-
-                /** @var SqlAstExpression $column */
-                $column = $parent[$offset];
-
-                /** @var string|null $alias */
-                $alias = null;
-
-                if (is_null($alias)) {
-                    $columns[] = $column;
-
-                } else {
-                    $columns[$alias] = $column;
-                }
-
-                /** @var SqlAstNode|null $comma */
-                $comma = $parent[$offset + 1];
-
-                /** @var bool $isComma */
-                $isComma = ($comma instanceof SqlAstTokenNode && $comma->is(SqlToken::COMMA()));
-
-                if ($isComma) {
-                    $offset++;
-                }
-            } while ($isComma);
-
-            /** @var SqlAstNode|null $from */
-            $from = $parent[$offset + 1];
-
-            if ($from instanceof SqlAstFrom) {
-                $offset++;
-
-            } else {
-                $from = null;
+            } elseif ($parent[$offset] instanceof SqlAstTokenNode) {
+                $parent->replaceNode($parent[$offset], new SqlAstTable($parent, $parent[$offset], null));
             }
+
+            UnparsableSqlException::assertType($parent, $offset, SqlAstTable::class);
+
+            /** @var SqlAstTable $tableName */
+            $tableName = $parent[$offset];
 
             /** @var array<SqlAstJoin> $joins */
             $joins = array();
@@ -136,6 +104,32 @@ final class SqlAstSelect implements SqlAstNode
                     $offset++;
                 }
             } while ($join instanceof SqlAstJoin);
+
+            $offset++;
+            UnparsableSqlException::assertToken($parent, $offset, SqlToken::SET());
+
+            /** @var array<SqlAstOperation> $operations */
+            $operations = array();
+
+            do {
+                $offset++;
+                UnparsableSqlException::assertType($parent, $offset, SqlAstOperation::class);
+
+                /** @var SqlAstOperation $operation */
+                $operation = $parent[$offset];
+
+                $operations[] = $operation;
+
+                /** @var SqlAstNode|null $comma */
+                $comma = $parent[$offset + 1];
+
+                /** @var bool $isComma */
+                $isComma = ($comma instanceof SqlAstTokenNode && $comma->is(SqlToken::COMMA()));
+
+                if ($isComma) {
+                    $offset++;
+                }
+            } while ($isComma);
 
             /** @var SqlAstNode|null $where */
             $where = $parent[$offset + 1];
@@ -157,31 +151,25 @@ final class SqlAstSelect implements SqlAstNode
                 $orderBy = null;
             }
 
-            if ($parent[$offset + 1] === null) {
-                $parent->replace($beginOffset, 1 + $offset - $beginOffset, new SqlAstSelect(
-                    $parent,
-                    $node,
-                    $columns,
-                    $from,
-                    $joins,
-                    $where,
-                    $orderBy
-                ));
-            }
+            $parent->replace($beginOffset, 1 + $offset - $beginOffset, new SqlAstUpdate(
+                $parent,
+                $node,
+                $tableName,
+                $operations,
+                $joins,
+                $where,
+                $orderBy
+            ));
         }
     }
 
     public function children(): array
     {
-        return array_filter(array_merge(
-            $this->columns,
-            [
-                $this->from,
-                $this->where,
-                $this->orderBy,
-            ],
-            $this->joins
-        ));
+        return array_filter(array_merge([
+            $this->tableName,
+            $this->where,
+            $this->orderBy,
+        ], $this->operations, $this->joins));
     }
 
     public function hash(): string
@@ -203,25 +191,25 @@ final class SqlAstSelect implements SqlAstNode
 
     public function line(): int
     {
-        return $this->selectToken->line();
+        return $this->updateToken->line();
     }
 
     public function column(): int
     {
-        return $this->selectToken->column();
+        return $this->updateToken->column();
     }
 
     public function toSql(): string
     {
         /** @var string $sql */
-        $sql = 'SELECT ';
+        $sql = 'UPDATE ' . $this->tableName->toSql();
 
         /** @var array<string> $columnsSql */
         $columnsSql = array();
 
-        /** @var SqlAstExpression $column */
-        foreach ($this->columns as $alias => $column) {
-            $columnsSql[] = $column->toSql() . (is_string($alias) ? (' ' . $alias) : '');
+        /** @var SqlAstOperation $operation */
+        foreach ($this->operations as $operation) {
+            $columnsSql[] = $operation->toSql();
         }
 
         $sql .= implode(', ', $columnsSql);

@@ -62,7 +62,7 @@ final class ParseSqlTest extends TestCase
         /** @var string $regeneratedSql */
         $regeneratedSql = $select->toSql();
 
-        var_dump($regeneratedSql);
+        #var_dump($regeneratedSql);
     }
 
     /** @test */

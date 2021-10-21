@@ -86,7 +86,7 @@ export class SqlAstWhere implements SqlAstMergable
 
     public function merge(SqlAstMergable toMerge): SqlAstMergable
     {
-        Assert::isInstanceOf(toMerge, SqlAstWhereCondition::class);
+        assert(toMerge instanceof SqlAstWhereCondition);
 
         operator = new SqlAstTokenNode(this.parent, new SqlTokenInstanceClass(
             "AND",

@@ -40,8 +40,8 @@ final class SqlAstOperation implements SqlAstExpression
         int $offset,
         SqlAstMutableNode $parent
     ): void {
-        if ($node instanceof SqlAstExpression) {
-            /** @var SqlAstExpression $leftSide */
+        if ($node instanceof SqlAstExpression || $node instanceof SqlAstTokenNode) {
+            /** @var SqlAstExpression|SqlAstTokenNode $leftSide */
             $leftSide = $node;
 
             /** @var SqlAstNode $operator */
@@ -50,25 +50,62 @@ final class SqlAstOperation implements SqlAstExpression
             /** @var SqlAstNode $rightSide */
             $rightSide = $parent[$offset + 2];
 
-            if ($operator instanceof SqlAstTokenNode && $rightSide instanceof SqlAstExpression) {
+            /** @var bool $leftSideIsExpression */
+            $leftSideIsExpression = max(
+                $leftSide instanceof SqlAstExpression,
+                $leftSide instanceof SqlAstTokenNode && $leftSide->is(SqlToken::SYMBOL())
+            );
 
-                /** @var bool $isOperator */
-                $isOperator = max(
-                    $operator->is(SqlToken::OPERATOR()),
-                    $operator->is(SqlToken::LIKE()),
-                    $operator->is(SqlToken::IS()),
-                );
+            /** @var bool $rightSideIsExpression */
+            $rightSideIsExpression = max(
+                $rightSide instanceof SqlAstExpression,
+                $rightSide instanceof SqlAstTokenNode && $rightSide->is(SqlToken::SYMBOL())
+            );
 
-                if ($isOperator) {
-                    $parent->replace($offset, 3, new SqlAstOperation(
-                        $parent,
-                        $leftSide,
-                        $operator,
-                        $rightSide
-                    ));
+            /** @var bool $isOperator */
+            $isOperator = $operator instanceof SqlAstTokenNode && max(
+                $operator->is(SqlToken::OPERATOR()),
+                $operator->is(SqlToken::LIKE()),
+                $operator->is(SqlToken::IS()),
+                $operator->is(SqlToken::IN()),
+            );
+
+            if ($isOperator && $leftSideIsExpression && $rightSideIsExpression) {
+                if ($leftSide instanceof SqlAstTokenNode && $leftSide->is(SqlToken::SYMBOL())) {
+                    $leftSide = new SqlAstColumn($parent, $leftSide, null, null);
+
+                    $parent->replace($offset, 1, $leftSide);
                 }
+
+                if ($rightSide instanceof SqlAstTokenNode && $rightSide->is(SqlToken::SYMBOL())) {
+                    $rightSide = new SqlAstColumn($parent, $rightSide, null, null);
+
+                    $parent->replace($offset + 2, 1, $rightSide);
+                }
+
+                $parent->replace($offset, 3, new SqlAstOperation(
+                    $parent,
+                    $leftSide,
+                    $operator,
+                    $rightSide
+                ));
             }
         }
+    }
+
+    public function leftSide(): SqlAstExpression
+    {
+        return $this->leftSide;
+    }
+
+    public function operator(): SqlAstTokenNode
+    {
+        return $this->operator;
+    }
+
+    public function rightSide(): SqlAstExpression
+    {
+        return $this->rightSide;
     }
 
     public function children(): array

@@ -6,7 +6,7 @@
     cacheResultFile=".phpunit.cache/test-results"
     executionOrder="random"
     resolveDependencies="true"
-    forceCoversAnnotation="true"
+    forceCoversAnnotation="false"
     beStrictAboutCoversAnnotation="true"
     beStrictAboutOutputDuringTests="true"
     beStrictAboutTodoAnnotatedTests="true"

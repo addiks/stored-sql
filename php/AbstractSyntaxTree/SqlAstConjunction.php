@@ -132,7 +132,7 @@ final class SqlAstConjunction implements SqlAstExpression
     public function toSql(): string
     {
         /** @var string $sql */
-        $sql = "";
+        $sql = '';
 
         /**
          * @var SqlAstTokenNode|null $operator

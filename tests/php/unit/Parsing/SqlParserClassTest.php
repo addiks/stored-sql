@@ -32,6 +32,8 @@ use Addiks\StoredSQL\Parsing\SqlParser;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
 use Webmozart\Assert\Assert;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWhere;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstUpdate;
+use Addiks\StoredSQL\Exception\UnparsableSqlException;
 
 final class SqlParserClassTest extends TestCase
 {
@@ -97,6 +99,7 @@ final class SqlParserClassTest extends TestCase
             Closure::fromCallable([SqlAstFrom::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstJoin::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstSelect::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstUpdate::class, 'mutateAstNode']),
         ], SqlParserClass::defaultMutators());
     }
 
@@ -132,50 +135,26 @@ final class SqlParserClassTest extends TestCase
         /** @var SqlParser $parser */
         $parser = SqlParserClass::defaultParser();
 
-        /** @var array<SqlAstNode> $detectedContent */
-        $detectedContent = $parser->parseSql($sql);
+        try {
+            /** @var array<SqlAstNode> $detectedContent */
+            $detectedContent = $parser->parseSql($sql);
 
-        /** @var array<int, SqlAstNode> $stack */
-        $stack = array();
-
-        /** @var array<int, array<SqlAstNode>> $childrensStack */
-        $childrensStack = array(-1 => $detectedContent);
-
-        /** @var string $dumpLine */
-        foreach ($dumpLines as $lineNumber => $dumpLine) {
-            Assert::true(preg_match('/^(\-*)([a-zA-Z0-9]+)$/is', $dumpLine, $matches) === 1, sprintf(
-                'Malformed line in file "%s" at line %d!',
-                $astFile,
-                $lineNumber
-            ));
-
-            /** @var int $level */
-            $level = substr_count($matches[1], '-');
-
-            /** @var string $expectedNodeType */
-            $expectedNodeType = $matches[2];
-
-            $this->assertNotEmpty($childrensStack[$level-1], sprintf(
-                'Expected node-type "%s" at line %d, was end of nodes instead!',
-                $expectedNodeType,
-                $lineNumber
-            ));
-
-            $stack[$level] = array_shift($childrensStack[$level-1]);
-            $childrensStack[$level] = $stack[$level]->children();
-
-            /** @var string $actualNodeType */
-            $actualNodeType = array_reverse(explode('\\', get_class($stack[$level])))[0];
-
-            $this->assertEquals($expectedNodeType, $actualNodeType, sprintf(
-                'Expected node-type "%s" at line %d, found "%s" instead!',
-                $expectedNodeType,
-                $lineNumber,
-                $actualNodeType
-            ));
+        } catch (UnparsableSqlException $exception) {
+            echo $exception->asciiLocationDump();
+            
+            throw $exception;
         }
-    }
+        
+        /** @var string $actualDump */
+        $actualDump = $this->dumpNodes($detectedContent);
+        
+        if ($expectedDump !== $actualDump) {
+            #file_put_contents('/tmp/ga_debug.ast', $this->dumpNodes($detectedContent, 0, false));
+        }
 
+        $this->assertEquals($expectedDump, $actualDump);
+    }
+    
     /** @return array<string, array{0:string, 1:string}> */
     public function dataProvider(): array
     {
@@ -203,5 +182,32 @@ final class SqlParserClassTest extends TestCase
         return $dataSets;
     }
 
+    /** @param array<SqlAstNode> $nodes */
+    private function dumpNodes(array $nodes, int $level = 0, bool $withSql = false): string
+    {
+        /** @var array<string> $dumpLines */
+        $dumpLines = array();
+        
+        /** @var SqlAstNode $node */
+        foreach ($nodes as $node) {
+            /** @var string $line */
+            $line = str_pad('', $level, '-') . array_reverse(explode("\\", get_class($node)))[0];
+            
+            if ($withSql) {
+                $line .= ':' . $node->toSql();
+            }
+            
+            $dumpLines[] = $line;
+            
+            /** @var array<SqlAstNode> $children */
+            $children = $node->children();
+            
+            if (!empty($children)) {
+                $dumpLines[] = $this->dumpNodes($children, $level + 1);
+            }
+        }
+        
+        return implode("\n", $dumpLines);
+    }
 
 }

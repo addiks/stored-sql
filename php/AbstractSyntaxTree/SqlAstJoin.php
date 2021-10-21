@@ -110,6 +110,8 @@ final class SqlAstJoin implements SqlAstNode
             $this->joinType,
             $this->tableName,
             $this->alias,
+            $this->onOrUsing,
+            $this->condition,
         ]);
     }
 
@@ -143,17 +145,16 @@ final class SqlAstJoin implements SqlAstNode
     public function toSql(): string
     {
         /** @var string $sql */
-        $sql = $this->joinType->toSql() . " JOIN " . $this->tableName->toSql();
+        $sql = $this->joinType->toSql() . ' JOIN ' . $this->tableName->toSql();
 
         if (is_object($this->alias)) {
-            $sql .= " " . $this->alias->toSql();
+            $sql .= ' ' . $this->alias->toSql();
         }
 
         if (is_object($this->condition)) {
-            $sql .= " " . $this->onOrUsing->toSql() . " " . $this->condition->toSql() . "";
+            $sql .= ' ' . $this->onOrUsing->toSql() . ' ' . $this->condition->toSql() . '';
         }
 
         return $sql;
     }
-
 }

@@ -1,4 +1,3 @@
-<?php
 /**
  * Copyright (C) 2019 Gerrit Addiks.
  * This package (including this file) was released under the terms of the GPL-3.0.
@@ -9,16 +8,14 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Parsing;
+import { AbstractSqlToken } from './AbstractSqlToken';
 
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
-
-interface SqlParser
+export interface SqlTokenInstance
 {
-    /**
-     * @param array<class-string> $expectedResultTypes
-     *
-     * @return array<SqlAstNode>
-     */
-    public function parseSql(string $sql, array $expectedResultTypes = null): array;
+    code(): string;
+    token(): AbstractSqlToken;
+    is(token: AbstractSqlToken): bool;
+    isCode(code: string): bool;
+    line(): int;
+    offset(): int;
 }

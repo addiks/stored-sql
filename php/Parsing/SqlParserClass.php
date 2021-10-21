@@ -11,10 +11,6 @@
 
 namespace Addiks\StoredSQL\Parsing;
 
-use Addiks\StoredSQL\Exception\UnparsableSqlException;
-use Addiks\StoredSQL\Lexing\SqlTokenizer;
-use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
-use Addiks\StoredSQL\Lexing\SqlTokens;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstColumn;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstConjunction;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstFrom;
@@ -25,9 +21,14 @@ use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstOrderBy;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstParenthesis;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstRoot;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstSelect;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstUpdate;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWhere;
+use Addiks\StoredSQL\Exception\UnparsableSqlException;
+use Addiks\StoredSQL\Lexing\SqlTokenizer;
+use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
+use Addiks\StoredSQL\Lexing\SqlTokens;
 use Closure;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWhere;
 
 final class SqlParserClass implements SqlParser
 {
@@ -72,6 +73,7 @@ final class SqlParserClass implements SqlParser
             Closure::fromCallable([SqlAstFrom::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstJoin::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstSelect::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstUpdate::class, 'mutateAstNode']),
         );
     }
 
@@ -86,10 +88,15 @@ final class SqlParserClass implements SqlParser
         /** @var SqlAstRoot $syntaxTree */
         $syntaxTree = $tokens->convertToSyntaxTree();
 
-        /** @var callable $mutator */
-        foreach ($this->mutators as $mutator) {
-            $syntaxTree->walk([$mutator]);
-        }
+        do {
+            /** @var string $hashBefore */
+            $hashBefore = $syntaxTree->hash();
+
+            /** @var callable $mutator */
+            foreach ($this->mutators as $mutator) {
+                $syntaxTree->walk([$mutator]);
+            }
+        } while ($hashBefore !== $syntaxTree->hash());
 
         /** @var array<SqlAstNode> $detectedContent */
         $detectedContent = $syntaxTree->children();
