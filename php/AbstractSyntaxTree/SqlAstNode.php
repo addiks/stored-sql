@@ -15,6 +15,17 @@ interface SqlAstNode
 {
     /** @return array<self> */
     public function children(): array;
+    
+    /**
+     * Executes the given callback for every child-node in this AST recursively.
+     *
+     * Mutation is not allowed during execution of the callback.
+     *
+     * The node will be the first parameter for the callback.
+     *
+     * @param array<callable> $callbacks
+     */
+    public function walk(array $callbacks = array()): void;
 
     /**
      * Represents the state of this part of the AST.

@@ -12,59 +12,59 @@ import { AbstractSqlToken } from './AbstractSqlToken'
 
 export class SqlToken extends AbstractSqlToken
 {
-    const SPACE = null;
-    const COMMENT = null;
-    const DOT = null;
-    const SYMBOL = null;
-    const LITERAL = null;
-    const NUMERIC = null;
-    const OPERATOR = null;
+    static readonly SPACE = new SqlToken('SPACE');
+    static readonly COMMENT = new SqlToken('COMMENT');
+    static readonly DOT = new SqlToken('DOT');
+    static readonly SYMBOL = new SqlToken('SYMBOL');
+    static readonly LITERAL = new SqlToken('LITERAL');
+    static readonly NUMERIC = new SqlToken('NUMERIC');
+    static readonly OPERATOR = new SqlToken('OPERATOR');
 
-    const BRACKET_OPENING = null;
-    const BRACKET_CLOSING = null;
-    const COMMA = null;
-    const SEMICOLON = null;
+    static readonly BRACKET_OPENING = new SqlToken('BRACKET_OPENING');
+    static readonly BRACKET_CLOSING = new SqlToken('BRACKET_CLOSING');
+    static readonly COMMA = new SqlToken('COMMA');
+    static readonly SEMICOLON = new SqlToken('SEMICOLON');
 
-    const SELECT = null;
-    const FROM = null;
-    const LEFT = null;
-    const INNER = null;
-    const JOIN = null;
-    const ON = null;
-    const USING = null;
-    const WHERE = null;
-    const IN = null;
-    const IS = null;
-    const AND = null;
-    const OR = null;
-    const LIKE = null;
-    const HAVING = null;
-    const LIMIT = null;
-    const ORDER = null;
-    const BY = null;
-    const ASC = null;
-    const DESC = null;
-    const DISTINCT = null;
-    const FUNCTION_NAME = null;
+    static readonly SELECT = new SqlToken('SELECT');
+    static readonly FROM = new SqlToken('FROM');
+    static readonly LEFT = new SqlToken('LEFT');
+    static readonly INNER = new SqlToken('INNER');
+    static readonly JOIN = new SqlToken('JOIN');
+    static readonly ON = new SqlToken('ON');
+    static readonly USING = new SqlToken('USING');
+    static readonly WHERE = new SqlToken('WHERE');
+    static readonly IN = new SqlToken('IN');
+    static readonly IS = new SqlToken('IS');
+    static readonly AND = new SqlToken('AND');
+    static readonly OR = new SqlToken('OR');
+    static readonly LIKE = new SqlToken('LIKE');
+    static readonly HAVING = new SqlToken('HAVING');
+    static readonly LIMIT = new SqlToken('LIMIT');
+    static readonly ORDER = new SqlToken('ORDER');
+    static readonly BY = new SqlToken('BY');
+    static readonly ASC = new SqlToken('ASC');
+    static readonly DESC = new SqlToken('DESC');
+    static readonly DISTINCT = new SqlToken('DISTINCT');
+    static readonly FUNCTION_NAME = new SqlToken('FUNCTION_NAME');
 
-    const UPDATE = null;
+    static readonly UPDATE = new SqlToken('UPDATE');
 
-    const DELETE = null;
+    static readonly DELETE = new SqlToken('DELETE');
 
-    const ALTER = null;
-    const TABLE = null;
-    const SCHEMA = null;
-    const COLUMN = null;
-    const INDEX = null;
-    const KEY = null;
+    static readonly ALTER = new SqlToken('ALTER');
+    static readonly TABLE = new SqlToken('TABLE');
+    static readonly SCHEMA = new SqlToken('SCHEMA');
+    static readonly COLUMN = new SqlToken('COLUMN');
+    static readonly INDEX = new SqlToken('INDEX');
+    static readonly KEY = new SqlToken('KEY');
 
-    const CREATE = null;
-    const DATA_TYPE = null;
-    const NOT = null;
-    const T_NULL = null;
-    const PRIMARY_KEY = null;
+    static readonly CREATE = new SqlToken('CREATE');
+    static readonly DATA_TYPE = new SqlToken('DATA_TYPE');
+    static readonly NOT = new SqlToken('NOT');
+    static readonly T_NULL = new SqlToken('NULL');
+    static readonly PRIMARY_KEY = new SqlToken('PRIMARY_KEY');
 
-    const SET = null;
+    static readonly SET = new SqlToken('SET');
 
-    const SHOW = null;
+    static readonly SHOW = new SqlToken('SHOW');
 }

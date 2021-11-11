@@ -12,9 +12,12 @@
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
 
 final class SqlAstOperation implements SqlAstExpression
 {
+    use SqlAstWalkableTrait;
+    
     private SqlAstNode $parent;
 
     private SqlAstExpression $leftSide;

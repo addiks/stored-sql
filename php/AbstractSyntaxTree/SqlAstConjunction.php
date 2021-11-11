@@ -13,9 +13,13 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstColumn;
 
 final class SqlAstConjunction implements SqlAstExpression
 {
+    use SqlAstWalkableTrait;
+    
     private SqlAstNode $parent;
 
     /** @var array<array{0:SqlAstTokenNode|null, 1:SqlAstExpression}> */
@@ -57,6 +61,10 @@ final class SqlAstConjunction implements SqlAstExpression
 
         /** @var array<array{0:SqlAstTokenNode, 1:SqlAstExpression}> $parts */
         $parts = array([null, $node]);
+        
+        if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::SYMBOL())) {
+            $node = new SqlAstColumn($parent, $node, null, null);
+        }
 
         while ($node instanceof SqlAstExpression) {
             $node = null;
@@ -74,6 +82,10 @@ final class SqlAstConjunction implements SqlAstExpression
                 if ($isConjunction) {
                     /** @var SqlAstNode $otherNode */
                     $otherNode = $parent[$offset + 2];
+
+                    if ($otherNode instanceof SqlAstTokenNode && $otherNode->is(SqlToken::SYMBOL())) {
+                        $otherNode = new SqlAstColumn($parent, $otherNode, null, null);
+                    }
 
                     if ($otherNode instanceof SqlAstExpression) {
                         $parts[] = [$nextNode, $otherNode];

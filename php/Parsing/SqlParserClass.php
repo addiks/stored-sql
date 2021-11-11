@@ -77,8 +77,11 @@ final class SqlParserClass implements SqlParser
         );
     }
 
-    public function parseSql(string $sql, array $expectedResultTypes = null): array
-    {
+    public function parseSql(
+        string $sql, 
+        array $expectedResultTypes = array(),
+        array $validationCallbacks = array()
+    ): array {
         /** @var SqlTokens $tokens */
         $tokens = $this->tokenizer->tokenize($sql);
 
@@ -94,17 +97,21 @@ final class SqlParserClass implements SqlParser
 
             /** @var callable $mutator */
             foreach ($this->mutators as $mutator) {
-                $syntaxTree->walk([$mutator]);
+                $syntaxTree->mutate([$mutator]);
             }
         } while ($hashBefore !== $syntaxTree->hash());
 
         /** @var array<SqlAstNode> $detectedContent */
         $detectedContent = $syntaxTree->children();
 
-        if (is_array($expectedResultTypes)) {
+        if (!empty($expectedResultTypes) || !empty($validationCallbacks)) {
             /** @var SqlAstNode $detectedNode */
             foreach ($detectedContent as $detectedNode) {
-
+                
+                if (!empty($validationCallbacks)) {
+                    $detectedNode->walk($validationCallbacks);
+                }
+                
                 /** @var class-string $expectedClass */
                 foreach ($expectedResultTypes as $expectedClass) {
                     Assert::classExists($expectedClass);

@@ -14,9 +14,12 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Addiks\StoredSQL\Lexing\SqlTokenInstanceClass;
 use Webmozart\Assert\Assert;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
 
 final class SqlAstWhere implements SqlAstMergable
 {
+    use SqlAstWalkableTrait;
+    
     private SqlAstNode $parent;
 
     private SqlAstTokenNode $whereToken;

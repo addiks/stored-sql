@@ -8,12 +8,76 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { SqlAstRoot } from '../AbstractSyntaxTree/SqlAstRoot'
+import { 
+    SqlToken, SqlTokenInstance 
+//  SqlAstRoot, SqlAstRootClass, SqlAstTokenNode, 
+} from 'storedsql'
 
 export interface SqlTokens
 {
     withoutWhitespace(): SqlTokens;
     withoutComments(): SqlTokens;
     sql(): string;
-    convertToSyntaxTree(): SqlAstRoot;
+//    convertToSyntaxTree(): SqlAstRoot;
+}
+
+export class SqlTokensClass implements SqlTokens
+{
+    private tokens: Array<SqlTokenInstance> = [];
+    private originalSql: string;
+
+    constructor(tokens: Array<SqlTokenInstance>, originalSql: string)
+    {
+        this.originalSql = originalSql;
+
+        for (var token of tokens) {
+            this.tokens.push(token);
+        }
+    }
+
+//    public convertToSyntaxTree(): SqlAstRoot
+//    {
+//        var root: SqlAstRootClass = new SqlAstRootClass([], this);
+//                
+//        var tokenNodes = this.tokens.map(token => new SqlAstTokenNode(root, token));
+//
+//        for (var tokenNode in tokenNodes) {
+//            root.addToken(tokenNode);
+//        }
+//
+//        root.markLexingFinished();
+//
+//        return root;
+//    }
+
+    public withoutWhitespace(): SqlTokens
+    {
+        return new SqlTokensClass(
+            this.tokens.filter(token => !token.is(SqlToken.SPACE)),
+            this.originalSql
+        );
+    }
+
+    public withoutComments(): SqlTokens
+    {
+        return new SqlTokensClass(
+            this.tokens.filter(token => !token.is(SqlToken.COMMENT)),
+            this.originalSql
+        );
+    }
+
+    public sql(): string
+    {
+        return this.originalSql;
+    }
+
+    public get(offset: number): SqlTokenInstance
+    {
+        return this.tokens[offset] ?? null;
+    }
+
+    public has(offset: number): boolean
+    {
+        return typeof this.tokens[offset] != "undefined";
+    }
 }

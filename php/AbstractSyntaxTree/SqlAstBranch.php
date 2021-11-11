@@ -13,9 +13,12 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use ErrorException;
 use Webmozart\Assert\Assert;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
 
 abstract class SqlAstBranch implements SqlAstMutableNode
 {
+    use SqlAstWalkableTrait;
+    
     /** @var array<SqlAstNode> $children */
     private array $children;
 
@@ -47,7 +50,7 @@ abstract class SqlAstBranch implements SqlAstMutableNode
         return md5(implode('.', $childHashes));
     }
 
-    public function walk(array $mutators = array()): void
+    public function mutate(array $mutators = array()): void
     {
         do {
             /** @var string $hashBefore */
@@ -66,7 +69,7 @@ abstract class SqlAstBranch implements SqlAstMutableNode
                     }
 
                     if ($child instanceof SqlAstMutableNode) {
-                        $child->walk($mutators);
+                        $child->mutate($mutators);
                     }
                 }
             }

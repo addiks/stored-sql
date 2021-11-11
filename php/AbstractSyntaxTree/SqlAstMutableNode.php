@@ -18,6 +18,7 @@ interface SqlAstMutableNode extends ArrayAccess, SqlAstNode
 {
     /**
      * Executes the given callback for every child-node in this AST recursively.
+     *
      * If AST was modified during execution, the callback will also be executed for any newly added nodes.
      * This will be repeatet until all nodes were executed.
      *
@@ -25,7 +26,7 @@ interface SqlAstMutableNode extends ArrayAccess, SqlAstNode
      *
      * @param array<callable> $mutators
      */
-    public function walk(array $mutators = array()): void;
+    public function mutate(array $mutators = array()): void;
 
     /** Mutates this node so that a segment of the child-nodes are replaced with another node. */
     public function replace(

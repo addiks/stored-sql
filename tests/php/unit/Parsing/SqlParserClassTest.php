@@ -77,7 +77,7 @@ final class SqlParserClassTest extends TestCase
 
         $tokens->expects($this->once())->method('convertToSyntaxTree')->willReturn($syntaxTree);
 
-        $syntaxTree->expects($this->once())->method('walk')->with($this->equalTo($this->mutators));
+        $syntaxTree->expects($this->once())->method('mutate')->with($this->equalTo($this->mutators));
 
         $this->subject->parseSql($sql);
     }
