@@ -1,4 +1,4 @@
-name: StoredSQL Pipeline
+name: StoredSQL Pipeline (PHP)
 on: [push]
 jobs:
     Composer-Install:
@@ -26,6 +26,7 @@ jobs:
               uses: actions/download-artifact@v2
               with:
                   name: vendor
+                  path: vendor
             - run: "vendor/bin/psalm"
         
     PHP-Unit:
@@ -38,6 +39,7 @@ jobs:
               uses: actions/download-artifact@v2
               with:
                   name: vendor
+                  path: vendor
             - run: "vendor/bin/phpunit"
         
     Infection:
@@ -50,5 +52,6 @@ jobs:
               uses: actions/download-artifact@v2
               with:
                   name: vendor
+                  path: vendor
             - run: "vendor/bin/infection -vv -s"
         

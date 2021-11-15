@@ -1,4 +1,4 @@
-name: StoredSQL Pipeline
+name: StoredSQL Pipeline (Typescript)
 on: [push]
 jobs:
         
@@ -24,5 +24,6 @@ jobs:
               uses: actions/download-artifact@v2
               with:
                   name: node_modules
+                  path: node_modules
             - run: "npm run test"
         
