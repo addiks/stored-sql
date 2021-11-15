@@ -1,0 +1,75 @@
+name: StoredSQL Pipeline
+on: [push]
+jobs:
+    Composer-Install:
+        runs-on: ubuntu-latest
+        steps:
+            - name: "Checkout repository"
+              uses: actions/checkout@v2
+            - run: "composer install"
+            - name: "Upload vendor artifacts"
+              uses: actions/upload-artifact@v2
+              with:
+                  name: vendor
+                  path: vendor
+        
+    Psalm:
+        runs-on: ubuntu-latest
+        needs: ["Composer-Install"]
+        steps:
+            - name: "Checkout repository"
+              uses: actions/checkout@v2
+            - name: "Download vendor"
+              uses: actions/download-artifact@v2
+              with:
+                  name: vendor
+            - run: "vendor/bin/psalm"
+        
+    PHP-Unit:
+        runs-on: ubuntu-latest
+        needs: ["Composer-Install"]
+        steps:
+            - name: "Checkout repository"
+              uses: actions/checkout@v2
+            - name: "Download vendor"
+              uses: actions/download-artifact@v2
+              with:
+                  name: vendor
+            - run: "vendor/bin/phpunit"
+        
+    Infection:
+        runs-on: ubuntu-latest
+        needs: ["Composer-Install", "PHP-Unit"]
+        steps:
+            - name: "Checkout repository"
+              uses: actions/checkout@v2
+            - name: "Download vendor"
+              uses: actions/download-artifact@v2
+              with:
+                  name: vendor
+            - run: "vendor/bin/infection -vv -s"
+        
+    NPM-Install:
+        runs-on: ubuntu-latest
+        steps:
+            - name: "Checkout repository"
+              uses: actions/checkout@v2
+            - run: "npm install"
+            - name: "Upload node_modules artifacts"
+              uses: actions/upload-artifact@v2
+              with:
+                  name: node_modules
+                  path: node_modules
+        
+    Jest:
+        runs-on: ubuntu-latest
+        needs: ["NPM-Install"]
+        steps:
+            - name: "Checkout repository"
+              uses: actions/checkout@v2
+            - name: "Download node_modules"
+              uses: actions/download-artifact@v2
+              with:
+                  name: node_modules
+            - run: "npm run test"
+        
