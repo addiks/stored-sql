@@ -4,6 +4,66 @@ import {
     SqlToken 
 } from 'storedsql'
 
+export function defaultTokenizer(): SqlTokenizer
+{
+    return new SqlTokenizerClass(defaultKeywords());
+}
+
+export function defaultKeywords(): Map<string, AbstractSqlToken>
+{
+    return new Map([
+        ["(", SqlToken.BRACKET_OPENING],
+        [")", SqlToken.BRACKET_CLOSING],
+        [".", SqlToken.DOT],
+        [",", SqlToken.COMMA],
+        [";", SqlToken.SEMICOLON],
+
+        ["<=", SqlToken.OPERATOR],
+        [">=", SqlToken.OPERATOR],
+        ["!=", SqlToken.OPERATOR],
+        ["=", SqlToken.OPERATOR],
+        ["<", SqlToken.OPERATOR],
+        [">", SqlToken.OPERATOR],
+
+        ["SELECT", SqlToken.SELECT],
+        ["FROM", SqlToken.FROM],
+        ["LEFT", SqlToken.LEFT],
+        ["INNER", SqlToken.INNER],
+        ["JOIN", SqlToken.JOIN],
+        ["ON", SqlToken.ON],
+        ["IN", SqlToken.IN],
+        ["IS", SqlToken.IS],
+        ["AND", SqlToken.AND],
+        ["ORDER", SqlToken.ORDER],
+        ["BY", SqlToken.BY],
+        ["ASC", SqlToken.ASC],
+        ["DESC", SqlToken.DESC],
+        ["OR", SqlToken.OR],
+        ["LIKE", SqlToken.LIKE],
+        ["USING", SqlToken.USING],
+        ["WHERE", SqlToken.WHERE],
+        ["HAVING", SqlToken.HAVING],
+        ["LIMIT", SqlToken.LIMIT],
+        ["DISTINCT", SqlToken.DISTINCT],
+        ["FUNCTION_NAME", SqlToken.FUNCTION_NAME],
+        ["UPDATE", SqlToken.UPDATE],
+        ["DELETE", SqlToken.DELETE],
+        ["ALTER", SqlToken.ALTER],
+        ["TABLE", SqlToken.TABLE],
+        ["SCHEMA", SqlToken.SCHEMA],
+        ["COLUMN", SqlToken.COLUMN],
+        ["INDEX", SqlToken.INDEX],
+        ["KEY", SqlToken.KEY],
+        ["CREATE", SqlToken.CREATE],
+        ["DATA_TYPE", SqlToken.DATA_TYPE],
+        ["NOT", SqlToken.NOT],
+        ["NULL", SqlToken.T_NULL],
+        ["PRIMARY_KEY", SqlToken.PRIMARY_KEY],
+        ["SET", SqlToken.SET],
+        ["SHOW", SqlToken.SHOW],
+    ]);
+}
+
 export interface SqlTokenizer
 {
     tokenize(sql: string): SqlTokens;
@@ -11,16 +71,9 @@ export interface SqlTokenizer
 
 export class SqlTokenizerClass implements SqlTokenizer
 {
-    private keywords: Map<string, AbstractSqlToken>;
-
-    constructor(keywords: Map<string, AbstractSqlToken>)
-    {
-        this.keywords = keywords;
-    }
-
-    public static defaultTokenizer(): SqlTokenizerClass
-    {
-        return new SqlTokenizerClass(SqlTokenizerClass.defaultKeywords());
+    constructor(
+        private readonly keywords: Map<string, AbstractSqlToken>
+    ) {
     }
 
     public tokenize(sql: string): SqlTokens
@@ -48,7 +101,7 @@ export class SqlTokenizerClass implements SqlTokenizer
             line += newLines;
 
             if (newLines > 0) {
-                offset = tokenSql.split("").reverse().join("").indexOf("\n") + 1;
+                offset = tokenSql.split("").reverse().join("").indexOf("\n");
 
             } else {
                 offset += tokenSql.length;
@@ -56,61 +109,6 @@ export class SqlTokenizerClass implements SqlTokenizer
         }
 
         return new SqlTokensClass(tokens, originalSql);
-    }
-
-    public static defaultKeywords(): Map<string, AbstractSqlToken>
-    {
-        return new Map([
-            ["(", SqlToken.BRACKET_OPENING],
-            [")", SqlToken.BRACKET_CLOSING],
-            [".", SqlToken.DOT],
-            [",", SqlToken.COMMA],
-            [";", SqlToken.SEMICOLON],
-
-            ["<=", SqlToken.OPERATOR],
-            [">=", SqlToken.OPERATOR],
-            ["!=", SqlToken.OPERATOR],
-            ["=", SqlToken.OPERATOR],
-            ["<", SqlToken.OPERATOR],
-            [">", SqlToken.OPERATOR],
-
-            ["SELECT", SqlToken.SELECT],
-            ["FROM", SqlToken.FROM],
-            ["LEFT", SqlToken.LEFT],
-            ["INNER", SqlToken.INNER],
-            ["JOIN", SqlToken.JOIN],
-            ["ON", SqlToken.ON],
-            ["IN", SqlToken.IN],
-            ["IS", SqlToken.IS],
-            ["AND", SqlToken.AND],
-            ["ORDER", SqlToken.ORDER],
-            ["BY", SqlToken.BY],
-            ["ASC", SqlToken.ASC],
-            ["DESC", SqlToken.DESC],
-            ["OR", SqlToken.OR],
-            ["LIKE", SqlToken.LIKE],
-            ["USING", SqlToken.USING],
-            ["WHERE", SqlToken.WHERE],
-            ["HAVING", SqlToken.HAVING],
-            ["LIMIT", SqlToken.LIMIT],
-            ["DISTINCT", SqlToken.DISTINCT],
-            ["FUNCTION_NAME", SqlToken.FUNCTION_NAME],
-            ["UPDATE", SqlToken.UPDATE],
-            ["DELETE", SqlToken.DELETE],
-            ["ALTER", SqlToken.ALTER],
-            ["TABLE", SqlToken.TABLE],
-            ["SCHEMA", SqlToken.SCHEMA],
-            ["COLUMN", SqlToken.COLUMN],
-            ["INDEX", SqlToken.INDEX],
-            ["KEY", SqlToken.KEY],
-            ["CREATE", SqlToken.CREATE],
-            ["DATA_TYPE", SqlToken.DATA_TYPE],
-            ["NOT", SqlToken.NOT],
-            ["NULL", SqlToken.T_NULL],
-            ["PRIMARY_KEY", SqlToken.PRIMARY_KEY],
-            ["SET", SqlToken.SET],
-            ["SHOW", SqlToken.SHOW],
-        ]);
     }
 
     private readToken(sql: string): [AbstractSqlToken, string]
@@ -157,8 +155,8 @@ export class SqlTokenizerClass implements SqlTokenizer
             return [SqlToken.LITERAL, sql.substr(0, sql.indexOf(sql[0], 1) + 1)];
         }
 
-        for (const keyword in this.keywords) {
-            const token: AbstractSqlToken = this.keywords[keyword];
+        for (const keyword of Array.from(this.keywords.keys())) {
+            const token: AbstractSqlToken = this.keywords.get(keyword);
             if (keyword.toUpperCase() == sql.substr(0, keyword.length).toUpperCase()) {
                 return [token, sql.substr(0, keyword.length)];
             }
@@ -174,7 +172,9 @@ export class SqlTokenizerClass implements SqlTokenizer
             return [SqlToken.SYMBOL, sql.substr(0, sql.indexOf('`', 1) + 1)];
         }
 
-        if (/^[a-zA-Z_][a-zA-Z0-9_]*/gis.exec(sql)) {
+        match = /^[a-zA-Z_][a-zA-Z0-9_]*/gis.exec(sql);
+
+        if (match) {
             return [SqlToken.SYMBOL, match[0]];
         }
 

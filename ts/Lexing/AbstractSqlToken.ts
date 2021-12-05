@@ -5,4 +5,9 @@ export abstract class AbstractSqlToken
         public readonly value: string
     ) {
     }
+    
+    public name(): string
+    {
+        return this.value;
+    }
 }

@@ -8,100 +8,95 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { SqlAstNode } from '../AbstractSyntaxTree/SqlAstNode'
+import { 
+    SqlAstNode, SqlTokenizer, defaultTokenizer, SqlTokens, SqlAstRoot, convertTokensToSyntaxTree, 
+    mutateLiteralAstNode, mutateColumnAstNode
+} from 'storedsql'
+
+export function defaultParser(): SqlParser
+{
+    return new SqlParserClass(defaultTokenizer(), defaultMutators());
+}
+
+export function defaultMutators(): Array<Function>
+{
+        return [
+            mutateLiteralAstNode,
+            mutateColumnAstNode,
+//            SqlAstOperation.mutateAstNode(),
+//            SqlAstConjunction.mutateAstNode(),
+//            SqlAstWhere.mutateAstNode(),
+//            SqlAstOrderBy.mutateAstNode(),
+//            SqlAstParenthesis.mutateAstNode(),
+//            SqlAstFrom.mutateAstNode(),
+//            SqlAstJoin.mutateAstNode(),
+//            SqlAstSelect.mutateAstNode(),
+        ];
+}
 
 export interface SqlParser
 {
-    parseSql(sql: string, expectedResultTypes: Array<string> = null): Array<SqlAstNode>;
+    parseSql(sql: string, expectedResultTypes?: Array<string>): Array<SqlAstNode>;
 }
 
 export class SqlParserClass implements SqlParser
 {
-    private tokenizer: SqlTokenizer;
-    private array mutators: Array<Function>;
-
     constructor(
-        tokenizer: SqlTokenizer,
-        mutators: Array<Function>
+        private readonly tokenizer: SqlTokenizer,
+        private readonly mutators: Array<Function>
     ) {
-        this.tokenizer = tokenizer;
-        this.mutators = mutators;
     }
 
-    public static defaultParser(): SqlParser
+    public parseSql(sql: string, expectedResultTypes?: Array<string>): Array<SqlAstNode>
     {
-        return new SqlParserClass(
-            SqlTokenizerClass.defaultTokenizer(),
-            SqlParserClass.defaultMutators()
-        );
-    }
-
-    /** @return array<callable> */
-    public static defaultMutators(): array
-    {
-        return [
-            SqlAstLiteral.mutateAstNode(),
-            SqlAstColumn.mutateAstNode(),
-            SqlAstOperation.mutateAstNode(),
-            SqlAstConjunction.mutateAstNode(),
-            SqlAstWhere.mutateAstNode(),
-            SqlAstOrderBy.mutateAstNode(),
-            SqlAstParenthesis.mutateAstNode(),
-            SqlAstFrom.mutateAstNode(),
-            SqlAstJoin.mutateAstNode(),
-            SqlAstSelect.mutateAstNode(),
-        ];
-    }
-
-    public parseSql(sql: string, expectedResultTypes: Array<string> = null): Array<SqlAstNode>
-    {
-        /** @var SqlTokens tokens */
-        tokens = this.tokenizer.tokenize(sql);
-
+        
+        let tokens: SqlTokens = this.tokenizer.tokenize(sql);
+        
         tokens = tokens.withoutWhitespace();
         tokens = tokens.withoutComments();
 
-        /** @var SqlAstRoot syntaxTree */
-        syntaxTree = tokens.convertToSyntaxTree();
+        let syntaxTree: SqlAstRoot = convertTokensToSyntaxTree(tokens);
+
+        console.log(syntaxTree);
 
         /** @var callable mutator */
-        foreach (this.mutators as mutator) {
+        for (var mutator of this.mutators) {
             syntaxTree.walk([mutator]);
         } 
 
         var detectedContent: Array<SqlAstNode> = syntaxTree.children();
 
-        /** @var SqlAstNode detectedNode */
-        foreach (detectedContent as detectedNode) {
+//        /** @var SqlAstNode detectedNode */
+//        foreach (detectedContent as detectedNode) {
+//
+//            /** @var class-string expectedClass */
+//            foreach (expectedResultTypes as expectedClass) {
+//                Assert::classExists(expectedClass);
+//
+//                if (detectedNode instanceof expectedClass) {
+//                    continue 2;
+//                }
+//            }
+//
+//            throw new UnparsableSqlException(sprintf(
+//                "Unexpected node of type '%s' detected, expected one of: [%s]!",
+//                get_class(detectedNode),
+//                implode(', ', expectedResultTypes)
+//            ), detectedNode);
+//        }
 
-            /** @var class-string expectedClass */
-            foreach (expectedResultTypes as expectedClass) {
-                Assert::classExists(expectedClass);
-
-                if (detectedNode instanceof expectedClass) {
-                    continue 2;
-                }
-            }
-
-            throw new UnparsableSqlException(sprintf(
-                "Unexpected node of type '%s' detected, expected one of: [%s]!",
-                get_class(detectedNode),
-                implode(', ', expectedResultTypes)
-            ), detectedNode);
-        }
-
-        # TODO: make sure all detected nodes are "final" nodes (like a select statement)
+        // TODO: make sure all detected nodes are "final" nodes (like a select statement)
 
         return detectedContent;
     }
 
-    public tokenizer(): SqlTokenizer
-    {
-        return this.tokenizer;
-    }
-
-    public mutators(): Array<Function>
-    {
-        return this.mutators;
-    }
+//    public tokenizer(): SqlTokenizer
+//    {
+//        return this.tokenizer;
+//    }
+//
+//    public mutators(): Array<Function>
+//    {
+//        return this.mutators;
+//    }
 }

@@ -8,8 +8,12 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import {SqlAstNode} from './SqlAstNode'
+import { SqlAstNode, SqlAstNodeClass } from 'storedsql'
 
 export interface SqlAstExpression extends SqlAstNode
+{
+}
+
+export class SqlAstExpressionClass extends SqlAstNodeClass implements SqlAstExpression
 {
 }

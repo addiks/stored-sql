@@ -8,47 +8,23 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { 
-    SqlToken, SqlTokenInstance 
-//  SqlAstRoot, SqlAstRootClass, SqlAstTokenNode, 
-} from 'storedsql'
+import { SqlToken, SqlTokenInstance } from 'storedsql'
 
 export interface SqlTokens
 {
+    readonly tokens: Array<SqlTokenInstance>;
     withoutWhitespace(): SqlTokens;
     withoutComments(): SqlTokens;
     sql(): string;
-//    convertToSyntaxTree(): SqlAstRoot;
 }
 
 export class SqlTokensClass implements SqlTokens
 {
-    private tokens: Array<SqlTokenInstance> = [];
-    private originalSql: string;
-
-    constructor(tokens: Array<SqlTokenInstance>, originalSql: string)
-    {
-        this.originalSql = originalSql;
-
-        for (var token of tokens) {
-            this.tokens.push(token);
-        }
+    constructor(
+        public readonly tokens: Array<SqlTokenInstance>, 
+        private originalSql: string
+    ) {
     }
-
-//    public convertToSyntaxTree(): SqlAstRoot
-//    {
-//        var root: SqlAstRootClass = new SqlAstRootClass([], this);
-//                
-//        var tokenNodes = this.tokens.map(token => new SqlAstTokenNode(root, token));
-//
-//        for (var tokenNode in tokenNodes) {
-//            root.addToken(tokenNode);
-//        }
-//
-//        root.markLexingFinished();
-//
-//        return root;
-//    }
 
     public withoutWhitespace(): SqlTokens
     {

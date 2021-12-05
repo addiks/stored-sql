@@ -8,43 +8,34 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { AbstractSqlToken } from './AbstractSqlToken'
-import { SqlAstNode } from './SqlAstNode'
-import { SqlTokenInstance } from './SqlTokenInstance'
-import { SqlAstRoot } from './SqlAstRoot'
+import { SqlAstRoot, SqlTokenInstance, SqlAstNode, SqlAstNodeClass, AbstractSqlToken } from 'storedsql'
+import { sprintf } from 'sprintf-js';
 
-export class SqlAstTokenNode implements SqlAstNode
+export class SqlAstTokenNode extends SqlAstNodeClass
 {
-    private parent: SqlAstNode;
-    private token: SqlTokenInstance;
-
-    public function __construct(parent: SqlAstNode, token: SqlTokenInstance)
-    {
-        this.parent = parent;
-        this.token = token;
+    constructor(
+        parent: SqlAstNode, 
+        public readonly token: SqlTokenInstance
+    ) {
+        super(parent, 'SqlAstTokenNode');
     }
 
-    public function token(): SqlTokenInstance
-    {
-        return this.token;
-    }
-
-    public function is(token: AbstractSqlToken): boolean
+    public is(token: AbstractSqlToken): boolean
     {
         return this.token.is(token);
     }
 
-    public function isCode(string code): boolean
+    public isCode(code: string): boolean
     {
         return this.token.isCode(code);
     }
 
-    public function children(): Array<SqlAstNode>
+    public children(): Array<SqlAstNode>
     {
         return [];
     }
 
-    public function hash(): string
+    public hash(): string
     {
         return sprintf(
             '%d:%d:%s',
@@ -54,27 +45,22 @@ export class SqlAstTokenNode implements SqlAstNode
         );
     }
 
-    public function parent(): SqlAstNode|null
-    {
-        return this.parent;
-    }
-
-    public function root(): SqlAstRoot
+    public root(): SqlAstRoot
     {
         return this.parent.root();
     }
 
-    public function line(): number
+    public line(): number
     {
         return this.token.line();
     }
 
-    public function column(): number
+    public column(): number
     {
         return this.token.offset();
     }
 
-    public function toSql(): string
+    public toSql(): string
     {
         return this.token.code();
     }

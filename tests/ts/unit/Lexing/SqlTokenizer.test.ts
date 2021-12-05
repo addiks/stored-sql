@@ -1,18 +1,15 @@
 
-import { UnlexableSqlException } from 'storedsql';
-import { SqlTokenizerClass } from 'storedsql';
+import { UnlexableSqlException, SqlTokenizer, defaultTokenizer } from 'storedsql';
 import { sprintf } from 'sprintf-js';
 import { readFileSync, readdirSync, realpathSync, existsSync } from 'fs';
 
-var tokenizer = SqlTokenizerClass.defaultTokenizer();
+let tokenizer: SqlTokenizer = defaultTokenizer();
 
 function testSqlFile(sqlFileName, sqlFilePath, tokensFilePath)
 {
     test("Should detect correct tokens in " + sqlFileName, () => {
         var sql = readFileSync(sqlFilePath, 'utf8');
-        var expectedTokenString = readFileSync(tokensFilePath, 'utf8');
-        
-        console.log([sql, expectedTokenString]);
+        var expectedTokenString = readFileSync(tokensFilePath, 'utf8').trim();
         
         try {
             var actualTokens = tokenizer.tokenize(sql);
@@ -27,9 +24,8 @@ function testSqlFile(sqlFileName, sqlFilePath, tokensFilePath)
         }
         
         var actualTokenLines = [];
-        
-        for (var index in actualTokens) {
-            var token = actualTokens[index];
+        for (var index in actualTokens.tokens) {
+            var token = actualTokens.tokens[index];
             
             actualTokenLines.push(sprintf(
                 '%d,%d,%s',

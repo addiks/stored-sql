@@ -8,28 +8,46 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { SqlAstNode } from './SqlAstNode';
+import { SqlAstNodeClass, SqlAstNode } from 'storedsql';
 
-interface SqlAstMutableNode extends SqlAstNode
+// If you are looking for the SqlAstMutableNode interface,
+// that one is defined in 'SqlAstNode.ts' to prevent a circular reference.
+
+/** Typescript cannot test for interfaces at runtime, test for this class instead. */
+export class SqlAstMutableNodeClass extends SqlAstNodeClass
 {
-    /**
-     * Executes the given callback for every child-node in this AST recursively.
-     * If AST was modified during execution, the callback will also be executed for any newly added nodes.
-     * This will be repeatet until all nodes were executed.
-     *
-     * The node will be the first parameter for the callback.
-     */
-    public function walk(mutators: Function[]): void;
+    constructor(
+        parent?: SqlAstNode,
+        nodeType: string = 'SqlAstMutableNode'
+    ) {
+        super(parent, nodeType);
+    }
+    
+    public walk(mutators: Array<Function>): void
+    {
+        throw new Error('SqlAstMutableNode is an interface! Implement missing methods!');
+    }
 
-    /** Mutates this node so that a segment of the child-nodes are replaced with another node. */
-    public function replaceNode(
+    public replace(
         offset: number,
         length: number,
         newNode: SqlAstNode
-    ): void;
+    ): void {
+        throw new Error('SqlAstMutableNode is an interface! Implement missing methods!');
+    }
 
-    replaceNode(oldNode: SqlAstNode, newNode: SqlAstNode): void;
+    public replaceNode(oldNode: SqlAstNode, newNode: SqlAstNode): void
+    {
+        throw new Error('SqlAstMutableNode is an interface! Implement missing methods!');
+    }
 
-    get(number offset): SqlAstNode | null;
-    has(number offset): boolean;
+    public get(offset: number): SqlAstNode
+    {
+        throw new Error('SqlAstMutableNode is an interface! Implement missing methods!');
+    }
+    
+    public has(offset: number): boolean
+    {
+        throw new Error('SqlAstMutableNode is an interface! Implement missing methods!');
+    }
 }

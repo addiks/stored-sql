@@ -8,7 +8,7 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { AbstractSqlToken, SqlTokenInstance } from 'storedsql';
+import { AbstractSqlToken } from 'storedsql';
 
 export interface SqlTokenInstance
 {

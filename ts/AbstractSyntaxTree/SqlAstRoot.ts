@@ -8,10 +8,83 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { SqlTokens } from './../Lexing/SqlTokens';
-import { SqlAstMutableNode } from './SqlAstMutableNode';
+import { SqlTokens, SqlAstMutableNode, SqlAstBranch, SqlAstRoot, SqlAstNode, SqlAstTokenNode, assert } from 'storedsql';
 
-export interface SqlAstRoot extends SqlAstMutableNode
+// If you are looking for the SqlAstRoot interface,
+// that one is defined in 'SqlAstNode.ts' to prevent a circular reference.
+
+export function convertTokensToSyntaxTree(tokens: SqlTokens): SqlAstRoot
 {
-    tokens(): SqlTokens;
+    var root: SqlAstRootClass = new SqlAstRootClass([], tokens);
+
+    var tokenNodes: Array<SqlAstTokenNode> = tokens.tokens.map(token => new SqlAstTokenNode(root, token));
+
+    for (var tokenNode of tokenNodes) {
+        root.addToken(tokenNode);
+    }
+
+    root.markLexingFinished();
+
+    return root;
+}
+
+export class SqlAstRootClass extends SqlAstBranch implements SqlAstRoot
+{
+    private lexingFinished: boolean = false;
+
+    constructor(
+        children: Array<SqlAstNode>, 
+        public readonly tokens: SqlTokens,
+        nodeType: string = 'SqlAstRoot'
+    ) {
+        super(nodeType, children);
+    }
+
+    public addToken(token: SqlAstTokenNode): void
+    {
+        assert(!this.lexingFinished);
+
+        super.replace(this.children().length, 1, token);
+    }
+
+    public markLexingFinished(): void
+    {
+        this.lexingFinished = true;
+    }
+
+    public replace(
+        offset: number,
+        length: number,
+        newNode: SqlAstNode
+    ): void {
+        assert(this.lexingFinished);
+
+        super.replace(offset, length, newNode);
+    }
+
+    public root(): SqlAstRoot
+    {
+        return this;
+    }
+
+    public line(): number
+    {
+        return 1;
+    }
+
+    public column(): number
+    {
+        return 0;
+    }
+
+    public toSql(): string
+    {
+        var sql: string = "";
+
+        for (var node of this.children()) {
+            sql += node.toSql();
+        }
+
+        return sql;
+    }
 }

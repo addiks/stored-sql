@@ -203,7 +203,7 @@ final class SqlParserClassTest extends TestCase
             $children = $node->children();
             
             if (!empty($children)) {
-                $dumpLines[] = $this->dumpNodes($children, $level + 1);
+                $dumpLines[] = $this->dumpNodes($children, $level + 1, $withSql);
             }
         }
         

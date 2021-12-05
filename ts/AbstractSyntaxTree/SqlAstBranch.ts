@@ -8,39 +8,46 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { SqlAstMutableNode } from './SqlAstMutableNode'
-import { SqlAstNode } from './SqlAstNode'
+import { SqlAstMutableNodeClass, SqlAstNode, assert } from 'storedsql'
 import { Md5 } from 'ts-md5/dist/md5'
+import { sprintf } from 'sprintf-js';
 
-export abstract class SqlAstBranch implements SqlAstMutableNode
+export abstract class SqlAstBranch extends SqlAstMutableNodeClass
 {
-    private children: Array<SqlAstNode>;
+    private _children: Array<SqlAstNode>;
 
-    constructor(children: Array<SqlAstNode>)
-    {
-        this.children = children;
+    constructor(
+        nodeType: string,
+        children: Array<SqlAstNode>,
+        parent?: SqlAstNode
+    ) {
+        super(parent, nodeType);
+        
+        this._children = children;
     }
 
     public children(): Array<SqlAstNode>
     {
-        return this.children;
+        return this._children;
     }
 
-    public function hash(): string
+    public hash(): string
     {
-        return Md5.hashStr(this.children.map(child => child.hash()).join('.'));
+        return Md5.hashStr(this._children.map(child => child.hash()).join('.'));
     }
 
-    public function walk(mutators: Array<Function>): void
+    public walk(mutators: Array<Function>): void
     {
         do {
             var hashBefore: string = this.hash();
 
-            for (var mutatorIndex: number in mutators) {
+            for (var mutatorIndex in mutators) {
                 var mutator: Function = mutators[mutatorIndex];
 
-                for (var offset: number in this.children) {
-                    var child: SqlAstNode = this.children[offset];
+                for (var key in this._children) {
+                    var child: SqlAstNode = this._children[key];
+                    
+                    var offset: number = parseInt(key);
 
                     mutator(child, offset, this);
 
@@ -48,7 +55,7 @@ export abstract class SqlAstBranch implements SqlAstMutableNode
                         break;
                     }
 
-                    if (child instanceof SqlAstMutableNode) {
+                    if (child instanceof SqlAstMutableNodeClass) {
                         child.walk(mutators);
                     }
                 }
@@ -61,20 +68,26 @@ export abstract class SqlAstBranch implements SqlAstMutableNode
         length: number,
         newNode: SqlAstNode
     ): void {
-        assert(offset >= 0);
-        assert(length >= 0);
-        assert(offset + length <= this.children.length + 1);
+        assert(offset >= 0, sprintf('Replace Offset %d must be >= 0!', offset));
+        assert(length >= 0, sprintf('Replace Length %d must be >= 0!', length));
+        console.log([offset, length, offset + length, this._children.length]);
+        assert(offset + length <= (this._children.length + 1), sprintf(
+            "Cannot replace %d children from offset %d which is after end of list (%d)!",
+            length,
+            offset,
+            this._children.length + 1
+        ));
 
-        this.children = [
-            ... this.children.slice(0, offset),
+        this._children = [
+            ... this._children.slice(0, offset),
             newNode,
-            ... this.children.slice(offset + length)
+            ... this._children.slice(offset + length)
         ];
     }
 
     public replaceNode(oldNode: SqlAstNode, newNode: SqlAstNode): void
     {
-        var offset: number = this.children.indexOf(oldNode);
+        var offset: number = this._children.indexOf(oldNode);
 
         if (offset < 0) {
             throw sprintf(
@@ -93,12 +106,12 @@ export abstract class SqlAstBranch implements SqlAstMutableNode
             return null;
         }
 
-        return this.children[offset];
+        return this._children[offset];
     }
 
     public has(offset: number): boolean
     {
-        return typeof this.children[offset] != "undefined";
+        return typeof this._children[offset] != "undefined";
     }
 
 }
