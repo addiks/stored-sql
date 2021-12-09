@@ -10,7 +10,7 @@
 
 import { 
     SqlAstNode, SqlTokenizer, defaultTokenizer, SqlTokens, SqlAstRoot, convertTokensToSyntaxTree, 
-    mutateLiteralAstNode, mutateColumnAstNode
+    mutateLiteralAstNode, mutateColumnAstNode, mutateOperationAstNode
 } from 'storedsql'
 
 export function defaultParser(): SqlParser
@@ -23,7 +23,7 @@ export function defaultMutators(): Array<Function>
         return [
             mutateLiteralAstNode,
             mutateColumnAstNode,
-//            SqlAstOperation.mutateAstNode(),
+            mutateOperationAstNode,
 //            SqlAstConjunction.mutateAstNode(),
 //            SqlAstWhere.mutateAstNode(),
 //            SqlAstOrderBy.mutateAstNode(),

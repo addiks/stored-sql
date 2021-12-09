@@ -77,10 +77,10 @@ export function mutateColumnAstNode(
         var column: SqlAstTokenNode = node;
         var table: SqlAstTokenNode|null = null;
         var database: SqlAstTokenNode|null = null;
-        var dot: SqlAstNode = parent[offset + 1];
+        var dot: SqlAstNode = parent.get(offset + 1);
 
         if (dot instanceof SqlAstTokenNode && dot.is(SqlToken.DOT)) {
-            node = parent[offset + 2];
+            node = parent.get(offset + 2);
             assert(node instanceof SqlAstTokenNode);
 
             if (node.is(SqlToken.SYMBOL)) {
@@ -89,10 +89,10 @@ export function mutateColumnAstNode(
                 table = column;
                 column = node;
 
-                dot = parent[offset + 3];
+                dot = parent.get(offset + 3);
 
                 if (dot instanceof SqlAstTokenNode && dot.is(SqlToken.DOT)) {
-                    node = parent[offset + 4];
+                    node = parent.get(offset + 4);
                     assert(node instanceof SqlAstTokenNode);
 
                     if (node.is(SqlToken.SYMBOL)) {

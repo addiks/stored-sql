@@ -9,7 +9,18 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { SqlAstNode } from './SqlAstNode'
+import { SqlAstNode, SqlAstNodeClass } from 'storedsql'
+
+/* This class exists because typescript cannot test for interfaces at runtime. Test for this class instead. */
+export class SqlAstMergableClass extends SqlAstNodeClass implements SqlAstMergable
+{
+    
+    public merge(toMerge: SqlAstMergable): SqlAstMergable
+    {
+        throw new Error('You must implement the missing methods!');
+    }
+
+}
 
 export interface SqlAstMergable extends SqlAstNode
 {

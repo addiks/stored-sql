@@ -70,7 +70,6 @@ export abstract class SqlAstBranch extends SqlAstMutableNodeClass
     ): void {
         assert(offset >= 0, sprintf('Replace Offset %d must be >= 0!', offset));
         assert(length >= 0, sprintf('Replace Length %d must be >= 0!', length));
-        console.log([offset, length, offset + length, this._children.length]);
         assert(offset + length <= (this._children.length + 1), sprintf(
             "Cannot replace %d children from offset %d which is after end of list (%d)!",
             length,

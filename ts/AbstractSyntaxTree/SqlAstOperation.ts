@@ -8,60 +8,26 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { SqlAstExpression } from './SqlAstExpression'
-import { SqlAstNode } from './SqlAstNode'
-import { SqlAstTokenNode } from './SqlAstTokenNode'
-import { SqlAstMutableNode } from './SqlAstMutableNode'
+import { 
+    SqlAstExpression, SqlAstExpressionClass, SqlAstNode, SqlAstTokenNode, SqlAstMutableNode, SqlAstRoot, SqlToken,
+    SqlAstColumn
+} from 'storedsql';
 
-export class SqlAstOperation implements SqlAstExpression
+import { sprintf } from 'sprintf-js';
+
+export class SqlAstOperation extends SqlAstExpressionClass
 {
-    private parent: SqlAstNode;
-    private leftSide: SqlAstExpression;
-    private operator: SqlAstTokenNode;
-    private rightSide: SqlAstExpression;
-
-    public function __construct(
+    constructor(
         parent: SqlAstNode,
-        leftSide: SqlAstExpression,
-        operator: SqlAstTokenNode,
-        rightSide: SqlAstExpression
+        private readonly leftSide: SqlAstExpression,
+        private readonly operator: SqlAstTokenNode,
+        private readonly rightSide: SqlAstExpression,
+        nodeType: string = 'SqlAstOperation'
     ) {
-        this.parent = parent;
-        this.leftSide = leftSide;
-        this.operator = operator;
-        this.rightSide = rightSide;
+        super(parent, nodeType);
     }
 
-    public static function mutateAstNode(
-        node: SqlAstNode,
-        offset: number,
-        parent: SqlAstMutableNode
-    ): void {
-        if (node instanceof SqlAstExpression) {
-            var leftSide: SqlAstExpression = node;
-            var operator: SqlAstNode = parent[offset + 1];
-            var rightSide: SqlAstExpression = parent[offset + 2];
-
-            if (operator instanceof SqlAstTokenNode && rightSide instanceof SqlAstExpression) {
-                var isOperator: boolean = max(
-                    operator.is(SqlToken.OPERATOR()),
-                    operator.is(SqlToken.LIKE()),
-                    operator.is(SqlToken.IS()),
-                );
-
-                if (isOperator) {
-                    parent.replace(offset, 3, new SqlAstOperation(
-                        parent,
-                        leftSide,
-                        operator,
-                        rightSide
-                    ));
-                }
-            }
-        }
-    }
-
-    public function children(): Array<SqlAstNode>
+    public children(): Array<SqlAstNode>
     {
         return [
             this.leftSide,
@@ -70,7 +36,7 @@ export class SqlAstOperation implements SqlAstExpression
         ];
     }
 
-    public function hash(): string
+    public hash(): string
     {
         return sprintf(
             '(%s/%s/%s)',
@@ -80,28 +46,79 @@ export class SqlAstOperation implements SqlAstExpression
         );
     }
 
-    public function parent(): SqlAstNode|null
-    {
-        return this.parent;
-    }
-
-    public function root(): SqlAstRoot
+    public root(): SqlAstRoot
     {
         return this.parent.root();
     }
 
-    public function line(): number
+    public line(): number
     {
         return this.operator.line();
     }
 
-    public function column(): number
+    public column(): number
     {
         return this.operator.column();
     }
 
-    public function toSql(): string
+    public toSql(): string
     {
         return this.leftSide.toSql() + ' ' + this.operator.toSql() + ' ' + this.rightSide.toSql();
     }
 }
+
+
+export function mutateOperationAstNode(
+    node: SqlAstNode,
+    offset: number,
+    parent: SqlAstMutableNode
+): void {
+    if (node instanceof SqlAstExpressionClass || node instanceof SqlAstTokenNode) {
+        var leftSide: SqlAstExpression|SqlAstTokenNode = node;
+        var operator: SqlAstNode = parent.get(offset + 1);
+        var rightSide: SqlAstNode = parent.get(offset + 2);
+        
+        var leftSideIsExpression = leftSide instanceof SqlAstExpressionClass;
+        if (leftSide instanceof SqlAstTokenNode && leftSide.is(SqlToken.SYMBOL)) {
+            leftSideIsExpression = true;
+        }
+
+        var rightSideIsExpression = rightSide instanceof SqlAstExpressionClass;
+        if (rightSide instanceof SqlAstTokenNode && rightSide.is(SqlToken.SYMBOL)) {
+            rightSideIsExpression = true;
+        }
+        
+        var isOperator: boolean = operator instanceof SqlAstTokenNode;
+        console.log([operator, isOperator]);
+        if (isOperator) {
+            var operatorToken: SqlAstTokenNode = (operator as SqlAstTokenNode);
+            
+            isOperator = isOperator || operatorToken.is(SqlToken.OPERATOR);
+            isOperator = isOperator || operatorToken.is(SqlToken.LIKE);
+            isOperator = isOperator || operatorToken.is(SqlToken.IS);
+            isOperator = isOperator || operatorToken.is(SqlToken.IN);
+
+            if (isOperator && leftSideIsExpression && rightSideIsExpression) {
+                if (leftSide instanceof SqlAstTokenNode && leftSide.is(SqlToken.SYMBOL)) {
+                    leftSide = new SqlAstColumn(parent, leftSide, null, null);
+
+                    parent.replace(offset, 1, leftSide);
+                }
+                
+                if (rightSide instanceof SqlAstTokenNode && rightSide.is(SqlToken.SYMBOL)) {
+                    rightSide = new SqlAstColumn(parent, rightSide, null, null);
+
+                    parent.replace(offset, 1, rightSide);
+                }
+
+                parent.replace(offset, 3, new SqlAstOperation(
+                    parent,
+                    leftSide,
+                    operatorToken,
+                    rightSide
+                ));
+            }
+        }
+    }
+}
+

@@ -8,85 +8,69 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { SqlToken } from '../Lexing/SqlToken'
-import { SqlAstMergable } from './SqlAstMergable'
-import { SqlAstConjunction } from './SqlAstConjunction'
-import { SqlAstTokenNode } from './SqlAstTokenNode'
-import { SqlTokenInstance } from './SqlTokenInstance'
-import { SqlTokenInstanceClass } from './SqlTokenInstanceClass'
-import { SqlAstMutableNode } from './SqlAstMutableNode'
+import { 
+    SqlToken, SqlAstMergable, SqlAstConjunction, SqlAstTokenNode, SqlTokenInstance, SqlTokenInstanceClass, 
+    SqlAstMutableNode, SqlAstExpression
+} from 'storedsql';
 
-export class SqlAstWhere implements SqlAstMergable
+export function mutateAstNode(
+    node: SqlAstNode,
+    offset: number,
+    parent: SqlAstMutableNode
+): void {
+    if (node instanceof SqlAstTokenNode && node.is(SqlToken.WHERE())) {
+        var expression: SqlAstExpression = parent.get(offset + 1);
+
+        parent.replace(offset, 2, new SqlAstWhere(parent, node, expression));
+    }
+}
+
+export class SqlAstWhere extends SqlAstMergableClass
 {
     private parent: SqlAstNode;
-    private whereToken: SqlAstTokenNode;
-    private expression: SqlAstExpression;
 
-    public function __construct(
+    constructor(
         parent: SqlAstNode,
-        whereToken: SqlAstTokenNode,
-        expression: SqlAstExpression
+        private readonly whereToken: SqlAstTokenNode,
+        public readonly expression: SqlAstExpression,
+        nodeType: string = 'SqlAstWhere'
     ) {
-        this.parent = parent;
-        this.whereToken = whereToken;
-        this.expression = expression;
+        super(parent, nodeType);
     }
 
-    public static function mutateAstNode(
-        node: SqlAstNode,
-        offset: number,
-        parent: SqlAstMutableNode
-    ): void {
-        if (node instanceof SqlAstTokenNode && node.is(SqlToken.WHERE())) {
-            var expression: SqlAstExpression = parent[offset + 1];
-
-            parent.replace(offset, 2, new SqlAstWhereCondition(parent, node, expression));
-        }
-    }
-
-    public function children(): Array<SqlAstNode>
+    public children(): Array<SqlAstNode>
     {
         return [this.expression];
     }
 
-    public function hash(): string
+    public hash(): string
     {
         return this.expression.hash();
     }
 
-    public function expression(): SqlAstExpression
-    {
-        return this.expression;
-    }
-
-    public function parent(): ?SqlAstNode
-    {
-        return this.parent;
-    }
-
-    public function root(): SqlAstRoot
+    public root(): SqlAstRoot
     {
         return this.parent.root();
     }
 
-    public function line(): number
+    public line(): number
     {
         return this.whereToken.line();
     }
 
-    public function column(): number
+    public column(): number
     {
         return this.whereToken.column();
     }
 
-    public function toSql(): string
+    public toSql(): string
     {
         return 'WHERE ' + this.expression.toSql();
     }
 
-    public function merge(SqlAstMergable toMerge): SqlAstMergable
+    public merge(SqlAstMergable toMerge): SqlAstMergable
     {
-        assert(toMerge instanceof SqlAstWhereCondition);
+        assert(toMerge instanceof SqlAstWhere);
 
         operator = new SqlAstTokenNode(this.parent, new SqlTokenInstanceClass(
             "AND",
@@ -95,12 +79,12 @@ export class SqlAstWhere implements SqlAstMergable
             this.column
         ));
 
-        mergedExpression = new SqlAstConjunction(this.parent, [
+        var mergedExpression = new SqlAstConjunction(this.parent, [
             [null, this.expression],
-            [operator, toMerge.expression()]
+            [operator, toMerge.expression]
         ]);
 
-        newWhere = new SqlAstWhereCondition(this.parent, this.whereToken, mergedExpression);
+        var newWhere = new SqlAstWhere(this.parent, this.whereToken, mergedExpression);
 
         this.parent.replaceNode(this, newWhere);
 

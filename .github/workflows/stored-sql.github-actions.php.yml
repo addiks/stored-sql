@@ -27,7 +27,7 @@ jobs:
               with:
                   name: vendor
                   path: vendor
-            - run: "vendor/bin/psalm"
+            - run: "php vendor/bin/psalm"
         
     PHP-Unit:
         runs-on: ubuntu-latest
@@ -40,7 +40,7 @@ jobs:
               with:
                   name: vendor
                   path: vendor
-            - run: "vendor/bin/phpunit"
+            - run: "php vendor/bin/phpunit"
         
     Infection:
         runs-on: ubuntu-latest

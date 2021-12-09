@@ -8,125 +8,92 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { SqlAstExpression } from './SqlAstExpression'
-import { SqlAstNode } from './SqlAstNode'
-import { SqlAstTokenNode } from './SqlAstTokenNode'
-import { SqlToken } from '../SqlToken'
+import { 
+    SqlAstExpression, SqlAstExpressionClass, SqlAstNode, SqlAstTokenNode, SqlToken, assert, SqlAstRoot, 
+    SqlAstMutableNode
+} from 'storedsql'
 
-export class SqlAstConjunction implements SqlAstExpression
+import { Md5 } from 'ts-md5/dist/md5'
+
+export class SqlAstConjunction extends SqlAstExpressionClass
 {
-    private parent: SqlAstNode;
-
     /** @var array<array{0:SqlAstTokenNode|null, 1:SqlAstExpression}> */
     private parts: Array<Array<SqlAstNode>>;
 
     /** @param array<array{0:SqlAstTokenNode|null, 1:SqlAstExpression}> parts */
     constructor(
         parent: SqlAstNode,
-        parts: Array<Array<SqlAstNode>>
+        parts: Array<Array<SqlAstNode>>,
+        nodeType: string = 'SqlAstConjunction'
     ) {
-        this.parent = parent;
+        super(parent, nodeType);
+        
         this.parts = [];
 
         assert(parts.length >= 2);
 
         for (var index in parts) {
-            var operator: SqlAstTokenNode|null = parts[index][0];
-            var expression: SqlAstExpression = parts[index][1];
+            var operator: SqlAstTokenNode|null = null;
+            var expression: SqlAstExpression = (parts[index][1] as SqlAstExpression);
 
-            if (index > 0) {
+            if (parts[index][0] != null) {
+                operator = (parts[index][0] as SqlAstTokenNode);
+            }
+
+            if (parseInt(index) > 0) {
                 assert(operator instanceof SqlAstTokenNode);
 
             } else {
                 assert(operator == null);
             }
 
-            this.parts[] = [operator, expression];
+            this.parts.push([operator, expression]);
         }
     }
 
-    public static function mutateAstNode(
-        node: SqlAstNode,
-        offset: number,
-        parent: SqlAstMutableNode
-    ): void {
-        var originalOffset: number = offset;
-
-        /** @var array<array{0:SqlAstTokenNode, 1:SqlAstExpression}> parts */
-        var parts: Array<Array<SqlAstNode>> = [[null, node]];
-
-        while (node instanceof SqlAstExpression) {
-            node = null;
-
-            var nextNode: SqlAstNode = parent[offset + 1];
-
-            if (nextNode instanceof SqlAstTokenNode) {
-                var isConjunction: boolean = max(
-                    nextNode.is(SqlToken.AND()),
-                    nextNode.is(SqlToken.OR())
-                );
-
-                if (isConjunction) {
-                    var otherNode: SqlAstNode = parent[offset + 2];
-
-                    if (otherNode instanceof SqlAstExpression) {
-                        parts[] = [nextNode, otherNode];
-                        offset += 2;
-                        node = otherNode;
-                    }
-                }
-            }
-        }
-
-        if (count(parts) > 1) {
-            parent.replace(originalOffset, offset - originalOffset + 1, new SqlAstConjunction(parent, parts));
-        }
-    }
-
-    public function children(): Array<SqlAstNode>
+    public children(): Array<SqlAstNode>
     {
         var children: Array<SqlAstNode|null> = [];
 
         for (var index in this.parts) {
-            children[] = this.parts[index][0];
-            children[] = this.parts[index][1];
+            children.push(this.parts[index][0]);
+            children.push(this.parts[index][1]);
         }
 
         return children.filter(node => node != null);
     }
 
-    public function hash(): string
+    public hash(): string
     {
         return Md5.hashStr(this.children().map(node => node.hash()).join('.'));
     }
 
-    public function parent(): SqlAstNode|null
-    {
-        return this.parent;
-    }
-
-    public function root(): SqlAstRoot
+    public root(): SqlAstRoot
     {
         return this.parent.root();
     }
 
-    public function line(): number
+    public line(): number
     {
         return this.children()[0].line();
     }
 
-    public function column(): number
+    public column(): number
     {
         return this.children()[0].column();
     }
 
-    public function toSql(): string
+    public toSql(): string
     {
         var sql: string = "";
 
         for (var index in this.parts) {
-            var operator: SqlAstTokenNode|null = this.parts[index][0];
+            var operator: SqlAstTokenNode|null = null;
             var expression: SqlAstExpression = this.parts[index][1];
+
+            if (this.parts[index][0] != null) {
+                operator = (this.parts[index][0] as SqlAstTokenNode);
+            }
 
             if (typeof operator == 'object') {
                 sql += ' ' + operator.toSql();
@@ -138,3 +105,41 @@ export class SqlAstConjunction implements SqlAstExpression
         return sql.trim();
     }
 }
+
+export function mutateConjunctionAstNode(
+    node: SqlAstNode,
+    offset: number,
+    parent: SqlAstMutableNode
+): void {
+    var originalOffset: number = offset;
+
+    /** @var array<array{0:SqlAstTokenNode, 1:SqlAstExpression}> parts */
+    var parts: Array<Array<SqlAstNode>> = [[null, node]];
+
+    while (node instanceof SqlAstExpressionClass) {
+        node = null;
+
+        var nextNode: SqlAstNode = parent.get(offset + 1);
+
+        if (nextNode instanceof SqlAstTokenNode) {
+            var isConjunction: boolean = false;
+            isConjunction = isConjunction || nextNode.is(SqlToken.AND);
+            isConjunction = isConjunction || nextNode.is(SqlToken.OR);
+
+            if (isConjunction) {
+                var otherNode: SqlAstNode = parent.get(offset + 2);
+
+                if (otherNode instanceof SqlAstExpressionClass) {
+                    parts.push([nextNode, otherNode]);
+                    offset += 2;
+                    node = otherNode;
+                }
+            }
+        }
+    }
+
+    if (parts.length > 1) {
+        parent.replace(originalOffset, offset - originalOffset + 1, new SqlAstConjunction(parent, parts));
+    }
+}
+
