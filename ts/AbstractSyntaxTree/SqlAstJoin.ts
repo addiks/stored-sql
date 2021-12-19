@@ -8,118 +8,59 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { SqlAstNode } from './SqlAstNode'
-import { SqlAstTokenNode } from './SqlAstTokenNode'
-import { SqlAstExpression } from './SqlAstExpression'
-import { SqlToken } from './SqlToken'
+import { 
+    SqlAstNode, SqlAstNodeClass, SqlAstTokenNode, SqlAstExpression, SqlToken, SqlAstRoot, assert, SqlAstMutableNode,
+    SqlAstExpressionClass
+} from 'storedsql'
 
-export class SqlAstJoin implements SqlAstNode
+import { Md5 } from 'ts-md5/dist/md5'
+
+export class SqlAstJoin extends SqlAstNodeClass
 {
-    private parent: SqlAstNode;
-    private joinToken: SqlAstTokenNode;
-    private tableName: SqlAstTokenNode;
-    private joinType: SqlAstTokenNode|null;
-    private alias: SqlAstTokenNode|null;
-    private onOrUsing: SqlAstTokenNode|null;
-    private condition: SqlAstExpression|null;
 
-    public function __construct(
+    constructor(
         parent: SqlAstNode,
-        joinToken: SqlAstTokenNode,
-        tableName: SqlAstTokenNode,
-        joinType: SqlAstTokenNode|null,
-        alias: SqlAstTokenNode|null,
-        onOrUsing: SqlAstTokenNode|null,
-        condition: SqlAstExpression|null
+        private readonly joinToken: SqlAstTokenNode,
+        private readonly tableName: SqlAstTokenNode,
+        private readonly joinType: SqlAstTokenNode|null,
+        private readonly alias: SqlAstTokenNode|null,
+        private readonly onOrUsing: SqlAstTokenNode|null,
+        private readonly condition: SqlAstExpression|null,
+        nodeType: string = 'SqlAstJoin'
     ) {
-        this.parent = parent;
-        this.joinToken = joinToken;
-        this.joinType = joinType;
-        this.tableName = tableName;
-        this.alias = alias;
-        this.onOrUsing = onOrUsing;
-        this.condition = condition;
+        super(parent, nodeType);
     }
 
-    public static function mutateAstNode(
-        node: SqlAstNode,
-        number offset,
-        parent: SqlAstMutableNode
-    ): void {
-        if (node instanceof SqlAstTokenNode && node.is(SqlToken.JOIN())) {
-            var joinType: SqlAstNode|null = parent[offset - 1];
-            var tableName: SqlAstTokenNode = parent[offset + 1];
-            var alias: SqlAstNode|null = parent[offset + 2];
-
-            if (!(tableName instanceof SqlAstTokenNode && tableName.is(SqlToken.SYMBOL()))) {
-                tableName = null;
-            }
-
-            if (!(alias instanceof SqlAstTokenNode && alias.is(SqlToken.SYMBOL()))) {
-                alias = null;
-            }
-
-            var beginOffset: number = is_object(joinType) ? offset - 1 : offset;
-            var endOffset: number = is_object(alias) ? offset + 2 : offset + 1;
-            var onOrUsing: SqlAstNode|null = parent[endOffset + 1];
-            var condition: SqlAstExpression|null = null;
-
-            if (onOrUsing instanceof SqlAstTokenNode) {
-                if (onOrUsing.is(SqlToken.ON()) || onOrUsing.is(SqlToken.USING())) {
-                    condition = parent[endOffset + 2];
-                    endOffset += 2;
-
-                    assert(condition instanceof SqlAstExpression);
-                }
-            }
-
-            parent.replace(beginOffset, 1 + endOffset - beginOffset, new SqlAstJoin(
-                parent,
-                node,
-                tableName,
-                joinType,
-                alias,
-                onOrUsing,
-                condition
-            ));
-        }
-    }
-
-    public function children(): array
+    public children(): Array<SqlAstNode>
     {
         return [
             this.joinType,
             this.tableName,
             this.alias,
-        ].filer(node => node != null);
+        ].filter(node => node != null);
     }
 
-    public function hash(): string
+    public hash(): string
     {
         return Md5.hashStr(this.children().map(node => node.hash()).join('.'));
     }
 
-    public function parent(): ?SqlAstNode
-    {
-        return this.parent;
-    }
-
-    public function root(): SqlAstRoot
+    public root(): SqlAstRoot
     {
         return this.parent.root();
     }
 
-    public function line(): number
+    public line(): number
     {
         return this.joinToken.line();
     }
 
-    public function column(): number
+    public column(): number
     {
         return this.joinToken.column();
     }
 
-    public function toSql(): string
+    public toSql(): string
     {
         var sql: string = this.joinType.toSql() + " JOIN " + this.tableName.toSql();
 
@@ -135,3 +76,51 @@ export class SqlAstJoin implements SqlAstNode
     }
 
 }
+
+export function mutateJoinAstNode(
+    node: SqlAstNode,
+    offset: number,
+    parent: SqlAstMutableNode
+): void {
+    if (node instanceof SqlAstTokenNode && (node as SqlAstTokenNode).is(SqlToken.JOIN)) {
+        var joinType: SqlAstNode|null = parent[offset - 1];
+        var tableName: SqlAstTokenNode = parent[offset + 1];
+        var alias: SqlAstNode|null = parent[offset + 2];
+
+        if (!(tableName instanceof SqlAstTokenNode && (tableName as SqlAstTokenNode).is(SqlToken.SYMBOL))) {
+            tableName = null;
+        }
+
+        if (!(alias instanceof SqlAstTokenNode && (alias as SqlAstTokenNode).is(SqlToken.SYMBOL))) {
+            alias = null;
+        }
+
+        var beginOffset: number = (typeof joinType == 'object') ? offset - 1 : offset;
+        var endOffset: number = (typeof alias == 'object') ? offset + 2 : offset + 1;
+        var onOrUsing: SqlAstNode|null = parent[endOffset + 1];
+        var onOrUsingToken: SqlAstTokenNode|null = null;
+        var condition: SqlAstExpression|null = null;
+
+        if (onOrUsing instanceof SqlAstTokenNode) {
+            onOrUsingToken = (onOrUsing as SqlAstTokenNode);
+            
+            if (onOrUsingToken.is(SqlToken.ON) || onOrUsingToken.is(SqlToken.USING)) {
+                condition = parent[endOffset + 2];
+                endOffset += 2;
+
+                assert(condition instanceof SqlAstExpressionClass);
+            }
+        }
+
+        parent.replace(beginOffset, 1 + endOffset - beginOffset, new SqlAstJoin(
+            parent,
+            (node as SqlAstTokenNode),
+            tableName,
+            (joinType as SqlAstTokenNode),
+            (alias as SqlAstTokenNode),
+            onOrUsingToken,
+            condition
+        ));
+    }
+}
+

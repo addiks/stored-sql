@@ -10,15 +10,15 @@
 
 import { 
     SqlToken, SqlAstMergable, SqlAstConjunction, SqlAstTokenNode, SqlTokenInstance, SqlTokenInstanceClass, 
-    SqlAstMutableNode, SqlAstExpression
+    SqlAstMutableNode, SqlAstExpression, SqlAstNode, SqlAstRoot, assert, SqlAstMergableClass
 } from 'storedsql';
 
-export function mutateAstNode(
+export function mutateWhereAstNode(
     node: SqlAstNode,
     offset: number,
     parent: SqlAstMutableNode
 ): void {
-    if (node instanceof SqlAstTokenNode && node.is(SqlToken.WHERE())) {
+    if (node instanceof SqlAstTokenNode && node.is(SqlToken.WHERE)) {
         var expression: SqlAstExpression = parent.get(offset + 1);
 
         parent.replace(offset, 2, new SqlAstWhere(parent, node, expression));
@@ -27,15 +27,17 @@ export function mutateAstNode(
 
 export class SqlAstWhere extends SqlAstMergableClass
 {
-    private parent: SqlAstNode;
-
+    private mutableParent: SqlAstMutableNode;
+    
     constructor(
-        parent: SqlAstNode,
+        parent: SqlAstMutableNode,
         private readonly whereToken: SqlAstTokenNode,
         public readonly expression: SqlAstExpression,
         nodeType: string = 'SqlAstWhere'
     ) {
         super(parent, nodeType);
+        
+        this.mutableParent = parent;
     }
 
     public children(): Array<SqlAstNode>
@@ -68,15 +70,16 @@ export class SqlAstWhere extends SqlAstMergableClass
         return 'WHERE ' + this.expression.toSql();
     }
 
-    public merge(SqlAstMergable toMerge): SqlAstMergable
+    public merge(toMerge: SqlAstMergable): SqlAstMergable
     {
         assert(toMerge instanceof SqlAstWhere);
+        assert(this.parent === this.mutableParent);
 
-        operator = new SqlAstTokenNode(this.parent, new SqlTokenInstanceClass(
+        let operator = new SqlAstTokenNode(this.parent, new SqlTokenInstanceClass(
             "AND",
-            SqlToken.AND(),
-            this.line,
-            this.column
+            SqlToken.AND,
+            this.line(),
+            this.column()
         ));
 
         var mergedExpression = new SqlAstConjunction(this.parent, [
@@ -84,9 +87,9 @@ export class SqlAstWhere extends SqlAstMergableClass
             [operator, toMerge.expression]
         ]);
 
-        var newWhere = new SqlAstWhere(this.parent, this.whereToken, mergedExpression);
+        var newWhere = new SqlAstWhere(this.mutableParent, this.whereToken, mergedExpression);
 
-        this.parent.replaceNode(this, newWhere);
+        this.mutableParent.replaceNode(this, newWhere);
 
         return newWhere;
     }

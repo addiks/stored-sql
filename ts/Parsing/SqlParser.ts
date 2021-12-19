@@ -10,7 +10,8 @@
 
 import { 
     SqlAstNode, SqlTokenizer, defaultTokenizer, SqlTokens, SqlAstRoot, convertTokensToSyntaxTree, 
-    mutateLiteralAstNode, mutateColumnAstNode, mutateOperationAstNode
+    mutateLiteralAstNode, mutateColumnAstNode, mutateOperationAstNode, mutateWhereAstNode, 
+    mutateUpdateAstNode
 } from 'storedsql'
 
 export function defaultParser(): SqlParser
@@ -25,7 +26,8 @@ export function defaultMutators(): Array<Function>
             mutateColumnAstNode,
             mutateOperationAstNode,
 //            SqlAstConjunction.mutateAstNode(),
-//            SqlAstWhere.mutateAstNode(),
+            mutateWhereAstNode,
+            mutateUpdateAstNode,
 //            SqlAstOrderBy.mutateAstNode(),
 //            SqlAstParenthesis.mutateAstNode(),
 //            SqlAstFrom.mutateAstNode(),
@@ -57,7 +59,7 @@ export class SqlParserClass implements SqlParser
 
         let syntaxTree: SqlAstRoot = convertTokensToSyntaxTree(tokens);
 
-        console.log(syntaxTree);
+//        console.log(syntaxTree);
 
         /** @var callable mutator */
         for (var mutator of this.mutators) {

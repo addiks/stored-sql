@@ -207,6 +207,11 @@ final class SqlAstUpdate implements SqlAstNode
         /** @var string $sql */
         $sql = 'UPDATE ' . $this->tableName->toSql();
 
+        /** @var SqlAstJoin $join */
+        foreach ($this->joins as $join) {
+            $sql .= ' ' . $join->toSql();
+        }
+
         /** @var array<string> $columnsSql */
         $columnsSql = array();
 
@@ -216,15 +221,6 @@ final class SqlAstUpdate implements SqlAstNode
         }
 
         $sql .= implode(', ', $columnsSql);
-
-        if (is_object($this->from)) {
-            $sql .= ' ' . $this->from->toSql();
-        }
-
-        /** @var SqlAstJoin $join */
-        foreach ($this->joins as $join) {
-            $sql .= ' ' . $join->toSql();
-        }
 
         if (is_object($this->where)) {
             $sql .= ' ' . $this->where->toSql();

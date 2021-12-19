@@ -19,9 +19,9 @@ export class SqlAstOperation extends SqlAstExpressionClass
 {
     constructor(
         parent: SqlAstNode,
-        private readonly leftSide: SqlAstExpression,
-        private readonly operator: SqlAstTokenNode,
-        private readonly rightSide: SqlAstExpression,
+        public readonly leftSide: SqlAstExpression,
+        public readonly operator: SqlAstTokenNode,
+        public readonly rightSide: SqlAstExpression,
         nodeType: string = 'SqlAstOperation'
     ) {
         super(parent, nodeType);
@@ -89,7 +89,7 @@ export function mutateOperationAstNode(
         }
         
         var isOperator: boolean = operator instanceof SqlAstTokenNode;
-        console.log([operator, isOperator]);
+
         if (isOperator) {
             var operatorToken: SqlAstTokenNode = (operator as SqlAstTokenNode);
             

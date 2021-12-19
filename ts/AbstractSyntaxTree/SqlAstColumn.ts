@@ -9,7 +9,8 @@
  */
 
 import { 
-    SqlToken, SqlAstMutableNode, SqlAstTokenNode, SqlAstNode, SqlAstExpressionClass, SqlAstRoot, assert 
+    SqlToken, SqlAstMutableNode, SqlAstTokenNode, SqlAstNode, SqlAstExpressionClass, SqlAstRoot, assert, SqlAstTable,
+    SqlAstMutableNodeClass
 } from 'storedsql'
 
 import { Md5 } from 'ts-md5/dist/md5'
@@ -62,6 +63,24 @@ export class SqlAstColumn extends SqlAstExpressionClass
     public toSql(): string
     {
         return this.children().map(node => node.toSql()).join('.');
+    }
+    
+    /**
+     * Calling this indicates that this occurence of a detected "column" (e.g.: 'foo.baz') is actually a table.
+     * To identify if 'foo.baz' refers to column 'baz' in table 'foo' or to table 'baz' in database 'foo' depends on
+     * the context, thus some other component (f.e.: the SELECT or UPDATE statement node) has to make this distinction.
+     */
+    public convertToTable(): SqlAstTable
+    {
+        assert(this.database == null);
+
+        let table: SqlAstTable = new SqlAstTable(this.parent, this._column, this.table);
+
+        if (this.parent instanceof SqlAstMutableNodeClass) {
+            (this.parent as SqlAstMutableNodeClass).replaceNode(this, table);
+        }
+
+        return table;
     }
 }
 
