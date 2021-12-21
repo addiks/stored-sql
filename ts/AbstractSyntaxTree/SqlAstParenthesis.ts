@@ -8,78 +8,91 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { SqlAstExpression } from './SqlAstExpression'
-import { SqlAstNode } from './SqlAstNode'
-import { SqlAstTokenNode } from './SqlAstTokenNode'
-import { SqlAstMutableNode } from './SqlAstMutableNode'
-import { SqlToken } from './SqlToken'
+import { 
+    SqlAstExpression, SqlAstExpressionClass, SqlAstNode, SqlAstTokenNode, SqlAstMutableNode, SqlToken, SqlAstRoot, 
+    assertSqlToken, SqlAstColumn, assertSqlType
+} from 'storedsql'
 
-export class SqlAstParenthesis implements SqlAstExpression
+import { Md5 } from 'ts-md5/dist/md5'
+
+export class SqlAstParenthesis extends SqlAstExpressionClass
 {
-    private parent: SqlAstNode;
-    private bracketOpening: SqlAstTokenNode;
-    private expression: SqlAstExpression;
-
-    public function __construct(
+    constructor(
         parent: SqlAstNode,
-        bracketOpening: SqlAstTokenNode,
-        expression: SqlAstExpression
+        private readonly bracketOpening: SqlAstTokenNode,
+        private readonly expressions: Array<SqlAstExpression>,
+        nodeType: string = 'SqlAstParenthesis'
     ) {
-        this.parent = parent;
-        this.bracketOpening = bracketOpening;
-        this.expression = expression;
+        super(parent, nodeType);
     }
 
-    public static function mutateAstNode(
-        SqlAstNode node,
-        int offset,
-        SqlAstMutableNode parent
-    ): void {
-        if (node instanceof SqlAstTokenNode && node.is(SqlToken.BRACKET_OPENING())) {
-            var expression: SqlAstExpression = parent[offset + 1];
-
-            # TODO: also allow SELECT in here, for sub-selects
-
-            var close: SqlAstTokenNode = parent[offset + 2];
-
-            assert(close.token().token() == SqlToken.BRACKET_CLOSING())
-
-            parent.replace(offset, 3, new SqlAstParenthesis(parent, node, expression));
-        }
-    }
-
-    public function children(): Array<SqlAstNode>
+    public children(): Array<SqlAstNode>
     {
-        return [this.expression];
+        return this.expressions;
     }
 
-    public function hash(): string
+    public hash(): string
     {
-        return md5(this.expression.hash());
+        return Md5.hashStr(this.expressions.map(node => node.hash()).join('.'));
     }
 
-    public function parent(): SqlAstNode|null
-    {
-        return this.parent;
-    }
-
-    public function root(): SqlAstRoot
+    public root(): SqlAstRoot
     {
         return this.parent.root();
     }
 
-    public function line(): number
+    public line(): number
     {
         return this.bracketOpening.line();
     }
 
-    public function column(): number
+    public column(): number
     {
         return this.bracketOpening.column();
     }
 
-    public function toSql(): string
+    public toSql(): string
     {
-        return '(' + this.expression.toSql() + ')';
+        return '(' + this.expressions.map(node => node.toSql()).join(', ') + ')';
     }
 }
+
+export function mutateParenthesisAstNode(
+    node: SqlAstNode,
+    offset: number,
+    parent: SqlAstMutableNode
+): void {
+    // TODO: also allow SELECT in here, for sub-selects
+        
+    if (node instanceof SqlAstTokenNode && node.is(SqlToken.BRACKET_OPENING)) {
+        
+        let expressions: Array<SqlAstExpression> = [];
+        let currentOffset: number = offset;
+        let close: SqlAstNode|null = null;
+        
+        do {
+            currentOffset++;
+            
+            if (parent.get(currentOffset) instanceof SqlAstTokenNode) {
+                parent.replace(
+                    currentOffset, 
+                    1,
+                    new SqlAstColumn(parent, (parent.get(currentOffset) as SqlAstTokenNode), null, null)
+                );
+            }
+            
+            assertSqlType(parent, offset + 1, 'SqlAstExpression', node => node instanceof SqlAstExpressionClass);
+            
+            expressions.push(parent.get(currentOffset) as SqlAstExpression);
+            
+            currentOffset++;
+            
+            close = parent.get(currentOffset);
+        } while (close instanceof SqlAstTokenNode && close.is(SqlToken.COMMA));
+        
+        assertSqlToken(parent, currentOffset, SqlToken.BRACKET_CLOSING);
+
+        parent.replace(offset, 1 + currentOffset - offset, new SqlAstParenthesis(parent, node, expressions));
+    }
+}
+

@@ -8,67 +8,47 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { SqlAstNode, UnparsableSqlException, SqlToken, SqlAstTokenNode, SqlAstExpression, SqlAstFrom, SqlAstJoin, 
-    SqlAstWhere, SqlAstOrderBy, SqlAstMutableNode, SqlAstNodeClass, assert } from 'storedsql';
+import { 
+    SqlAstNode, UnparsableSqlException, SqlToken, SqlAstTokenNode, SqlAstExpression, SqlAstFrom, SqlAstJoin, 
+    SqlAstWhere, SqlAstOrderBy, SqlAstMutableNode, SqlAstNodeClass, assert, assertSqlType, SqlAstRoot,
+    SqlAstExpressionClass, SqlAstColumn
+} from 'storedsql';
 
-export class SqlAstSelect implements SqlAstNodeClass
+import { Md5 } from 'ts-md5/dist/md5'
+
+export class SqlAstSelect extends SqlAstNodeClass
 {
-    private selectToken: SqlAstTokenNode;
-    private columns: Array<SqlAstExpression>;
-    private joins: Array<SqlAstJoin>;
-    private orderBy: SqlAstOrderBy|null;
-
-    # TODO: HAVING, LIMIT,
+    // TODO: HAVING, LIMIT,
 
     constructor(
         parent: SqlAstNode,
         private readonly selectToken: SqlAstTokenNode,
-        columns: Array<SqlAstExpression>,
+        private readonly columns: Array<SqlAstExpression>,
         private readonly from: SqlAstFrom|null,
-        joins: Array<SqlAstJoin>,
+        private readonly joins: Array<SqlAstJoin>,
         private readonly where: SqlAstWhere|null,
         private readonly orderBy: SqlAstOrderBy|null,
         nodeType: string = 'SqlAstSelect'
     ) {
-        assert(columns.length > 0);
-        
         super(parent, nodeType);
-
-        this.columns = [];
-        this.joins = [];
-
-        for (var alias in columns) {
-            var column: SqlAstExpression = columns[alias];
-
-            assert(column instanceof SqlAstExpression);
-            
-            this.columns[alias] = column;
-        }
-
-        for (var join: SqlAstJoin of joins) {
-            assert(join instanceof SqlAstJoin);
-            
-            this.joins[] = join;
-        }
+        
+        assert(columns.length > 0);
     }
 
-    public children(): array
+    public children(): Array<SqlAstNode>
     {
-        return ([
-            this.from,
-            this.where,
-            this.orderBy,
-        ] + this.columns + this.joins).filter(node => node != null);
+        return ([] as Array<SqlAstNode>).concat(
+            this.columns,
+            [this.from],
+            this.joins,
+            [this.where],
+            [this.orderBy],
+        ).filter(node => node != null)
     }
 
     public hash(): string
     {
-        return md5.hashStr(this.children().map(node => node.hash()).join('.'));
-    }
-
-    public parent(): SqlAstNode|null
-    {
-        return this.parent;
+        return Md5.hashStr(this.children().map(node => node.hash()).join('.'));
     }
 
     public root(): SqlAstRoot
@@ -89,22 +69,22 @@ export class SqlAstSelect implements SqlAstNodeClass
     public toSql(): string
     {
         var sql: string = "SELECT ";
-        var columnsSql: Array<string> = array();
+        var columnsSql: Array<string> = new Array();
 
-        for (var alias: string in this.columns) {
+        for (var alias in this.columns) {
             var column: SqlAstExpression = this.columns[alias];
 
-            columnsSql[] = column.toSql() . (is_string(alias) ?(' ' . alias) :'');
+            columnsSql.push(column.toSql() + ((typeof alias == 'string') ?(' ' + alias) :''));
         }
 
         sql += columnsSql.join(', ');
 
         if (typeof this.from == 'object') {
-            sql += ' ' . this.from.toSql();
+            sql += ' ' + this.from.toSql();
         }
 
-        for (var join: SqlAstJoin of this.joins)
-            sql += ' ' . join.toSql();
+        for (var join of this.joins) {
+            sql += ' ' + join.toSql();
         }
 
         if (typeof this.where == 'object') {
@@ -125,69 +105,66 @@ export function mutateSelectAstNode(
     offset: number,
     parent: SqlAstMutableNode
 ): void {
-    if (node instanceof SqlAstTokenNode && node.is(SqlToken.SELECT())) {
+    if (node instanceof SqlAstTokenNode && node.is(SqlToken.SELECT)) {
         var beginOffset: number = offset;
         var columns: Array<SqlAstExpression> = [];
 
         do {
             offset++;
+            
+            let columnNode: SqlAstNode|null = parent.get(offset);
+            
+            if (columnNode instanceof SqlAstTokenNode && (columnNode as SqlAstTokenNode).is(SqlToken.SYMBOL)) {
+                parent.replaceNode(columnNode, new SqlAstColumn(parent, columnNode, null, null))
+            }
 
-            UnparsableSqlException::assertType(parent, offset, SqlAstExpression::class);
+            assertSqlType(parent, offset, 'SqlAstExpression', node => node instanceof SqlAstExpressionClass);
 
-            var column: SqlAstExpression = parent[offset];
+            var column: SqlAstExpression = parent.get(offset);
             var alias: string|null = null;
 
-            if (is_null(alias)) {
-                columns[] = column;
+            if (alias == null) {
+                columns.push(column);
 
             } else {
                 columns[alias] = column;
             }
 
-            var comma: SqlAstNode|null = parent[offset + 1];
-            var isComma: boolean = (comma instanceof SqlAstTokenNode && comma.is(SqlToken.COMMA()));
+            var comma: SqlAstNode|null = parent.get(offset + 1);
+            var isComma: boolean = (comma instanceof SqlAstTokenNode && comma.is(SqlToken.COMMA));
 
             if (isComma) {
                 offset++;
             }
         } while (isComma);
 
-        var from: SqlAstNode|null = parent[offset + 1];
+        var from: SqlAstFrom|null = (parent.get(offset + 1) as SqlAstFrom);
 
         if (from instanceof SqlAstFrom) {
             offset++;
-
-        } else {
-            from = null;
         }
 
-        var joins: Array<SqlAstJoin> = array();
+        var joins: Array<SqlAstJoin> = new Array();
 
         do {
-            var join: SqlAstNode|null = parent[offset + 1];
+            var join: SqlAstNode|null = parent.get(offset + 1);
 
             if (join instanceof SqlAstJoin) {
-                joins[] = join;
+                joins.push(join);
                 offset++;
             }
         } while (join instanceof SqlAstJoin);
-
-        var where: SqlAstNode|null = parent[offset + 1];
+        
+        var where: SqlAstWhere|null = (parent.get(offset + 1) as SqlAstWhere);
 
         if (where instanceof SqlAstWhere) {
             offset++;
-
-        } else {
-            where = null;
         }
 
-        var orderBy: SqlAstNode|null = parent[offset + 1];
+        var orderBy: SqlAstOrderBy|null = (parent.get(offset + 1) as SqlAstOrderBy);
 
         if (orderBy instanceof SqlAstOrderBy) {
             offset++;
-
-        } else {
-            orderBy = null;
         }
 
         parent.replace(beginOffset, 1 + offset - beginOffset, new SqlAstSelect(

@@ -59,13 +59,13 @@ final class SqlAstConjunction implements SqlAstExpression
         /** @var int $originalOffset */
         $originalOffset = $offset;
 
-        /** @var array<array{0:SqlAstTokenNode, 1:SqlAstExpression}> $parts */
-        $parts = array([null, $node]);
-        
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::SYMBOL())) {
             $node = new SqlAstColumn($parent, $node, null, null);
         }
 
+        /** @var array<array{0:SqlAstTokenNode, 1:SqlAstExpression}> $parts */
+        $parts = array([null, $node]);
+        
         while ($node instanceof SqlAstExpression) {
             $node = null;
 

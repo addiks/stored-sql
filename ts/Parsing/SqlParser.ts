@@ -11,7 +11,8 @@
 import { 
     SqlAstNode, SqlTokenizer, defaultTokenizer, SqlTokens, SqlAstRoot, convertTokensToSyntaxTree, 
     mutateLiteralAstNode, mutateColumnAstNode, mutateOperationAstNode, mutateWhereAstNode, 
-    mutateUpdateAstNode
+    mutateUpdateAstNode, mutateConjunctionAstNode, mutateFromAstNode, mutateSelectAstNode,
+    mutateOrderByAstNode, mutateParenthesisAstNode, mutateJoinAstNode
 } from 'storedsql'
 
 export function defaultParser(): SqlParser
@@ -25,14 +26,14 @@ export function defaultMutators(): Array<Function>
             mutateLiteralAstNode,
             mutateColumnAstNode,
             mutateOperationAstNode,
-//            SqlAstConjunction.mutateAstNode(),
+            mutateConjunctionAstNode,
             mutateWhereAstNode,
+            mutateOrderByAstNode,
+            mutateParenthesisAstNode,
+            mutateFromAstNode,
+            mutateJoinAstNode,
+            mutateSelectAstNode,
             mutateUpdateAstNode,
-//            SqlAstOrderBy.mutateAstNode(),
-//            SqlAstParenthesis.mutateAstNode(),
-//            SqlAstFrom.mutateAstNode(),
-//            SqlAstJoin.mutateAstNode(),
-//            SqlAstSelect.mutateAstNode(),
         ];
 }
 
@@ -61,10 +62,17 @@ export class SqlParserClass implements SqlParser
 
 //        console.log(syntaxTree);
 
-        /** @var callable mutator */
-        for (var mutator of this.mutators) {
-            syntaxTree.walk([mutator]);
-        } 
+        let hashBefore: string = '';
+
+        do {
+            hashBefore = syntaxTree.hash();
+            
+            /** @var callable mutator */
+            for (var mutator of this.mutators) {
+                syntaxTree.walk([mutator]);
+            } 
+            
+        } while (hashBefore != syntaxTree.hash());
 
         var detectedContent: Array<SqlAstNode> = syntaxTree.children();
 

@@ -124,7 +124,7 @@ export function mutateUpdateAstNode(
             );
         }
 
-        assertSqlType(parent, offset, 'SqlAstTable');
+        assertSqlType(parent, offset, 'SqlAstTable', node => node instanceof SqlAstTable);
 
         let tableName: SqlAstTable = (parent.get(offset) as SqlAstTable);
         let joins: Array<SqlAstJoin> = Array();
@@ -147,7 +147,7 @@ export function mutateUpdateAstNode(
 
         do {
             offset++;
-            assertSqlType(parent, offset, 'SqlAstOperation');
+            assertSqlType(parent, offset, 'SqlAstOperation', node => node instanceof SqlAstOperation);
 
             let operation: SqlAstOperation = (parent.get(offset) as SqlAstOperation);
 

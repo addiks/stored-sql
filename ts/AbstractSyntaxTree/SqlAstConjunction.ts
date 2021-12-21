@@ -10,7 +10,7 @@
 
 import { 
     SqlAstExpression, SqlAstExpressionClass, SqlAstNode, SqlAstTokenNode, SqlToken, assert, SqlAstRoot, 
-    SqlAstMutableNode
+    SqlAstMutableNode, SqlAstColumn
 } from 'storedsql'
 
 import { Md5 } from 'ts-md5/dist/md5'
@@ -113,14 +113,18 @@ export function mutateConjunctionAstNode(
 ): void {
     var originalOffset: number = offset;
 
+    if (node instanceof SqlAstTokenNode && (node as SqlAstTokenNode).is(SqlToken.SYMBOL)) {
+        node = new SqlAstColumn(parent, node, null, null);
+    }
+
     /** @var array<array{0:SqlAstTokenNode, 1:SqlAstExpression}> parts */
     var parts: Array<Array<SqlAstNode>> = [[null, node]];
-
+    
     while (node instanceof SqlAstExpressionClass) {
         node = null;
 
         var nextNode: SqlAstNode = parent.get(offset + 1);
-
+        
         if (nextNode instanceof SqlAstTokenNode) {
             var isConjunction: boolean = false;
             isConjunction = isConjunction || nextNode.is(SqlToken.AND);
@@ -128,6 +132,10 @@ export function mutateConjunctionAstNode(
 
             if (isConjunction) {
                 var otherNode: SqlAstNode = parent.get(offset + 2);
+
+                if (otherNode instanceof SqlAstTokenNode && (otherNode as SqlAstTokenNode).is(SqlToken.SYMBOL)) {
+                    otherNode = new SqlAstColumn(parent, otherNode, null, null);
+                }
 
                 if (otherNode instanceof SqlAstExpressionClass) {
                     parts.push([nextNode, otherNode]);

@@ -1,0 +1,11 @@
+SqlAstOperation
+-SqlAstColumn
+--SqlAstTokenNode
+-SqlAstTokenNode
+-SqlAstParenthesis
+--SqlAstColumn
+---SqlAstTokenNode
+--SqlAstColumn
+---SqlAstTokenNode
+--SqlAstColumn
+---SqlAstTokenNode

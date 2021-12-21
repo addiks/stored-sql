@@ -8,85 +8,78 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-import { SqlAstNode } from './SqlAstNode'
-import { SqlToken } from './SqlToken'
-import { SqlAstTokenNode } from './SqlAstTokenNode'
-import { SqlAstMutableNode } from './SqlAstMutableNode'
+import { 
+    SqlAstNode, SqlToken, SqlAstTokenNode, SqlAstMutableNode, SqlAstNodeClass, SqlAstRoot, assert 
+} from 'storedsql'
 
-export class SqlAstFrom implements SqlAstNode
+import { Md5 } from 'ts-md5/dist/md5'
+
+export class SqlAstFrom extends SqlAstNodeClass
 {
-    private parent: SqlAstNode;
-    private fromToken: SqlAstTokenNode;
-    private tableName: SqlAstTokenNode;
-    private alias: SqlAstTokenNode|null;
-
-    public function __construct(
+    constructor(
         parent: SqlAstNode,
-        fromToken: SqlAstTokenNode,
-        tableName: SqlAstTokenNode,
-        alias: SqlAstTokenNode|null
+        private readonly fromToken: SqlAstTokenNode,
+        private readonly tableName: SqlAstTokenNode,
+        private readonly alias: SqlAstTokenNode|null,
+        nodeType: string = 'SqlAstFrom'
     ) {
-        this.parent = parent;
-        this.fromToken = fromToken;
-        this.tableName = tableName;
-        this.alias = alias;
+        super(parent, nodeType);
     }
 
-    public static function mutateAstNode(
-        node: SqlAstNode,
-        offset: number,
-        parent: SqlAstMutableNode
-    ): void {
-        if (node instanceof SqlAstTokenNode && node.is(SqlToken.FROM())) {
-            var tableName: SqlAstTokenNode = parent[offset + 1];
-
-            assert(tableName.is(SqlToken.SYMBOL()));
-
-            var alias: SqlAstNode|null = parent[offset + 2];
-
-            if (!(alias instanceof SqlAstTokenNode) || !alias.is(SqlToken.SYMBOL())) {
-                alias = null;
-            }
-
-            parent.replace(offset, is_object(alias) ? 3 : 2, new SqlAstFrom(parent, node, tableName, alias));
-        }
-    }
-
-    public function children(): Array<SqlAstNode>
+    public children(): Array<SqlAstNode>
     {
-        return [
+        return ([
             this.tableName,
             this.alias,
-        ].filter(node => node != null);
+        ] as Array<SqlAstNode>).filter(node => node != null);
     }
 
-    public function hash(): string
+    public hash(): string
     {
         return Md5.hashStr(this.children().map(node => node.hash()).join('.'));
     }
 
-    public function parent(): SqlAstNode|null
-    {
-        return this.parent;
-    }
-
-    public function root(): SqlAstRoot
+    public root(): SqlAstRoot
     {
         return this.parent.root();
     }
 
-    public function line(): number
+    public line(): number
     {
         return this.fromToken.line();
     }
 
-    public function column(): number
+    public column(): number
     {
         return this.fromToken.column();
     }
 
-    public function toSql(): string
+    public toSql(): string
     {
-        return "FROM " + this.tableName.toSql() + (is_object(this.alias) ?(' ' + this.alias.toSql()) :'');
+        return "FROM " + this.tableName.toSql() + ((typeof this.alias == 'object') ?(' ' + this.alias.toSql()) :'');
     }
 }
+
+export function mutateFromAstNode(
+    node: SqlAstNode,
+    offset: number,
+    parent: SqlAstMutableNode
+): void {
+    if (node instanceof SqlAstTokenNode && node.is(SqlToken.FROM)) {
+        var tableName: SqlAstTokenNode = (parent.get(offset + 1) as SqlAstTokenNode);
+
+        assert(tableName.is(SqlToken.SYMBOL));
+
+        var alias: SqlAstTokenNode|null = (parent.get(offset + 2) as SqlAstTokenNode);
+        
+        if (alias instanceof SqlAstTokenNode && !alias.is(SqlToken.SYMBOL)) {
+            alias = null;
+            
+        } else {
+            alias = null;
+        }
+
+        parent.replace(offset, (alias == null) ? 2 : 3, new SqlAstFrom(parent, node, tableName, alias));
+    }
+}
+

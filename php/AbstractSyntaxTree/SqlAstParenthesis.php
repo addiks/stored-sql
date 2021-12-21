@@ -48,7 +48,7 @@ final class SqlAstParenthesis implements SqlAstExpression
     ): void {
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::BRACKET_OPENING())) {
 
-            /** @var mixed $currentOffset */
+            /** @var int $currentOffset */
             $currentOffset = $offset;
 
             /** @var array<SqlAstExpression> $expressions */
@@ -64,7 +64,7 @@ final class SqlAstParenthesis implements SqlAstExpression
                     );
                 }
 
-                /** @var mixed $expression */
+                /** @var SqlAstExpression $expression */
                 $expression = $parent[$currentOffset];
 
                 # TODO: also allow SELECT in here, for sub-selects

@@ -93,11 +93,11 @@ export function mutateOperationAstNode(
         if (isOperator) {
             var operatorToken: SqlAstTokenNode = (operator as SqlAstTokenNode);
             
-            isOperator = isOperator || operatorToken.is(SqlToken.OPERATOR);
-            isOperator = isOperator || operatorToken.is(SqlToken.LIKE);
-            isOperator = isOperator || operatorToken.is(SqlToken.IS);
-            isOperator = isOperator || operatorToken.is(SqlToken.IN);
-
+            isOperator = operatorToken.is(SqlToken.OPERATOR);
+            isOperator = operatorToken.is(SqlToken.LIKE) || isOperator;
+            isOperator = operatorToken.is(SqlToken.IS) || isOperator;
+            isOperator = operatorToken.is(SqlToken.IN) || isOperator;
+            
             if (isOperator && leftSideIsExpression && rightSideIsExpression) {
                 if (leftSide instanceof SqlAstTokenNode && leftSide.is(SqlToken.SYMBOL)) {
                     leftSide = new SqlAstColumn(parent, leftSide, null, null);
@@ -108,9 +108,9 @@ export function mutateOperationAstNode(
                 if (rightSide instanceof SqlAstTokenNode && rightSide.is(SqlToken.SYMBOL)) {
                     rightSide = new SqlAstColumn(parent, rightSide, null, null);
 
-                    parent.replace(offset, 1, rightSide);
+                    parent.replace(offset + 2, 1, rightSide);
                 }
-
+                
                 parent.replace(offset, 3, new SqlAstOperation(
                     parent,
                     leftSide,

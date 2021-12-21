@@ -106,18 +106,28 @@ export function assertSqlToken(
     if (actualNode instanceof SqlAstTokenNode) {
         let actualTokenNode: SqlAstTokenNode = actualNode;
         
-        success = !actualTokenNode.is(expectedToken);
+        success = actualTokenNode.is(expectedToken);
         
     } else {
         success = false;
     }
 
     if (!success) {
+        let actualNodeName: string = 'nothing';
+        
+        if (typeof actualNode == 'object') {
+            actualNodeName = actualNode.constructor.name;
+            
+            if (actualNode instanceof SqlAstTokenNode) {
+                actualNodeName = (actualNode as SqlAstTokenNode).toSql();
+            }
+        }
+        
         throw new UnparsableSqlException(sprintf(
             "Expected token '%s' at offset %d, found %s instead!",
             expectedToken.name(),
             offset,
-            typeof actualNode == 'object' ? actualNode.constructor.name : 'nothing'
+            actualNodeName
         ), actualNode);
     }
 }
@@ -125,11 +135,12 @@ export function assertSqlToken(
 export function assertSqlType(
     parent: SqlAstMutableNode, 
     offset: number, 
-    expectedNodeType: string
+    expectedNodeType: string,
+    guard: Function
 ): void {
     let actualNode: SqlAstNode | null = parent.get(offset);
 
-    if (typeof actualNode != 'object' || actualNode.nodeType != expectedNodeType) {
+    if (typeof actualNode != 'object' || !guard(actualNode)) {
         throw new UnparsableSqlException(sprintf(
             "Expected node of '%s' at offset %d, found %s instead!",
             expectedNodeType,
