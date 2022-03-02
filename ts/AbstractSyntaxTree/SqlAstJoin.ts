@@ -10,7 +10,7 @@
 
 import { 
     SqlAstNode, SqlAstNodeClass, SqlAstTokenNode, SqlAstExpression, SqlToken, SqlAstRoot, assert, SqlAstMutableNode,
-    SqlAstExpressionClass
+    SqlAstExpressionClass, mutateParenthesisAstNode
 } from 'storedsql'
 
 import { Md5 } from 'ts-md5/dist/md5'
@@ -37,6 +37,8 @@ export class SqlAstJoin extends SqlAstNodeClass
             this.joinType,
             this.tableName,
             this.alias,
+            this.onOrUsing,
+            this.condition,
         ].filter(node => node != null);
     }
 
@@ -83,10 +85,10 @@ export function mutateJoinAstNode(
     parent: SqlAstMutableNode
 ): void {
     if (node instanceof SqlAstTokenNode && (node as SqlAstTokenNode).is(SqlToken.JOIN)) {
-        var joinType: SqlAstNode|null = parent[offset - 1];
-        var tableName: SqlAstTokenNode = parent[offset + 1];
-        var alias: SqlAstNode|null = parent[offset + 2];
-
+        var joinType: SqlAstNode|null = parent.get(offset - 1);
+        var tableName: SqlAstTokenNode = (parent.get(offset + 1) as SqlAstTokenNode);
+        var alias: SqlAstNode|null = parent.get(offset + 2);
+        
         if (!(tableName instanceof SqlAstTokenNode && (tableName as SqlAstTokenNode).is(SqlToken.SYMBOL))) {
             tableName = null;
         }
@@ -95,17 +97,20 @@ export function mutateJoinAstNode(
             alias = null;
         }
 
-        var beginOffset: number = (typeof joinType == 'object') ? offset - 1 : offset;
-        var endOffset: number = (typeof alias == 'object') ? offset + 2 : offset + 1;
-        var onOrUsing: SqlAstNode|null = parent[endOffset + 1];
+        var beginOffset: number = (joinType != null) ? offset - 1 : offset;
+        var endOffset: number = (alias != null) ? offset + 2 : offset + 1;
+        var onOrUsing: SqlAstNode|null = parent.get(endOffset + 1);
         var onOrUsingToken: SqlAstTokenNode|null = null;
         var condition: SqlAstExpression|null = null;
 
-        if (onOrUsing instanceof SqlAstTokenNode) {
+        if (typeof onOrUsing == 'object' && onOrUsing.nodeType == 'SqlAstTokenNode') {
             onOrUsingToken = (onOrUsing as SqlAstTokenNode);
             
             if (onOrUsingToken.is(SqlToken.ON) || onOrUsingToken.is(SqlToken.USING)) {
-                condition = parent[endOffset + 2];
+                
+                parent.walk([mutateParenthesisAstNode]);
+                
+                condition = parent.get(endOffset + 2);
                 endOffset += 2;
 
                 assert(condition instanceof SqlAstExpressionClass);

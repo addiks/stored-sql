@@ -90,9 +90,11 @@ export function mutateParenthesisAstNode(
             close = parent.get(currentOffset);
         } while (close instanceof SqlAstTokenNode && close.is(SqlToken.COMMA));
         
-        assertSqlToken(parent, currentOffset, SqlToken.BRACKET_CLOSING);
+        let currentNode: SqlAstTokenNode | null = (parent.get(currentOffset) as SqlAstTokenNode);
 
-        parent.replace(offset, 1 + currentOffset - offset, new SqlAstParenthesis(parent, node, expressions));
+        if (currentNode instanceof SqlAstTokenNode && currentNode.is(SqlToken.BRACKET_CLOSING)) {
+            parent.replace(offset, 1 + currentOffset - offset, new SqlAstParenthesis(parent, node, expressions));
+        }
     }
 }
 

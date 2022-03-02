@@ -25,11 +25,11 @@ export function defaultMutators(): Array<Function>
         return [
             mutateLiteralAstNode,
             mutateColumnAstNode,
+            mutateParenthesisAstNode,
             mutateOperationAstNode,
             mutateConjunctionAstNode,
             mutateWhereAstNode,
             mutateOrderByAstNode,
-            mutateParenthesisAstNode,
             mutateFromAstNode,
             mutateJoinAstNode,
             mutateSelectAstNode,

@@ -11,7 +11,7 @@
 import { 
     SqlAstNode, UnparsableSqlException, SqlToken, SqlAstTokenNode, SqlAstExpression, SqlAstFrom, SqlAstJoin, 
     SqlAstWhere, SqlAstOrderBy, SqlAstMutableNode, SqlAstNodeClass, assert, assertSqlType, SqlAstRoot,
-    SqlAstExpressionClass, SqlAstColumn
+    SqlAstExpressionClass, SqlAstColumn, mutateJoinAstNode
 } from 'storedsql';
 
 import { Md5 } from 'ts-md5/dist/md5'
@@ -140,33 +140,41 @@ export function mutateSelectAstNode(
 
         var from: SqlAstFrom|null = (parent.get(offset + 1) as SqlAstFrom);
 
-        if (from instanceof SqlAstFrom) {
+        if (from instanceof SqlAstFrom && from.nodeType == 'SqlAstFrom') {
             offset++;
+        } else {
+            from = null;
         }
 
         var joins: Array<SqlAstJoin> = new Array();
 
         do {
+            parent.walk([mutateJoinAstNode]);
+            
             var join: SqlAstNode|null = parent.get(offset + 1);
 
-            if (join instanceof SqlAstJoin) {
+            if (join instanceof SqlAstJoin && join.nodeType == 'SqlAstJoin') {
                 joins.push(join);
                 offset++;
             }
-        } while (join instanceof SqlAstJoin);
+        } while (join instanceof SqlAstJoin && join.nodeType == 'SqlAstJoin');
         
         var where: SqlAstWhere|null = (parent.get(offset + 1) as SqlAstWhere);
 
-        if (where instanceof SqlAstWhere) {
+        if (where instanceof SqlAstWhere && where.nodeType == 'SqlAstWhere') {
             offset++;
+        } else {
+            where = null;
         }
 
         var orderBy: SqlAstOrderBy|null = (parent.get(offset + 1) as SqlAstOrderBy);
 
-        if (orderBy instanceof SqlAstOrderBy) {
+        if (orderBy instanceof SqlAstOrderBy && orderBy.nodeType == 'SqlAstOrderBy') {
             offset++;
+        } else {
+            orderBy = null;
         }
-
+        
         parent.replace(beginOffset, 1 + offset - beginOffset, new SqlAstSelect(
             parent,
             node,
