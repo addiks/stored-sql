@@ -26,5 +26,5 @@ jobs:
                   name: node_modules
                   path: node_modules
             - run: "chmod +x node_modules/jest/bin/jest.js"
-            - run: "npm run test"
+            - run: "node node_modules/jest/bin/jest.js"
         
