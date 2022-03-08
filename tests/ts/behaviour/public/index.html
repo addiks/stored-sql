@@ -8,20 +8,14 @@
         <script type="text/javascript" src="js/jquery.js"></script>
         <script type="text/javascript" src="js/storedsql.bundle.js"></script>
         <script type="text/javascript">
-        //import { storedsql } from '/js/storedsql.bundle.js';
-        
         (function($, undefined) {
             $(function() {
                 
-                //var textarea = $('.storedsql').get(0);
-                
-                var sql = $('.storedsql').text();
-                
-                var parser = storedsql.defaultParser();
-                
-                var result = parser.parseSql(sql);
-                
-                console.log(result);
+                var widget = storedsql.createWidget({
+                    input: 'sample_textarea_with_sql',
+                    target: 'some_target',
+                    hide_original_element: false
+                });
                 
             });
         })(jQuery);
@@ -29,11 +23,17 @@
 	</head>
 	<body>
         
-        <textarea class="storedsql">
+        <textarea id="sample_textarea_with_sql">
             SELECT a, b, c 
             FROM foo 
             WHERE d = 'Lorem Ipsum'
         </textarea>
+        
+        <br />
+        <br />
+        <br />
+        
+        <div id="some_target"></div>
         
 	</body>
 </html>

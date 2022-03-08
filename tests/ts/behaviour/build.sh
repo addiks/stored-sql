@@ -7,13 +7,12 @@ BASEDIR=$( dirname $( realpath $0 ) )
 
 cd $BASEDIR
 
-for FILE in "ts"
-do
-    if [[ -f "$FILE" ]]; then
-        rm -rf $FILE
-    fi
-    ln -sf ../../../$FILE .
-done
+rm -rf ts
+rm -rf public/twig
+
+ln -sf $( realpath ../../../ts ) ts
+ln -sf $( realpath ../../../twig ) public/twig
+ln -sf $( realpath ../../../twig ) public/js/twig
 
 mkdir -p public/js/lib
 

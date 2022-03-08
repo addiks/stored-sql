@@ -1,0 +1,6 @@
+{% if node.type == 'SqlAstSelect' %}
+    {% include './widget.select.html.twig' with {'select': node} %}
+
+{% else %}
+    <i color="red">{{ node.type }}</i>
+{% endif %}
