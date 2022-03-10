@@ -95,7 +95,7 @@ export class SqlAstConjunction extends SqlAstExpressionClass
                 operator = (this.parts[index][0] as SqlAstTokenNode);
             }
 
-            if (typeof operator == 'object') {
+            if (operator != null) {
                 sql += ' ' + operator.toSql();
             }
 

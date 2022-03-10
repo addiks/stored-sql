@@ -26,6 +26,7 @@ export class SqlToken extends AbstractSqlToken
     static readonly SEMICOLON = new SqlToken('SEMICOLON');
 
     static readonly SELECT = new SqlToken('SELECT');
+    static readonly AS = new SqlToken('AS');
     static readonly FROM = new SqlToken('FROM');
     static readonly LEFT = new SqlToken('LEFT');
     static readonly INNER = new SqlToken('INNER');

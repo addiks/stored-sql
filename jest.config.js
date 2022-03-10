@@ -3,6 +3,9 @@ module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
   moduleNameMapper: {
-      "storedsql": "<rootDir>/ts/storedsql"
+    "storedsql": "<rootDir>/ts/storedsql"
+  },
+  "transform": {
+    "\\.twig$": "<rootDir>/ts/twig-jest-transform.js"
   }
 };

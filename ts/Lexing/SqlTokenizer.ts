@@ -26,6 +26,7 @@ export function defaultKeywords(): Map<string, AbstractSqlToken>
         [">", SqlToken.OPERATOR],
 
         ["SELECT", SqlToken.SELECT],
+        ["AS", SqlToken.AS],
         ["FROM", SqlToken.FROM],
         ["LEFT", SqlToken.LEFT],
         ["INNER", SqlToken.INNER],

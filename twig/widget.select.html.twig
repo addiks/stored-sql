@@ -1,2 +1,26 @@
-<span>FOO SELECT</span>
 <u>{{ select.type }}</u>
+
+<ul>
+    {% for column in select.columns %}
+        <li>{% include './widget.column.html.twig' with {'column': column} %}</li>
+    {% endfor %}
+</ul>
+
+<div>
+    {% include './widget.from.html.twig' with {'from': select.from} %}
+</div>
+
+<ul>
+    {% for join in select.joins %}
+        <li>{% include './widget.join.html.twig' with {'join': join} %}</li>
+    {% endfor %}
+</ul>
+
+<div>
+    {% include './widget.where.html.twig' with {'where': select.where} %}
+</div>
+
+<div>
+    {% include './widget.order-by.html.twig' with {'orderBy': select.orderBy} %}
+</div>
+

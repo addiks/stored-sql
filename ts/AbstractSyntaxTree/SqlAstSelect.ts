@@ -22,23 +22,22 @@ export class SqlAstSelect extends SqlAstNodeClass
 
     constructor(
         parent: SqlAstNode,
-        private readonly selectToken: SqlAstTokenNode,
-        private readonly columns: Array<SqlAstExpression>,
-        private readonly from: SqlAstFrom|null,
-        private readonly joins: Array<SqlAstJoin>,
-        private readonly where: SqlAstWhere|null,
-        private readonly orderBy: SqlAstOrderBy|null,
+        public readonly selectToken: SqlAstTokenNode,
+        public readonly columns: Map<string, SqlAstExpression>,
+        public readonly from: SqlAstFrom|null,
+        public readonly joins: Array<SqlAstJoin>,
+        public readonly where: SqlAstWhere|null,
+        public readonly orderBy: SqlAstOrderBy|null,
         nodeType: string = 'SqlAstSelect'
     ) {
         super(parent, nodeType);
-        
-        assert(columns.length > 0);
+        assert(this.columnsAsArray().length > 0);
     }
-
+    
     public children(): Array<SqlAstNode>
     {
         return ([] as Array<SqlAstNode>).concat(
-            this.columns,
+            this.columnsAsArray(),
             [this.from],
             this.joins,
             [this.where],
@@ -71,15 +70,16 @@ export class SqlAstSelect extends SqlAstNodeClass
         var sql: string = "SELECT ";
         var columnsSql: Array<string> = new Array();
 
-        for (var alias in this.columns) {
-            var column: SqlAstExpression = this.columns[alias];
+        for (var alias of this.columns.keys()) {
+            var column: SqlAstExpression = this.columns.get(alias);
+            var columnSql: string = column.toSql();
 
-            columnsSql.push(column.toSql() + ((typeof alias == 'string') ?(' ' + alias) :''));
+            columnsSql.push(columnSql + ((alias != columnSql) ?(' AS ' + alias) :''));
         }
 
         sql += columnsSql.join(', ');
 
-        if (typeof this.from == 'object') {
+        if (this.from != null) {
             sql += ' ' + this.from.toSql();
         }
 
@@ -87,15 +87,20 @@ export class SqlAstSelect extends SqlAstNodeClass
             sql += ' ' + join.toSql();
         }
 
-        if (typeof this.where == 'object') {
+        if (this.where != null) {
             sql += ' ' + this.where.toSql();
         }
 
-        if (typeof this.orderBy == 'object') {
+        if (this.orderBy != null) {
             sql += ' ' + this.orderBy.toSql();
         }
 
         return sql;
+    }
+    
+    private columnsAsArray(): Array<SqlAstExpression>
+    {
+        return Array.from(this.columns, ([alias, column]) => (column));
     }
 }
 
@@ -107,7 +112,7 @@ export function mutateSelectAstNode(
 ): void {
     if (node instanceof SqlAstTokenNode && node.is(SqlToken.SELECT)) {
         var beginOffset: number = offset;
-        var columns: Array<SqlAstExpression> = [];
+        var columns: Map<string, SqlAstExpression> = new Map();
 
         do {
             offset++;
@@ -122,13 +127,18 @@ export function mutateSelectAstNode(
 
             var column: SqlAstExpression = parent.get(offset);
             var alias: string|null = null;
-
-            if (alias == null) {
-                columns.push(column);
-
+            var aliasNode: SqlAstTokenNode|null = parent.get(offset+1) as SqlAstTokenNode;
+            
+            if (aliasNode != null && aliasNode.nodeType == 'SqlAstTokenNode' && aliasNode.is(SqlToken.AS)) {
+                aliasNode = parent.get(offset+2) as SqlAstTokenNode;
+                alias = aliasNode.token.code();
+                offset += 2;
+                
             } else {
-                columns[alias] = column;
+                alias = column.toSql();
             }
+            
+            columns.set(alias, column);
 
             var comma: SqlAstNode|null = parent.get(offset + 1);
             var isComma: boolean = (comma instanceof SqlAstTokenNode && comma.is(SqlToken.COMMA));

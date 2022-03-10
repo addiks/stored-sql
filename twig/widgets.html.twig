@@ -1,7 +1,4 @@
 <div>
-    <h2>FoooOOoooOOOoo</h2>
-    <strong>{{ foo }}</strong>
-    
     {% for node in nodes %}
         <div>
             {% include './widget.html.twig' with {
@@ -10,3 +7,4 @@
         </div>
     {% endfor %}
 </div>
+<pre>{{ sql }}</pre>

@@ -19,8 +19,8 @@ export class SqlAstFrom extends SqlAstNodeClass
     constructor(
         parent: SqlAstNode,
         private readonly fromToken: SqlAstTokenNode,
-        private readonly tableName: SqlAstTokenNode,
-        private readonly alias: SqlAstTokenNode|null,
+        public readonly tableName: SqlAstTokenNode,
+        public readonly alias: SqlAstTokenNode|null,
         nodeType: string = 'SqlAstFrom'
     ) {
         super(parent, nodeType);
@@ -56,7 +56,7 @@ export class SqlAstFrom extends SqlAstNodeClass
 
     public toSql(): string
     {
-        return "FROM " + this.tableName.toSql() + ((typeof this.alias == 'object') ?(' ' + this.alias.toSql()) :'');
+        return "FROM " + this.tableName.toSql() + ((this.alias != null) ?(' ' + this.alias.toSql()) :'');
     }
 }
 
