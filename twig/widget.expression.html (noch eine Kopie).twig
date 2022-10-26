@@ -1,0 +1,3 @@
+{% if expression.nodeType == 'SqlAstOperation' %}
+    {% include './widget.operation.html.twig' with {'operation': expression} %}
+{% endif %}

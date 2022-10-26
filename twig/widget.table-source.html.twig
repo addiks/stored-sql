@@ -1,0 +1,6 @@
+{% if source.nodeType == 'SqlAstTokenNode' %}
+    <span>{{ source.symbol }}</span>
+    
+{# TODO: sub-selects as joins here (e.g.: LEFT JOIN (SELECT ...) as tmp ) #}
+    
+{% endif %}

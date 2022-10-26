@@ -4,6 +4,7 @@
         "esModuleInterop": true,
         "moduleResolution": "node",
         "baseUrl": ".",
+        "outDir": "var/js/lib",
         "paths": {
             "storedsql": ["ts/storedsql"]
         }

@@ -1,6 +1,18 @@
 {% if node.nodeType == 'SqlAstSelect' %}
     {% include './widget.select.html.twig' with {'select': node} %}
 
+{% elseif node.nodeType == 'SqlAstWhere' %}
+    {% include './widget.where.html.twig' with {'where': node} %}
+    
+{% elseif node.nodeType == 'SqlAstOperation' %}
+    {% include './widget.operation.html.twig' with {'operation': node} %}
+    
+{% elseif node.nodeType == 'SqlAstColumn' %}
+    {% include './widget.column.html.twig' with {'column': node} %}
+    
+{% elseif node.nodeType == 'SqlAstLiteral' %}
+    {% include './widget.literal.html.twig' with {'literal': node} %}
+    
 {% else %}
     <i color="red">{{ node.nodeType }}</i>
 {% endif %}

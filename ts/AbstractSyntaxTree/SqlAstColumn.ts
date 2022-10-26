@@ -10,7 +10,7 @@
 
 import { 
     SqlToken, SqlAstMutableNode, SqlAstTokenNode, SqlAstNode, SqlAstExpressionClass, SqlAstRoot, assert, SqlAstTable,
-    SqlAstMutableNodeClass
+    SqlAstMutableNodeClass, SqlAstSelect
 } from 'storedsql'
 
 import { Md5 } from 'ts-md5/dist/md5'
@@ -38,6 +38,39 @@ export class SqlAstColumn extends SqlAstExpressionClass
             this.table,
             this._column,
         ].filter(node => node != null);
+    }
+    
+    public name(): string
+    {
+        return this._column.token.code();
+    }
+    
+    public tabledName(): string
+    {
+        var tableName: string = "";
+        
+        if (typeof this.table == "object") {
+            tableName = this.table.token.code();
+            
+        } else {
+            var select: SqlAstSelect = this.findContainerSelect();
+        }
+        
+        return tableName + "." + this.name();
+    }
+    
+    public fullName(): string
+    {
+        var databaseName: string = "";
+        
+        if (typeof this.database == "object") {
+            databaseName = this.database.token.code();
+            
+        } else {
+            
+        }
+        
+        return databaseName + "." + this.tableName();
     }
 
     public hash(): string
@@ -81,6 +114,11 @@ export class SqlAstColumn extends SqlAstExpressionClass
         }
 
         return table;
+    }
+    
+    private findContainerSelect(): ?SqlAstSelect
+    {
+        
     }
 }
 

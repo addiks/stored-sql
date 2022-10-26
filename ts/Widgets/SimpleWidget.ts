@@ -1,7 +1,7 @@
 
 import { 
     WidgetHelper, loadWidgetHelperById, SqlAstNode, SqlParser, SqlAstSelect, SqlAstExpression, SqlAstFrom, SqlAstColumn,
-    SqlAstWhere, SqlAstOperation, SqlAstTokenNode, SqlAstLiteral
+    SqlAstWhere, SqlAstOperation, SqlAstTokenNode, SqlAstLiteral, Schemas, createSchemasFromArray
 } from 'storedsql';
 import widgetsTemplate from '../../twig/widgets.html.twig';
 
@@ -13,7 +13,8 @@ class SimpleWidget
         private readonly widgetHelper: WidgetHelper,
         template: Function|null,
         hideOriginalElement: boolean,
-        private readonly conversionMap?: Map<string, Function>
+        private readonly conversionMap?: Map<string, Function>,
+        private readonly schemas?: Schemas
     ) {
         this.nodes = widgetHelper.readSqlNodes();
         
@@ -48,7 +49,7 @@ class SimpleWidget
         
         return {
             'nodes': nodes,
-            'sql': sqls.join(';')
+            'sql': sqls.join(';'),
         };
     }
     
@@ -156,15 +157,23 @@ class SimpleWidget
     
     private columnNode(column: SqlAstColumn, alias: string|null): object
     {
+        console.log(this.schemas.allColumns());
         return {
             'alias': alias,
-            'sql': column.toSql()
+            'sql': column.toSql(),
+            'alternatives': this.schemas.allColumns()
         };
     }
 }
 
-export function createWidget(options: Map<string, any>): SimpleWidget
+export function createWidget(options: object): SimpleWidget
 {
+    var schemas: Schemas|null = null;
+    
+    if (typeof options['schema'] != "undefined") {
+        schemas = createSchemasFromArray(options['schema']);
+    }
+    
     return new SimpleWidget(
         loadWidgetHelperById(
             options['input'],
@@ -172,7 +181,9 @@ export function createWidget(options: Map<string, any>): SimpleWidget
             options['parser'] ?? null
         ),
         options['template'] ?? null,
-        options['hide_original_element'] ?? true
+        options['hide_original_element'] ?? true,
+        null,
+        schemas
     );
 } 
 

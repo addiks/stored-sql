@@ -1,2 +1,18 @@
-<i>{{ column.alias }}:</i>
-<strong>{{ column.sql }}</strong>
+{% if column.alias is defined and column.alias is not null %}
+    <i>{{ column.alias }}:</i>
+{% endif %}
+{% if column.alternatives is not empty %}
+    <select>
+        {% for availableColumn in column.alternatives %}
+            {% if availableColumn.fullName == column.toSql %}
+                <option selected="selected">
+            {% else %}
+                <option>
+            {% endif %}
+                <span>{{ availableColumn.fullName }}</strong>
+            </option>
+        {% endfor %}
+    </select>
+{% else %}
+    <strong>{{ column.sql }}</strong>
+{% endif %}

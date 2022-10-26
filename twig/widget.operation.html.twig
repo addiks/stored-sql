@@ -1,0 +1,9 @@
+<span>
+    {% include './widget.expression.html.twig' with {'expression': operation.leftSide} %}
+</span>
+<span>
+    {{ operation.operator.symbol }}
+</span>
+<span>
+    {% include './widget.expression.html.twig' with {'expression': operation.rightSide} %}
+</span>

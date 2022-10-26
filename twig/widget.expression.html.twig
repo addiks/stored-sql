@@ -1,0 +1,10 @@
+{% if expression.nodeType == 'SqlAstOperation' %}
+    {% include './widget.operation.html.twig' with {'operation': expression} %}
+
+{% elseif expression.nodeType == 'SqlAstColumn' %}
+    {% include './widget.column.html.twig' with {'column': expression} %}
+    
+{% elseif expression.nodeType == 'SqlAstLiteral' %}
+    {% include './widget.literal.html.twig' with {'literal': expression} %}
+    
+{% endif %}

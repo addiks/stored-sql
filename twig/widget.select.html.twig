@@ -1,26 +1,41 @@
-<u>{{ select.type }}</u>
+<h2>SELECT</h2>
 
+<h3>COLUMS</h3>
 <ul>
     {% for column in select.columns %}
-        <li>{% include './widget.column.html.twig' with {'column': column} %}</li>
+        <li>{% include './widget.expression.html.twig' with {'expression': column} %}</li>
     {% endfor %}
 </ul>
 
+<h3>FROM</h3>
 <div>
     {% include './widget.from.html.twig' with {'from': select.from} %}
 </div>
 
+<h3>JOINS</h3>
 <ul>
     {% for join in select.joins %}
         <li>{% include './widget.join.html.twig' with {'join': join} %}</li>
+    {% else %}
+        <i>No joins yet</i>
     {% endfor %}
 </ul>
 
+<h3>Filter</h3>
 <div>
-    {% include './widget.where.html.twig' with {'where': select.where} %}
+    {% if select.where is not null %}
+        {% include './widget.where.html.twig' with {'where': select.where} %}
+    {% else %}
+        <i>No filter yet</i>
+    {% endif %}
 </div>
 
+<h3>Sorting</h3>
 <div>
-    {% include './widget.order-by.html.twig' with {'orderBy': select.orderBy} %}
+    {% if select.orderBy is not null %}
+        {% include './widget.order-by.html.twig' with {'orderBy': select.orderBy} %}
+    {% else %}
+        <i>No sorting yet</i>
+    {% endif %}
 </div>
 
