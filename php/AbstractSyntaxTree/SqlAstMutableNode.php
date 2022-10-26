@@ -13,7 +13,11 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use ArrayAccess;
 
-/** @extends ArrayAccess<int, SqlAstNode> */
+/** 
+ * @psalm-type Mutator = callable(SqlAstNode, int, SqlAstMutableNode): void
+ * 
+ * @extends ArrayAccess<int, SqlAstNode> 
+ */
 interface SqlAstMutableNode extends ArrayAccess, SqlAstNode
 {
     /**
@@ -24,7 +28,7 @@ interface SqlAstMutableNode extends ArrayAccess, SqlAstNode
      *
      * The node will be the first parameter for the callback.
      *
-     * @param array<callable> $mutators
+     * @param array<Mutator> $mutators
      */
     public function mutate(array $mutators = array()): void;
 

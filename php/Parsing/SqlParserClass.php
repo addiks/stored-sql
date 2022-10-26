@@ -19,6 +19,7 @@ use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstLiteral;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstOperation;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstOrderBy;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstParenthesis;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstMutableNode;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstRoot;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstSelect;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstUpdate;
@@ -30,14 +31,15 @@ use Addiks\StoredSQL\Lexing\SqlTokens;
 use Closure;
 use Webmozart\Assert\Assert;
 
+/** @psalm-import-type Mutator from SqlAstMutableNode */
 final class SqlParserClass implements SqlParser
 {
     private SqlTokenizer $tokenizer;
 
-    /** @var array<callable> */
+    /** @var array<Mutator> */
     private array $mutators;
 
-    /** @param array<callable> $mutators */
+    /** @param array<Mutator> $mutators */
     public function __construct(
         SqlTokenizer $tokenizer,
         array $mutators
@@ -59,7 +61,7 @@ final class SqlParserClass implements SqlParser
         );
     }
 
-    /** @return array<callable> */
+    /** @return array<Mutator> */
     public static function defaultMutators(): array
     {
         return array(

@@ -17,17 +17,18 @@ use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
+/** @psalm-type MockAstNode = MockObject&SqlAstNode */
 final class SqlAstBranchTest extends TestCase
 {
     private SqlAstBranch $subject;
 
-    /** @var MockObject&SqlAstNode $childA */
+    /** @var MockAstNode $childA */
     private SqlAstNode $childA;
 
     /** @var MockObject&SqlAstMutableNode $childB */
     private SqlAstMutableNode $childB;
 
-    /** @var MockObject&SqlAstNode $childC */
+    /** @var MockAstNode $childC */
     private SqlAstNode $childC;
 
     public function setUp(): void
@@ -102,6 +103,7 @@ final class SqlAstBranchTest extends TestCase
     {
         $this->subject->replace($offset, $length, $newNode);
 
+        /** @param string|MockAstNode $input */
         $expectedChilds = array_map(function ($input) {
             if (is_string($input) && isset($this->{$input})) {
                 $input = $this->{$input};
@@ -113,9 +115,10 @@ final class SqlAstBranchTest extends TestCase
         $this->assertSame($expectedChilds, $this->subject->children());
     }
 
+    /** @return list<array{0:int, 1:int, 2:MockAstNode, 3:list<string|MockAstNode>}> */
     public function dataProviderForShouldReplaceNodes(): array
     {
-        /** @var MockObject&SqlAstNode $newNode */
+        /** @var MockAstNode $newNode */
         $newNode = $this->createMock(SqlAstNode::class);
 
         return [

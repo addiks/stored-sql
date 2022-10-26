@@ -81,7 +81,7 @@ final class SqlAstSelect implements SqlAstNode
             /** @var int $beginOffset */
             $beginOffset = $offset;
 
-            /** @var array<SqlAstExpression> $columns */
+            /** @var array<string|int, SqlAstExpression> $columns */
             $columns = array();
 
             do {
@@ -98,6 +98,11 @@ final class SqlAstSelect implements SqlAstNode
 
                 /** @var string|null $alias */
                 $alias = null;
+                
+                if ($parent[$offset + 1] instanceof SqlAstTokenNode && $parent[$offset + 1]->is(SqlToken::AS())) {
+                    $alias = $parent[$offset + 2]->toSql();
+                    $offset += 2;
+                }
 
                 if (is_null($alias)) {
                     $columns[] = $column;
@@ -172,6 +177,38 @@ final class SqlAstSelect implements SqlAstNode
                 ));
             }
         }
+    }
+    
+    public function selectToken(): SqlAstTokenNode
+    {
+        return $this->selectToken;
+    }
+    
+    /** @return array<string|int, SqlAstExpression> */
+    public function columns(): array
+    {
+        return $this->columns;
+    }
+
+    public function from(): ?SqlAstFrom
+    {
+        return $this->from;
+    }
+
+    /** @return array<SqlAstJoin> */
+    public function joins(): array
+    {
+        return $this->joins;
+    }
+
+    public function where(): ?SqlAstWhere
+    {
+        return $this->where;
+    }
+
+    public function orderBy(): ?SqlAstOrderBy
+    {
+        return $this->orderBy;
     }
 
     public function children(): array

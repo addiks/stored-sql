@@ -34,7 +34,9 @@ use Webmozart\Assert\Assert;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWhere;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstUpdate;
 use Addiks\StoredSQL\Exception\UnparsableSqlException;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstMutableNode;
 
+/** @psalm-import-type Mutator from SqlAstMutableNode */
 final class SqlParserClassTest extends TestCase
 {
     const DATA_FOLDER_NAME = '../../../fixtures';
@@ -44,13 +46,13 @@ final class SqlParserClassTest extends TestCase
     /** @var MockObject&SqlTokenizer */
     private SqlTokenizer $tokenizer;
 
-    /** @var array<callable> $mutators */
+    /** @var array<Mutator> $mutators */
     private array $mutators;
 
     public function setUp(): void
     {
         $this->tokenizer = $this->createMock(SqlTokenizer::class);
-        $this->mutators = array(function () {});
+        $this->mutators = array(function (): void {});
 
         $this->subject = new SqlParserClass($this->tokenizer, $this->mutators);
     }
@@ -128,10 +130,6 @@ final class SqlParserClassTest extends TestCase
         string $sql,
         string $expectedDump
     ): void {
-
-        /** @var array<string> $dumpLines */
-        $dumpLines = explode("\n", $expectedDump);
-
         /** @var SqlParser $parser */
         $parser = SqlParserClass::defaultParser();
 
@@ -155,13 +153,13 @@ final class SqlParserClassTest extends TestCase
         $this->assertEquals($expectedDump, $actualDump);
     }
     
-    /** @return array<string, array{0:string, 1:string}> */
+    /** @return array<string, array{0:string, 1:string, 2:string}> */
     public function dataProvider(): array
     {
         /** @var array<string> $sqlFiles */
         $sqlFiles = glob(sprintf('%s/%s/*.sql', __DIR__, self::DATA_FOLDER_NAME));
 
-        /** @var array<string, array{0:string, 1:string}> $dataSets */
+        /** @var array<string, array{0:string, 1:string, 2:string}> $dataSets */
         $dataSets = array();
 
         /** @var string $sqlFile */

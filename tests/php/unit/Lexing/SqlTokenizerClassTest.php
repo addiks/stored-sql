@@ -62,7 +62,7 @@ final class SqlTokenizerClassTest extends TestCase
         $actualLines = array();
 
         /** @var SqlTokenInstance $token */
-        foreach ($tokens as $index => $token) {
+        foreach ($tokens as $token) {
             $actualLines[] = sprintf(
                 '%d,%d,%s',
                 $token->line(),

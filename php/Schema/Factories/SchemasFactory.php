@@ -6,12 +6,17 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
+ *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Types;
+namespace Addiks\StoredSQL\Schema\Factories;
 
-interface Type
+use Addiks\StoredSQL\Schema\Schemas;
+
+interface SchemasFactory
 {
-    public function name(): string;
+    public function cacheKey(): string;
+
+    public function createSchemas(): Schemas;
 }

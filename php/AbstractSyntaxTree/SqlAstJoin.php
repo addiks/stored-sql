@@ -14,6 +14,7 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstTokenNode;
 
 final class SqlAstJoin implements SqlAstNode
 {
@@ -25,7 +26,9 @@ final class SqlAstJoin implements SqlAstNode
 
     private SqlAstTokenNode $tableName;
 
-    private ?SqlAstTokenNode $joinType;
+    private ?SqlAstTokenNode $innerOuterJoinType;
+
+    private ?SqlAstTokenNode $leftRightJoinType;
 
     private ?SqlAstTokenNode $alias;
 
@@ -37,14 +40,16 @@ final class SqlAstJoin implements SqlAstNode
         SqlAstNode $parent,
         SqlAstTokenNode $joinToken,
         SqlAstTokenNode $tableName,
-        ?SqlAstTokenNode $joinType,
+        ?SqlAstTokenNode $innerOuterJoinType,
+        ?SqlAstTokenNode $leftRightJoinType,
         ?SqlAstTokenNode $alias,
         ?SqlAstTokenNode $onOrUsing,
         ?SqlAstExpression $condition
     ) {
         $this->parent = $parent;
         $this->joinToken = $joinToken;
-        $this->joinType = $joinType;
+        $this->innerOuterJoinType = $innerOuterJoinType;
+        $this->leftRightJoinType = $leftRightJoinType;
         $this->tableName = $tableName;
         $this->alias = $alias;
         $this->onOrUsing = $onOrUsing;
@@ -57,9 +62,36 @@ final class SqlAstJoin implements SqlAstNode
         SqlAstMutableNode $parent
     ): void {
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::JOIN())) {
-            /** @var SqlAstNode|null $joinType */
-            $joinType = $parent[$offset - 1];
-
+            /** @var SqlAstTokenNode|null $innerOuterJoinType */
+            $innerOuterJoinType = null;
+            
+            /** @var SqlAstTokenNode|null $leftRightJoinType */
+            $leftRightJoinType = null;
+            
+            if ($parent[$offset - 1] instanceof SqlAstTokenNode) {
+                /** @var SqlAstTokenNode $joinType */
+                $joinType = $parent[$offset - 1];
+                
+                if ($joinType->is(SqlToken::LEFT()) || $joinType->is(SqlToken::RIGHT())) {
+                    $leftRightJoinType = $joinType;
+                    
+                } elseif ($joinType->is(SqlToken::INNER()) || $joinType->is(SqlToken::OUTER())) {
+                    $innerOuterJoinType = $joinType;
+                }
+                
+                if ($parent[$offset - 2] instanceof SqlAstTokenNode) {
+                    /** @var SqlAstTokenNode $joinType */
+                    $joinType = $parent[$offset - 2];
+                    
+                    if ($joinType->is(SqlToken::LEFT()) || $joinType->is(SqlToken::RIGHT())) {
+                        $leftRightJoinType = $joinType;
+                        
+                    } elseif ($joinType->is(SqlToken::INNER()) || $joinType->is(SqlToken::OUTER())) {
+                        $innerOuterJoinType = $joinType;
+                    }
+                }
+            }
+            
             /** @var SqlAstTokenNode $tableName */
             $tableName = $parent[$offset + 1];
 
@@ -75,7 +107,15 @@ final class SqlAstJoin implements SqlAstNode
             }
 
             /** @var int $beginOffset */
-            $beginOffset = is_object($joinType) ? $offset - 1 : $offset;
+            $beginOffset = $offset;
+            
+            if (is_object($innerOuterJoinType)) {
+                $beginOffset--;
+            }
+
+            if (is_object($leftRightJoinType)) {
+                $beginOffset--;
+            }
 
             /** @var int $endOffset */
             $endOffset = is_object($alias) ? $offset + 2 : $offset + 1;
@@ -99,7 +139,8 @@ final class SqlAstJoin implements SqlAstNode
                 $parent,
                 $node,
                 $tableName,
-                $joinType,
+                $innerOuterJoinType,
+                $leftRightJoinType,
                 $alias,
                 $onOrUsing,
                 $condition
@@ -110,7 +151,8 @@ final class SqlAstJoin implements SqlAstNode
     public function children(): array
     {
         return array_filter([
-            $this->joinType,
+            $this->innerOuterJoinType,
+            $this->leftRightJoinType,
             $this->tableName,
             $this->alias,
             $this->onOrUsing,
@@ -144,11 +186,44 @@ final class SqlAstJoin implements SqlAstNode
     {
         return $this->joinToken->column();
     }
+    
+    public function joinedTable(): SqlAstTokenNode
+    {
+        return $this->tableName;
+    }
+    
+    public function innerOuterJoinType(): ?SqlAstTokenNode
+    {
+        return $this->innerOuterJoinType;
+    }
+
+    public function leftRightJoinType(): ?SqlAstTokenNode
+    {
+        return $this->leftRightJoinType;
+    }
+
+    public function alias(): ?SqlAstTokenNode
+    {
+        return $this->alias;
+    }
+
+    public function condition(): ?SqlAstExpression
+    {
+        return $this->condition;
+    }
 
     public function toSql(): string
     {
         /** @var string $sql */
-        $sql = $this->joinType->toSql() . ' JOIN ' . $this->tableName->toSql();
+        $sql = 'JOIN ' . $this->tableName->toSql();
+        
+        if (is_object($this->innerOuterJoinType)) {
+            $sql = $this->innerOuterJoinType->toSql() . ' ' . $sql;
+        }
+
+        if (is_object($this->leftRightJoinType)) {
+            $sql = $this->leftRightJoinType->toSql() . ' ' . $sql;
+        }
 
         if (is_object($this->alias)) {
             $sql .= ' ' . $this->alias->toSql();
