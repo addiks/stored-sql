@@ -16,6 +16,7 @@ use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstMutableNode;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Webmozart\Assert\Assert;
 
 /** @psalm-type MockAstNode = MockObject&SqlAstNode */
 final class SqlAstBranchTest extends TestCase
@@ -44,6 +45,7 @@ final class SqlAstBranchTest extends TestCase
 
     /**
      * @test
+     *
      * @covers SqlAstBranch::children
      */
     public function shouldProvideChildren(): void
@@ -53,6 +55,7 @@ final class SqlAstBranchTest extends TestCase
 
     /**
      * @test
+     *
      * @covers SqlAstBranch::hash
      */
     public function shouldGenerateHash(): void
@@ -66,20 +69,29 @@ final class SqlAstBranchTest extends TestCase
 
     /**
      * @test
+     *
      * @covers SqlAstBranch::walk
      */
     public function shouldWalkChildren(): void
     {
+        /** @var array<MockAstNode> $mutatorAExpectedChilds */
         $mutatorAExpectedChilds = [$this->childA, $this->childB, $this->childC];
+
         $mutatorA = function (SqlAstNode $child, int $offset, SqlAstMutableNode $subject) use (&$mutatorAExpectedChilds): void {
+            Assert::isArray($mutatorAExpectedChilds);
+
             $this->assertSame($this->subject, $subject);
             $this->assertNotEmpty($mutatorAExpectedChilds);
             $this->assertEquals(3 - count($mutatorAExpectedChilds), $offset);
             $this->assertSame(array_shift($mutatorAExpectedChilds), $child);
         };
 
+        /** @var array<MockAstNode> $mutatorBExpectedChilds */
         $mutatorBExpectedChilds = [$this->childA, $this->childB, $this->childC];
+
         $mutatorB = function (SqlAstNode $child, int $offset, SqlAstMutableNode $subject) use (&$mutatorBExpectedChilds): void {
+            Assert::isArray($mutatorBExpectedChilds);
+
             $this->assertSame($this->subject, $subject);
             $this->assertNotEmpty($mutatorBExpectedChilds);
             $this->assertEquals(3 - count($mutatorBExpectedChilds), $offset);
@@ -96,7 +108,9 @@ final class SqlAstBranchTest extends TestCase
 
     /**
      * @test
+     *
      * @covers SqlAstBranch::replace
+     *
      * @dataProvider dataProviderForShouldReplaceNodes
      */
     public function shouldReplaceNodes(int $offset, int $length, SqlAstNode $newNode, array $expectedChilds): void
@@ -104,10 +118,13 @@ final class SqlAstBranchTest extends TestCase
         $this->subject->replace($offset, $length, $newNode);
 
         /** @param string|MockAstNode $input */
-        $expectedChilds = array_map(function ($input) {
+        $expectedChilds = array_map(function (string|object $input): object {
             if (is_string($input) && isset($this->{$input})) {
+                /** @psalm-suppress MixedAssignment */
                 $input = $this->{$input};
             }
+
+            Assert::object($input);
 
             return $input;
         }, $expectedChilds);

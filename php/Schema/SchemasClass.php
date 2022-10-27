@@ -6,78 +6,75 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Schema;
 
-use Addiks\StoredSQL\Schema\Schema; 
-use Addiks\StoredSQL\Schema\Table;
-use Addiks\StoredSQL\Schema\Column;
-use Webmozart\Assert\Assert;
-use PDO;
-use Addiks\StoredSQL\Schema\Factories\SchemasFromMySQLInformationSchemaReader;
-use Psr\SimpleCache\CacheInterface;
 use Addiks\StoredSQL\Schema\Factories\SchemasFactory;
+use Addiks\StoredSQL\Schema\Factories\SchemasFromMySQLInformationSchemaReader;
+use PDO;
+use Psr\SimpleCache\CacheInterface;
+use Webmozart\Assert\Assert;
 
 final class SchemasClass implements Schemas
 {
     /** @var array<string, Schema> */
-    private array $schemas;
-    
-    private string $defaultSchemaName;
+    private array $schemas = array();
+
+    private string|null $defaultSchemaName = null;
 
     public function __construct(
         array $schemas,
-        Schema $defaultSchema
+        ?Schema $defaultSchema
     ) {
         foreach ($schemas as $schema) {
             Assert::isInstanceOf($schema, Schema::class);
-            
+
             $this->schemas[$schema->name()] = $schema;
         }
-        
-        $this->defaultSchemaName = $defaultSchema->name();
-        
-        Assert::oneOf($this->defaultSchemaName, array_keys($this->schemas));
+
+        if (is_object($defaultSchema)) {
+            Assert::oneOf($defaultSchema, $this->schemas);
+
+            $this->defaultSchemaName = $defaultSchema->name();
+        }
     }
-    
-    public static fromPDO(
-        PDO $pdo, 
+
+    public static function fromPDO(
+        PDO $pdo,
         ?CacheInterface $cache = null,
         ?SchemasFactory $factory = null
-    ): Schemas
-    {
-        /** @var Schemas|null $schemas */
-        $schemas = null;
-        
+    ): Schemas {
         if (is_null($factory)) {
             # TODO: Select actually correct reader here ...
             $factory = new SchemasFromMySQLInformationSchemaReader($pdo);
         }
-        
+
         if (is_object($cache)) {
             $cacheKey = self::class . ':' . $factory->cacheKey();
-            
-            /** @var string|null $serializedSchemas*/
+
+            /** @var string|null $serializedSchemas */
             $serializedSchemas = $cache->get($cacheKey);
-            
+
             if (!empty($serializedSchemas)) {
+                /** @var Schemas|null $schemas */
                 $schemas = unserialize($serializedSchemas);
-                
+
                 Assert::isInstanceOf($schemas, Schemas::class, 'Invalid cache contents!');
-                
+
             } else {
+                /** @var Schemas $schemas */
                 $schemas = $factory->createSchemas();
-                
+
                 $cache->set($cacheKey, serialize($schemas));
             }
 
         } else {
+            /** @var Schemas $schemas */
             $schemas = $factory->createSchemas();
         }
-        
+
         return $schemas;
     }
 
@@ -86,34 +83,34 @@ final class SchemasClass implements Schemas
         return $this->schemas;
     }
 
-    public function defaultSchema(): Schema
+    public function defaultSchema(): Schema|null
     {
-        return $this->schemas[$this->defaultSchemaName];
+        return $this->schemas[$this->defaultSchemaName] ?? null;
     }
 
     public function allTables(): array
     {
         /** @var array<Table> $allTables */
         $allTables = array();
-        
+
         /** @var Schema $schema */
         foreach ($this->schemas as $schema) {
             $allTables = array_merge($allTables, $schema->tables());
         }
-        
+
         return $allTables;
     }
 
     public function allColumns(): array
     {
-        /** @var array<Table> $allColumns */
+        /** @var array<Column> $allColumns */
         $allColumns = array();
-        
+
         /** @var Schema $schema */
         foreach ($this->schemas as $schema) {
             $allColumns = array_merge($allColumns, $schema->allColumns());
         }
-        
+
         return $allColumns;
     }
 }

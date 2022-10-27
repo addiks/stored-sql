@@ -14,13 +14,11 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 use Addiks\StoredSQL\Exception\UnparsableSqlException;
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
-
 
 final class SqlAstUpdate implements SqlAstNode
 {
     use SqlAstWalkableTrait;
-    
+
     private SqlAstNode $parent;
 
     private SqlAstTokenNode $updateToken;
@@ -56,7 +54,6 @@ final class SqlAstUpdate implements SqlAstNode
         $this->where = $where;
         $this->orderBy = $orderBy;
 
-        /** @var SqlAstOperation $operation */
         foreach ($operations as $operation) {
             Assert::isInstanceOf($operation, SqlAstOperation::class);
             Assert::isInstanceOf($operation->leftSide(), SqlAstColumn::class);
@@ -65,7 +62,6 @@ final class SqlAstUpdate implements SqlAstNode
             $this->operations[] = $operation;
         }
 
-        /** @var SqlAstJoin $join */
         foreach ($joins as $join) {
             Assert::isInstanceOf($join, SqlAstJoin::class);
 
@@ -231,5 +227,10 @@ final class SqlAstUpdate implements SqlAstNode
         }
 
         return $sql;
+    }
+
+    public function canBeExecutedAsIs(): bool
+    {
+        return true;
     }
 }

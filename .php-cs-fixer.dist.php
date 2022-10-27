@@ -19,7 +19,7 @@ $finder = Finder::create()
 $rules = Yaml::parseFile(__DIR__ . '/php-cs-fixer.yml');
 
 /** @var Config $config */
-$config = Config::create();
+$config = new Config();
 $config->registerCustomFixers([
     new BlankLineBeforeCatchBlockFixer(),
     new BlankLineBeforeElseBlockFixer(),

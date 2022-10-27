@@ -38,12 +38,14 @@ namespace Addiks\StoredSQL\Lexing;
  * @method static self AND()
  * @method static self OR()
  * @method static self LIKE()
+ * @method static self GROUP()
  * @method static self HAVING()
  * @method static self LIMIT()
  * @method static self ORDER()
  * @method static self BY()
  * @method static self ASC()
  * @method static self DESC()
+ * @method static self UNION()
  * @method static self DISTINCT()
  * @method static self FUNCTION_NAME()
  * @method static self UPDATE()
@@ -93,12 +95,14 @@ final class SqlToken extends AbstractSqlToken
     protected const AND = null;
     protected const OR = null;
     protected const LIKE = null;
+    protected const GROUP = null;
     protected const HAVING = null;
     protected const LIMIT = null;
     protected const ORDER = null;
     protected const BY = null;
     protected const ASC = null;
     protected const DESC = null;
+    protected const UNION = null;
     protected const DISTINCT = null;
     protected const FUNCTION_NAME = null;
 

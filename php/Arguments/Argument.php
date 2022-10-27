@@ -11,11 +11,11 @@
 
 namespace Addiks\StoredSQL\Arguments;
 
-use Addiks\StoredSQL\Types\Type;
+use Addiks\StoredSQL\Types\SqlType;
 
 interface Argument
 {
     public function name(): string;
 
-    public function type(): Type;
+    public function type(): SqlType;
 }

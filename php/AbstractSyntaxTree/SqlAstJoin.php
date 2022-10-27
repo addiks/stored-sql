@@ -13,13 +13,11 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstTokenNode;
 
 final class SqlAstJoin implements SqlAstNode
 {
     use SqlAstWalkableTrait;
-    
+
     private SqlAstNode $parent;
 
     private SqlAstTokenNode $joinToken;
@@ -64,43 +62,39 @@ final class SqlAstJoin implements SqlAstNode
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::JOIN())) {
             /** @var SqlAstTokenNode|null $innerOuterJoinType */
             $innerOuterJoinType = null;
-            
+
             /** @var SqlAstTokenNode|null $leftRightJoinType */
             $leftRightJoinType = null;
-            
+
             if ($parent[$offset - 1] instanceof SqlAstTokenNode) {
                 /** @var SqlAstTokenNode $joinType */
                 $joinType = $parent[$offset - 1];
-                
+
                 if ($joinType->is(SqlToken::LEFT()) || $joinType->is(SqlToken::RIGHT())) {
                     $leftRightJoinType = $joinType;
-                    
+
                 } elseif ($joinType->is(SqlToken::INNER()) || $joinType->is(SqlToken::OUTER())) {
                     $innerOuterJoinType = $joinType;
                 }
-                
+
                 if ($parent[$offset - 2] instanceof SqlAstTokenNode) {
                     /** @var SqlAstTokenNode $joinType */
                     $joinType = $parent[$offset - 2];
-                    
+
                     if ($joinType->is(SqlToken::LEFT()) || $joinType->is(SqlToken::RIGHT())) {
                         $leftRightJoinType = $joinType;
-                        
+
                     } elseif ($joinType->is(SqlToken::INNER()) || $joinType->is(SqlToken::OUTER())) {
                         $innerOuterJoinType = $joinType;
                     }
                 }
             }
-            
+
             /** @var SqlAstTokenNode $tableName */
             $tableName = $parent[$offset + 1];
 
             /** @var SqlAstNode|null $alias */
             $alias = $parent[$offset + 2];
-
-            if (!($tableName instanceof SqlAstTokenNode && $tableName->is(SqlToken::SYMBOL()))) {
-                $tableName = null;
-            }
 
             if (!($alias instanceof SqlAstTokenNode && $alias->is(SqlToken::SYMBOL()))) {
                 $alias = null;
@@ -108,7 +102,7 @@ final class SqlAstJoin implements SqlAstNode
 
             /** @var int $beginOffset */
             $beginOffset = $offset;
-            
+
             if (is_object($innerOuterJoinType)) {
                 $beginOffset--;
             }
@@ -120,7 +114,7 @@ final class SqlAstJoin implements SqlAstNode
             /** @var int $endOffset */
             $endOffset = is_object($alias) ? $offset + 2 : $offset + 1;
 
-            /** @var SqlAstNode|null $onOrUsing */
+            /** @var SqlAstTokenNode|null $onOrUsing */
             $onOrUsing = $parent[$endOffset + 1];
 
             /** @var SqlAstExpression|null $condition */
@@ -186,12 +180,12 @@ final class SqlAstJoin implements SqlAstNode
     {
         return $this->joinToken->column();
     }
-    
+
     public function joinedTable(): SqlAstTokenNode
     {
         return $this->tableName;
     }
-    
+
     public function innerOuterJoinType(): ?SqlAstTokenNode
     {
         return $this->innerOuterJoinType;
@@ -216,7 +210,7 @@ final class SqlAstJoin implements SqlAstNode
     {
         /** @var string $sql */
         $sql = 'JOIN ' . $this->tableName->toSql();
-        
+
         if (is_object($this->innerOuterJoinType)) {
             $sql = $this->innerOuterJoinType->toSql() . ' ' . $sql;
         }
@@ -229,10 +223,15 @@ final class SqlAstJoin implements SqlAstNode
             $sql .= ' ' . $this->alias->toSql();
         }
 
-        if (is_object($this->condition)) {
+        if (is_object($this->condition) && is_object($this->onOrUsing)) {
             $sql .= ' ' . $this->onOrUsing->toSql() . ' ' . $this->condition->toSql() . '';
         }
 
         return $sql;
+    }
+
+    public function canBeExecutedAsIs(): bool
+    {
+        return false;
     }
 }

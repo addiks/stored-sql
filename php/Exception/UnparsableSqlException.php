@@ -47,13 +47,13 @@ final class UnparsableSqlException extends Exception
 
         $expectedSql = strtoupper($expectedSql);
 
-        if (!($actualNode instanceof SqlAstTokenNode) || strtoupper($actualNode->toSql()) !== $expectedSql) {
+        if (is_null($actualNode) || !($actualNode instanceof SqlAstTokenNode) || strtoupper($actualNode->toSql()) !== $expectedSql) {
             throw new UnparsableSqlException(sprintf(
                 "Expected SQL code '%s' at offset %d, found %s instead!",
                 $expectedSql,
                 $offset,
                 is_object($actualNode) ? get_class($actualNode) : 'nothing'
-            ), $actualNode);
+            ), $actualNode ?? $parent);
         }
     }
 
@@ -62,13 +62,13 @@ final class UnparsableSqlException extends Exception
         /** @var SqlAstNode|null $actualNode */
         $actualNode = $parent[$offset];
 
-        if (!($actualNode instanceof SqlAstTokenNode) || !$actualNode->is($expectedToken)) {
+        if (is_null($actualNode) || !($actualNode instanceof SqlAstTokenNode) || !$actualNode->is($expectedToken)) {
             throw new UnparsableSqlException(sprintf(
                 "Expected token '%s' at offset %d, found %s instead!",
                 $expectedToken->name(),
                 $offset,
                 is_object($actualNode) ? get_class($actualNode) : 'nothing'
-            ), $actualNode);
+            ), $actualNode ?? $parent);
         }
     }
 
@@ -80,7 +80,7 @@ final class UnparsableSqlException extends Exception
         /** @var SqlAstNode|null $actualNode */
         $actualNode = $parent[$offset];
 
-        if (!($actualNode instanceof $expectedClassName)) {
+        if (is_null($actualNode) || !($actualNode instanceof $expectedClassName)) {
             throw new UnparsableSqlException(sprintf(
                 "Expected node of '%s' at offset %d, found %s instead!",
                 $expectedClassName,

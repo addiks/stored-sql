@@ -11,35 +11,22 @@
 
 namespace Addiks\StoredSQL\Tests\Unit\Parsing;
 
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstMutableNode;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstRoot;
+use Addiks\StoredSQL\Exception\UnparsableSqlException;
 use Addiks\StoredSQL\Lexing\SqlTokenizer;
 use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
 use Addiks\StoredSQL\Lexing\SqlTokens;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstColumn;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstConjunction;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstOperation;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstRoot;
+use Addiks\StoredSQL\Parsing\SqlParser;
 use Addiks\StoredSQL\Parsing\SqlParserClass;
-use Closure;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstLiteral;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstOrderBy;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstParenthesis;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstFrom;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstJoin;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstSelect;
-use Addiks\StoredSQL\Parsing\SqlParser;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
-use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWhere;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstUpdate;
-use Addiks\StoredSQL\Exception\UnparsableSqlException;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstMutableNode;
 
 /** @psalm-import-type Mutator from SqlAstMutableNode */
 final class SqlParserClassTest extends TestCase
 {
-    const DATA_FOLDER_NAME = '../../../fixtures';
+    public const DATA_FOLDER_NAME = '../../../fixtures';
 
     private SqlParserClass $subject;
 
@@ -52,13 +39,15 @@ final class SqlParserClassTest extends TestCase
     public function setUp(): void
     {
         $this->tokenizer = $this->createMock(SqlTokenizer::class);
-        $this->mutators = array(function (): void {});
+        $this->mutators = array(function (): void {
+        });
 
         $this->subject = new SqlParserClass($this->tokenizer, $this->mutators);
     }
 
     /**
      * @test
+     *
      * @covers SqlParserClass::parseSql
      */
     public function shouldParseSql(): void
@@ -86,27 +75,7 @@ final class SqlParserClassTest extends TestCase
 
     /**
      * @test
-     * @covers SqlParserClass::defaultMutators
-     */
-    public function shouldProvideDefaultMutators(): void
-    {
-        $this->assertEquals([
-            Closure::fromCallable([SqlAstLiteral::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstColumn::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstOperation::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstConjunction::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstWhere::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstOrderBy::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstParenthesis::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstFrom::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstJoin::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstSelect::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstUpdate::class, 'mutateAstNode']),
-        ], SqlParserClass::defaultMutators());
-    }
-
-    /**
-     * @test
+     *
      * @covers SqlParserClass::defaultParser
      * @covers SqlParserClass::tokenizer
      * @covers SqlParserClass::mutators
@@ -122,7 +91,9 @@ final class SqlParserClassTest extends TestCase
 
     /**
      * @test
+     *
      * @dataProvider dataProvider
+     *
      * @covers SqlParserClass::parseSql
      */
     public function shouldBuildCorrectAst(
@@ -139,20 +110,20 @@ final class SqlParserClassTest extends TestCase
 
         } catch (UnparsableSqlException $exception) {
             echo $exception->asciiLocationDump();
-            
+
             throw $exception;
         }
-        
+
         /** @var string $actualDump */
         $actualDump = $this->dumpNodes($detectedContent);
-        
+
         if ($expectedDump !== $actualDump) {
             #file_put_contents('/tmp/ga_debug.ast', $this->dumpNodes($detectedContent, 0, false));
         }
 
         $this->assertEquals($expectedDump, $actualDump);
     }
-    
+
     /** @return array<string, array{0:string, 1:string, 2:string}> */
     public function dataProvider(): array
     {
@@ -164,7 +135,6 @@ final class SqlParserClassTest extends TestCase
 
         /** @var string $sqlFile */
         foreach ($sqlFiles as $sqlFile) {
-
             /** @var string $astFile */
             $astFile = $sqlFile . '.ast';
 
@@ -185,27 +155,26 @@ final class SqlParserClassTest extends TestCase
     {
         /** @var array<string> $dumpLines */
         $dumpLines = array();
-        
+
         /** @var SqlAstNode $node */
         foreach ($nodes as $node) {
             /** @var string $line */
-            $line = str_pad('', $level, '-') . array_reverse(explode("\\", get_class($node)))[0];
-            
+            $line = str_pad('', $level, '-') . array_reverse(explode('\\', get_class($node)))[0];
+
             if ($withSql) {
                 $line .= ':' . $node->toSql();
             }
-            
+
             $dumpLines[] = $line;
-            
+
             /** @var array<SqlAstNode> $children */
             $children = $node->children();
-            
+
             if (!empty($children)) {
                 $dumpLines[] = $this->dumpNodes($children, $level + 1, $withSql);
             }
         }
-        
+
         return implode("\n", $dumpLines);
     }
-
 }

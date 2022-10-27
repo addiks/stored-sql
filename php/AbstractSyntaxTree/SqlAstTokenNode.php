@@ -12,13 +12,13 @@
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\AbstractSqlToken;
+use Addiks\StoredSQL\Lexing\SqlToken;
 use Addiks\StoredSQL\Lexing\SqlTokenInstance;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
 
 final class SqlAstTokenNode implements SqlAstNode
 {
     use SqlAstWalkableTrait;
-    
+
     private SqlAstNode $parent;
 
     private SqlTokenInstance $token;
@@ -82,5 +82,12 @@ final class SqlAstTokenNode implements SqlAstNode
     public function toSql(): string
     {
         return $this->token->code();
+    }
+
+    public function canBeExecutedAsIs(): bool
+    {
+        return $this->is(SqlToken::SEMICOLON())
+            || $this->is(SqlToken::COMMENT())
+            || $this->is(SqlToken::SPACE());
     }
 }

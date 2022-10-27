@@ -13,12 +13,11 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
 
 final class SqlAstParenthesis implements SqlAstExpression
 {
     use SqlAstWalkableTrait;
-    
+
     private SqlAstNode $parent;
 
     private SqlAstTokenNode $bracketOpening;
@@ -47,7 +46,6 @@ final class SqlAstParenthesis implements SqlAstExpression
         SqlAstMutableNode $parent
     ): void {
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::BRACKET_OPENING())) {
-
             /** @var int $currentOffset */
             $currentOffset = $offset;
 
@@ -127,5 +125,10 @@ final class SqlAstParenthesis implements SqlAstExpression
         return '(' . implode(', ', array_map(function (SqlAstExpression $expression) {
             return $expression->toSql();
         }, $this->expressions)) . ')';
+    }
+
+    public function canBeExecutedAsIs(): bool
+    {
+        return false;
     }
 }

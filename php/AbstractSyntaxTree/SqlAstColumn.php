@@ -13,12 +13,11 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
 
 final class SqlAstColumn implements SqlAstExpression
 {
     use SqlAstWalkableTrait;
-    
+
     private SqlAstNode $parent;
 
     private SqlAstTokenNode $column;
@@ -55,7 +54,6 @@ final class SqlAstColumn implements SqlAstExpression
         SqlAstMutableNode $parent
     ): void {
         if ($node instanceof SqlAstTokenNode && $node->token()->is(SqlToken::SYMBOL())) {
-
             /** @var int $length */
             $length = 1;
 
@@ -166,5 +164,10 @@ final class SqlAstColumn implements SqlAstExpression
         }
 
         return $table;
+    }
+
+    public function canBeExecutedAsIs(): bool
+    {
+        return false;
     }
 }

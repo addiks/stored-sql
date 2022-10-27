@@ -15,23 +15,23 @@ use Addiks\StoredSQL\Lexing\SqlToken;
 use Addiks\StoredSQL\Lexing\SqlTokenInstanceClass;
 use Webmozart\Assert\Assert;
 
-final class SqlAstWhere implements SqlAstMergable
+final class SqlAstGroupBy implements SqlAstMergable
 {
     use SqlAstWalkableTrait;
 
     private SqlAstMutableNode $parent;
 
-    private SqlAstTokenNode $whereToken;
+    private SqlAstTokenNode $groupToken;
 
     private SqlAstExpression $expression;
 
     public function __construct(
         SqlAstMutableNode $parent,
-        SqlAstTokenNode $whereToken,
+        SqlAstTokenNode $groupToken,
         SqlAstExpression $expression
     ) {
         $this->parent = $parent;
-        $this->whereToken = $whereToken;
+        $this->groupToken = $groupToken;
         $this->expression = $expression;
     }
 
@@ -40,13 +40,18 @@ final class SqlAstWhere implements SqlAstMergable
         int $offset,
         SqlAstMutableNode $parent
     ): void {
-        if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::WHERE())) {
-            /** @var SqlAstExpression $expression */
-            $expression = $parent[$offset + 1];
+        if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::GROUP())) {
+            /** @var SqlAstNode|null $by */
+            $by = $parent[$offset + 1];
 
-            Assert::isInstanceOf($expression, SqlAstExpression::class);
+            if ($by instanceof SqlAstTokenNode && $node->is(SqlToken::BY())) {
+                /** @var SqlAstExpression $expression */
+                $expression = $parent[$offset + 2];
 
-            $parent->replace($offset, 2, new SqlAstWhere($parent, $node, $expression));
+                Assert::isInstanceOf($expression, SqlAstExpression::class);
+
+                $parent->replace($offset, 3, new SqlAstGroupBy($parent, $node, $expression));
+            }
         }
     }
 
@@ -77,22 +82,22 @@ final class SqlAstWhere implements SqlAstMergable
 
     public function line(): int
     {
-        return $this->whereToken->line();
+        return $this->groupToken->line();
     }
 
     public function column(): int
     {
-        return $this->whereToken->column();
+        return $this->groupToken->column();
     }
 
     public function toSql(): string
     {
-        return 'WHERE ' . $this->expression->toSql();
+        return 'GROUP BY ' . $this->expression->toSql();
     }
 
     public function merge(SqlAstMergable $toMerge): SqlAstMergable
     {
-        Assert::isInstanceOf($toMerge, SqlAstWhere::class);
+        Assert::isInstanceOf($toMerge, SqlAstGroupBy::class);
 
         $operator = new SqlAstTokenNode($this->parent, new SqlTokenInstanceClass(
             'AND',
@@ -106,11 +111,11 @@ final class SqlAstWhere implements SqlAstMergable
             [$operator, $toMerge->expression()],
         ]);
 
-        $newWhere = new SqlAstWhere($this->parent, $this->whereToken, $mergedExpression);
+        $newGroupBy = new SqlAstGroupBy($this->parent, $this->groupToken, $mergedExpression);
 
-        $this->parent->replaceNode($this, $newWhere);
+        $this->parent->replaceNode($this, $newGroupBy);
 
-        return $newWhere;
+        return $newGroupBy;
     }
 
     public function canBeExecutedAsIs(): bool

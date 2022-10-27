@@ -13,12 +13,11 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
 
 final class SqlAstFrom implements SqlAstNode
 {
     use SqlAstWalkableTrait;
-    
+
     private SqlAstNode $parent;
 
     private SqlAstTokenNode $fromToken;
@@ -45,7 +44,6 @@ final class SqlAstFrom implements SqlAstNode
         SqlAstMutableNode $parent
     ): void {
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::FROM())) {
-            /** @var SqlAstTokenNode $tableName */
             $tableName = $parent[$offset + 1];
 
             Assert::isInstanceOf($tableName, SqlAstTokenNode::class);
@@ -100,5 +98,10 @@ final class SqlAstFrom implements SqlAstNode
     public function toSql(): string
     {
         return 'FROM ' . $this->tableName->toSql() . (is_object($this->alias) ? (' ' . $this->alias->toSql()) : '');
+    }
+
+    public function canBeExecutedAsIs(): bool
+    {
+        return false;
     }
 }

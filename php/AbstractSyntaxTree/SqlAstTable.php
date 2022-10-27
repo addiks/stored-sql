@@ -10,15 +10,14 @@
  */
 
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
 
 final class SqlAstTable implements SqlAstExpression
 {
     use SqlAstWalkableTrait;
-    
+
     private SqlAstNode $parent;
 
-    private ?SqlAstTokenNode $table;
+    private SqlAstTokenNode $table;
 
     private ?SqlAstTokenNode $database;
 
@@ -72,5 +71,10 @@ final class SqlAstTable implements SqlAstExpression
         return implode('.', array_map(function (SqlAstNode $node) {
             return $node->toSql();
         }, $this->children()));
+    }
+
+    public function canBeExecutedAsIs(): bool
+    {
+        return false;
     }
 }

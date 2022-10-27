@@ -3,5 +3,4 @@ vendor
 node_modules
 var
 
-.phpunit.cache
-.php_cs.cache
+.*.cache

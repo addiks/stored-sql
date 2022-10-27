@@ -12,12 +12,12 @@
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
+use Webmozart\Assert\Assert;
 
 final class SqlAstOperation implements SqlAstExpression
 {
     use SqlAstWalkableTrait;
-    
+
     private SqlAstNode $parent;
 
     private SqlAstExpression $leftSide;
@@ -86,6 +86,9 @@ final class SqlAstOperation implements SqlAstExpression
                     $parent->replace($offset + 2, 1, $rightSide);
                 }
 
+                Assert::isInstanceOf($leftSide, SqlAstExpression::class);
+                Assert::isInstanceOf($rightSide, SqlAstExpression::class);
+
                 $parent->replace($offset, 3, new SqlAstOperation(
                     $parent,
                     $leftSide,
@@ -153,5 +156,10 @@ final class SqlAstOperation implements SqlAstExpression
     public function toSql(): string
     {
         return $this->leftSide->toSql() . ' ' . $this->operator->toSql() . ' ' . $this->rightSide->toSql();
+    }
+
+    public function canBeExecutedAsIs(): bool
+    {
+        return false;
     }
 }

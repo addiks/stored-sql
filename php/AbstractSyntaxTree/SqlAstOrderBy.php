@@ -13,12 +13,11 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
 
 final class SqlAstOrderBy implements SqlAstNode
 {
     use SqlAstWalkableTrait;
-    
+
     private SqlAstNode $parent;
 
     private SqlAstTokenNode $orderToken;
@@ -36,12 +35,10 @@ final class SqlAstOrderBy implements SqlAstNode
         $this->orderToken = $orderToken;
         $this->columns = array();
 
-        /**
-         * @var SqlAstExpression $expression
-         * @var SqlAstTokenNode  $direction
-         */
         foreach ($columns as [$expression, $direction]) {
             Assert::isInstanceOf($expression, SqlAstExpression::class);
+
+            /** @psalm-suppress RedundantConditionGivenDocblockType */
             Assert::isInstanceOf($direction, SqlAstTokenNode::class);
             Assert::oneOf($direction->token()->token(), [SqlToken::ASC(), SqlToken::DESC()]);
 
@@ -55,7 +52,6 @@ final class SqlAstOrderBy implements SqlAstNode
         SqlAstMutableNode $parent
     ): void {
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::ORDER())) {
-            /** @var SqlAstTokenNode $by */
             $by = $parent[$offset + 1];
 
             Assert::isInstanceOf($by, SqlAstTokenNode::class);
@@ -74,7 +70,6 @@ final class SqlAstOrderBy implements SqlAstNode
 
                 Assert::isInstanceOf($expression, SqlAstExpression::class);
 
-                /** @var SqlAstTokenNode $direction */
                 $direction = $parent[$offset + 1];
 
                 Assert::isInstanceOf($direction, SqlAstTokenNode::class);
@@ -157,5 +152,10 @@ final class SqlAstOrderBy implements SqlAstNode
         }
 
         return 'ORDER BY' . implode(',', $columns);
+    }
+
+    public function canBeExecutedAsIs(): bool
+    {
+        return false;
     }
 }

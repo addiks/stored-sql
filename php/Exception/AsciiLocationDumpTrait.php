@@ -21,7 +21,7 @@ trait AsciiLocationDumpTrait
 
     public function asciiLocationDump(): string
     {
-        /** @var array<string> $lines */
+        /** @var non-empty-array<string> $lines */
         $lines = explode("\n", $this->sql());
 
         # \u{219X} are unicode arrow-characters

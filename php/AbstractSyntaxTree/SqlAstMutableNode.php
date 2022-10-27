@@ -13,10 +13,10 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use ArrayAccess;
 
-/** 
+/**
  * @psalm-type Mutator = callable(SqlAstNode, int, SqlAstMutableNode): void
- * 
- * @extends ArrayAccess<int, SqlAstNode> 
+ *
+ * @extends ArrayAccess<int, SqlAstNode>
  */
 interface SqlAstMutableNode extends ArrayAccess, SqlAstNode
 {

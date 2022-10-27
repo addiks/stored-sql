@@ -14,12 +14,15 @@ namespace Addiks\StoredSQL\Parsing;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstColumn;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstConjunction;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstFrom;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstGroupBy;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstHaving;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstJoin;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstLiteral;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstMutableNode;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstOperation;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstOrderBy;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstParenthesis;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstMutableNode;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstRoot;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstSelect;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstUpdate;
@@ -70,6 +73,8 @@ final class SqlParserClass implements SqlParser
             Closure::fromCallable([SqlAstOperation::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstConjunction::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstWhere::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstHaving::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstGroupBy::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstOrderBy::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstParenthesis::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstFrom::class, 'mutateAstNode']),
@@ -80,7 +85,7 @@ final class SqlParserClass implements SqlParser
     }
 
     public function parseSql(
-        string $sql, 
+        string $sql,
         array $expectedResultTypes = array(),
         array $validationCallbacks = array()
     ): array {
@@ -97,7 +102,7 @@ final class SqlParserClass implements SqlParser
             /** @var string $hashBefore */
             $hashBefore = $syntaxTree->hash();
 
-            /** @var callable $mutator */
+            /** @var Mutator $mutator */
             foreach ($this->mutators as $mutator) {
                 $syntaxTree->mutate([$mutator]);
             }
@@ -109,12 +114,11 @@ final class SqlParserClass implements SqlParser
         if (!empty($expectedResultTypes) || !empty($validationCallbacks)) {
             /** @var SqlAstNode $detectedNode */
             foreach ($detectedContent as $detectedNode) {
-                
                 if (!empty($validationCallbacks)) {
                     $detectedNode->walk($validationCallbacks);
                 }
-                
-                /** @var class-string $expectedClass */
+
+                /** @var string $expectedClass */
                 foreach ($expectedResultTypes as $expectedClass) {
                     Assert::classExists($expectedClass);
 

@@ -15,23 +15,23 @@ use Addiks\StoredSQL\Lexing\SqlToken;
 use Addiks\StoredSQL\Lexing\SqlTokenInstanceClass;
 use Webmozart\Assert\Assert;
 
-final class SqlAstWhere implements SqlAstMergable
+final class SqlAstHaving implements SqlAstMergable
 {
     use SqlAstWalkableTrait;
 
     private SqlAstMutableNode $parent;
 
-    private SqlAstTokenNode $whereToken;
+    private SqlAstTokenNode $havingToken;
 
     private SqlAstExpression $expression;
 
     public function __construct(
         SqlAstMutableNode $parent,
-        SqlAstTokenNode $whereToken,
+        SqlAstTokenNode $havingToken,
         SqlAstExpression $expression
     ) {
         $this->parent = $parent;
-        $this->whereToken = $whereToken;
+        $this->havingToken = $havingToken;
         $this->expression = $expression;
     }
 
@@ -40,13 +40,13 @@ final class SqlAstWhere implements SqlAstMergable
         int $offset,
         SqlAstMutableNode $parent
     ): void {
-        if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::WHERE())) {
+        if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::HAVING())) {
             /** @var SqlAstExpression $expression */
             $expression = $parent[$offset + 1];
 
             Assert::isInstanceOf($expression, SqlAstExpression::class);
 
-            $parent->replace($offset, 2, new SqlAstWhere($parent, $node, $expression));
+            $parent->replace($offset, 2, new SqlAstHaving($parent, $node, $expression));
         }
     }
 
@@ -77,22 +77,22 @@ final class SqlAstWhere implements SqlAstMergable
 
     public function line(): int
     {
-        return $this->whereToken->line();
+        return $this->havingToken->line();
     }
 
     public function column(): int
     {
-        return $this->whereToken->column();
+        return $this->havingToken->column();
     }
 
     public function toSql(): string
     {
-        return 'WHERE ' . $this->expression->toSql();
+        return 'HAVING ' . $this->expression->toSql();
     }
 
     public function merge(SqlAstMergable $toMerge): SqlAstMergable
     {
-        Assert::isInstanceOf($toMerge, SqlAstWhere::class);
+        Assert::isInstanceOf($toMerge, SqlAstHaving::class);
 
         $operator = new SqlAstTokenNode($this->parent, new SqlTokenInstanceClass(
             'AND',
@@ -106,11 +106,11 @@ final class SqlAstWhere implements SqlAstMergable
             [$operator, $toMerge->expression()],
         ]);
 
-        $newWhere = new SqlAstWhere($this->parent, $this->whereToken, $mergedExpression);
+        $newHaving = new SqlAstHaving($this->parent, $this->havingToken, $mergedExpression);
 
-        $this->parent->replaceNode($this, $newWhere);
+        $this->parent->replaceNode($this, $newHaving);
 
-        return $newWhere;
+        return $newHaving;
     }
 
     public function canBeExecutedAsIs(): bool

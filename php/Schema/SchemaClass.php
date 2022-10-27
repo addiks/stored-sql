@@ -6,20 +6,16 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Schema;
 
-use Addiks\StoredSQL\Schema\Column;
-use Addiks\StoredSQL\Schema\Table;
-
 final class SchemaClass implements Schema
 {
     /** @var array<string, Table> */
-    private array $tables;
-    
+    private array $tables = array();
+
     /** @param array<array-key, Table> $tables */
     public function __construct(
         private string $name,
@@ -29,7 +25,7 @@ final class SchemaClass implements Schema
             $this->addTable($table);
         }
     }
-    
+
     public function name(): string
     {
         return $this->name;
@@ -44,14 +40,14 @@ final class SchemaClass implements Schema
     /** @return array<Column> */
     public function allColumns(): array
     {
-        /** @var mixed $allColumns */
+        /** @var array<Column> $allColumns */
         $allColumns = array();
-        
+
         /** @var Table $table */
         foreach ($this->tables as $table) {
             $allColumns = array_merge($allColumns, $table->columns());
         }
-        
+
         return $allColumns;
     }
 

@@ -117,6 +117,7 @@ final class SqlTokenizerClass implements SqlTokenizer
             'LIKE' => SqlToken::LIKE(),
             'USING' => SqlToken::USING(),
             'WHERE' => SqlToken::WHERE(),
+            'GROUP' => SqlToken::GROUP(),
             'HAVING' => SqlToken::HAVING(),
             'LIMIT' => SqlToken::LIMIT(),
             'DISTINCT' => SqlToken::DISTINCT(),

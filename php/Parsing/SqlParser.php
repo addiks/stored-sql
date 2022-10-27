@@ -17,14 +17,14 @@ interface SqlParser
 {
     /**
      * Parse a given SQL string into a list of detected AST node objects.
-     * 
+     *
      * @param array<class-string> $expectedResultTypes
      * @param array<callable>     $validationCallbacks
      *
      * @return array<SqlAstNode>
      */
     public function parseSql(
-        string $sql, 
+        string $sql,
         array $expectedResultTypes = array(),
         array $validationCallbacks = array()
     ): array;

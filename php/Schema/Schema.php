@@ -6,14 +6,10 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Schema;
-
-use Addiks\StoredSQL\Schema\Table;
-use Addiks\StoredSQL\Schema\Column;
 
 interface Schema
 {

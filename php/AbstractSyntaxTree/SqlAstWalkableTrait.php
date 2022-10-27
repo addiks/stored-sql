@@ -6,24 +6,21 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
-use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstMutableNode;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
 use Psalm\Issue\RedundantConditionGivenDocblockType;
+use Webmozart\Assert\Assert;
 
 trait SqlAstWalkableTrait
 {
-
+    /** @param array<callable> $callbacks */
     public function walk(array $callbacks = array()): void
     {
         Assert::isInstanceOf($this, SqlAstNode::class);
-        
+
         /** @var string $hashBefore */
         $hashBefore = $this->hash();
 
@@ -34,10 +31,10 @@ trait SqlAstWalkableTrait
             /** SqlAstNode $child */
             foreach ($this->children() as $offset => $child) {
                 $callback($child, $offset, $this);
-                
+
                 /** @var string $hashAfter */
                 $hashAfter = $this->hash();
-                
+
                 Assert::same($hashBefore, $hashAfter, sprintf(
                     'Illegal mutation of SQL-AST-Node "%s" during walk operation! ("%s" != "%s")',
                     get_class($this),
@@ -51,5 +48,4 @@ trait SqlAstWalkableTrait
             }
         }
     }
-
 }

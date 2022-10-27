@@ -15,7 +15,7 @@ interface SqlAstNode
 {
     /** @return array<self> */
     public function children(): array;
-    
+
     /**
      * Executes the given callback for every child-node in this AST recursively.
      *
@@ -43,4 +43,12 @@ interface SqlAstNode
     public function column(): int;
 
     public function toSql(): string;
+
+    /**
+     * Can this SQL-AST-node be sent to an SQL server as a complete runnable statement?
+     *
+     * This can be used as a check to determine if a mutation process was successful:
+     * If complete and runnable statements go in, then complete and runnable statements should come out.
+     */
+    public function canBeExecutedAsIs(): bool;
 }

@@ -11,8 +11,8 @@
 
 namespace Addiks;
 
-use Addiks\StoredSQL\Lexing\SqlTokens;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstRootClass;
+use Addiks\StoredSQL\Lexing\SqlTokens;
 use PHPUnit\Framework\TestCase;
 
 final class SqlAstRootClassTest extends TestCase
@@ -30,6 +30,7 @@ final class SqlAstRootClassTest extends TestCase
 
     /**
      * @test
+     *
      * @covers SqlAstRootClass::tokens
      */
     public function shouldProvideTokens(): void

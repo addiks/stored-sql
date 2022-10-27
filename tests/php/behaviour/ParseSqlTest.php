@@ -11,15 +11,15 @@
 
 namespace Addiks\StoredSQL\Tests\Behaviour;
 
-use Addiks\StoredSQL\Exception\UnlexableSqlException;
-use Addiks\StoredSQL\Exception\UnparsableSqlException;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstJoin;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstSelect;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWhere;
+use Addiks\StoredSQL\Exception\UnlexableSqlException;
+use Addiks\StoredSQL\Exception\UnparsableSqlException;
 use Addiks\StoredSQL\Parsing\SqlParser;
 use Addiks\StoredSQL\Parsing\SqlParserClass;
 use PHPUnit\Framework\TestCase;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWhere;
 
 final class ParseSqlTest extends TestCase
 {

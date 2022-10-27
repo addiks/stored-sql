@@ -28,7 +28,7 @@ use Webmozart\Assert\Assert;
  */
 final class SqlTokenizerClassTest extends TestCase
 {
-    const DATA_FOLDER_NAME = '../../../fixtures';
+    public const DATA_FOLDER_NAME = '../../../fixtures';
 
     private ?SqlTokenizerClass $tokenizer = null;
 
@@ -39,6 +39,7 @@ final class SqlTokenizerClassTest extends TestCase
 
     /**
      * @test
+     *
      * @dataProvider dataProvider
      */
     public function shouldDetectCorrectTokens(
@@ -87,7 +88,6 @@ final class SqlTokenizerClassTest extends TestCase
 
         /** @var string $sqlFile */
         foreach ($sqlFiles as $sqlFile) {
-
             /** @var string $tokenFile */
             $tokenFile = $sqlFile . '.tokens';
 

@@ -25,8 +25,6 @@ blank_line_before_statement:
         - continue
         - declare
         - default
-        - die
-        - exit
         - goto
         - include
         - include_once
@@ -41,8 +39,8 @@ braces: true
 cast_spaces: true
 class_attributes_separation:
     elements:
-        - method
-        - property
+        method: one
+        property: one
 class_definition: true
 combine_nested_dirname: true
 comment_to_phpdoc: true
@@ -66,7 +64,7 @@ list_syntax:
     syntax: short
 logical_operators: true
 lowercase_cast: true
-lowercase_constants: true
+constant_case: true
 lowercase_keywords: true
 lowercase_static_reference: true
 magic_constant_casing: true
@@ -155,7 +153,7 @@ switch_case_semicolon_to_colon: true
 switch_case_space: true
 ternary_operator_spaces: true
 ternary_to_null_coalescing: true
-trailing_comma_in_multiline_array: true
+trailing_comma_in_multiline: true
 trim_array_spaces: true
 unary_operator_spaces: true
 visibility_required: true

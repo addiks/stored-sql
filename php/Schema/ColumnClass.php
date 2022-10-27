@@ -6,14 +6,11 @@
  * If not, see <http://www.gnu.org/licenses/> or send me a mail so i can send you a copy.
  *
  * @license GPL-3.0
- *
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
 namespace Addiks\StoredSQL\Schema;
 
-use Addiks\StoredSQL\Schema\Column;
-use Addiks\StoredSQL\Schema\Table;
 use Addiks\StoredSQL\Types\SqlType;
 
 final class ColumnClass implements Column
@@ -24,7 +21,7 @@ final class ColumnClass implements Column
         private SqlType $type,
         private bool $nullable
     ) {
-        $table->addTable($this);
+        $table->addColumn($this);
     }
 
     public function table(): Table
@@ -36,23 +33,23 @@ final class ColumnClass implements Column
     {
         return $this->name;
     }
-    
+
     public function type(): SqlType
     {
         return $this->type;
     }
-    
+
     public function nullable(): bool
     {
         return $this->nullable;
     }
-    
+
     public function fullName(): string
     {
         return implode('.', [
             $this->table->schema()->name(),
             $this->table->name(),
-            $this->name
+            $this->name,
         ]);
     }
 }

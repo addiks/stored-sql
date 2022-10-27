@@ -13,13 +13,12 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use ErrorException;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWalkableTrait;
 
 abstract class SqlAstBranch implements SqlAstMutableNode
 {
     use SqlAstWalkableTrait;
-    
-    /** @var array<SqlAstNode> $children */
+
+    /** @var list<SqlAstNode> $children */
     private array $children;
 
     /** @param array<SqlAstNode> $children */
@@ -137,5 +136,17 @@ abstract class SqlAstBranch implements SqlAstMutableNode
     public function offsetUnset($offset): void
     {
         throw new ErrorException(sprintf('Objects of %s are immutable!', __CLASS__));
+    }
+
+    public function canBeExecutedAsIs(): bool
+    {
+        /** @var SqlAstNode $child */
+        foreach ($this->children as $child) {
+            if (!$child->canBeExecutedAsIs()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
