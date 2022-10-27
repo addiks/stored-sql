@@ -296,6 +296,28 @@ final class SqlAstSelect implements SqlAstNode
         return $this->joins;
     }
 
+    public function addJoin(SqlAstJoin $join): void
+    {
+        $this->joins[] = $join;
+    }
+
+    public function replaceJoin(SqlAstJoin $old, ?SqlAstJoin $new): void
+    {
+        /** @var int|false $offset */
+        $offset = array_search($old, $this->joins, true);
+
+        Assert::integer($offset, 'SELECT does not contain the JOIN that should be replaced!');
+
+        if (is_object($new)) {
+            $this->joins[$offset] = $new;
+
+        } else {
+            unset($this->joins[$offset]);
+        }
+
+        $this->joins = array_values(array_filter($this->joins));
+    }
+
     public function where(): ?SqlAstWhere
     {
         return $this->where;
