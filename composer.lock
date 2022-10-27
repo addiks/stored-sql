@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e7e04c60e8a6dca26daf3c663ab5c3fd",
+    "content-hash": "ff2486336a134ef6664b467a1abb1a43",
     "packages": [
         {
             "name": "dasprid/enum",
@@ -166,7 +166,7 @@
     "packages-dev": [
         {
             "name": "addiks/more-php-cs-fixers",
-            "version": "dev-master",
+            "version": "v0.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/addiks/more-php-cs-fixers.git",
@@ -197,7 +197,6 @@
                 "symfony/phpunit-bridge": "^6.0",
                 "vimeo/psalm": "^4.4"
             },
-            "default-branch": true,
             "type": "library",
             "autoload": {
                 "psr-4": {
@@ -5012,9 +5011,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "addiks/more-php-cs-fixers": 20
-    },
+    "stability-flags": [],
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
