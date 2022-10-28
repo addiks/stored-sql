@@ -13,13 +13,14 @@ namespace Addiks\StoredSQL\Parsing;
 
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
 
+/** @psalm-import-type SqlNodeWalker from SqlAstNode */
 interface SqlParser
 {
     /**
      * Parse a given SQL string into a list of detected AST node objects.
      *
-     * @param array<class-string> $expectedResultTypes
-     * @param array<callable>     $validationCallbacks
+     * @param array<class-string>  $expectedResultTypes
+     * @param array<SqlNodeWalker> $validationCallbacks
      *
      * @return array<SqlAstNode>
      */

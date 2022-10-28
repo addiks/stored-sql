@@ -77,4 +77,9 @@ final class SqlAstTable implements SqlAstExpression
     {
         return false;
     }
+
+    public function extractFundamentalEquations(): array
+    {
+        return [];
+    }
 }

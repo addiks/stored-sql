@@ -25,10 +25,10 @@ final class SqlAstUpdate implements SqlAstNode
 
     private SqlAstTable $tableName;
 
-    /** @var array<SqlAstOperation> */
+    /** @var list<SqlAstOperation> */
     private array $operations;
 
-    /** @var array<SqlAstJoin> $joins */
+    /** @var list<SqlAstJoin> $joins */
     private array $joins;
 
     private ?SqlAstWhere $where;

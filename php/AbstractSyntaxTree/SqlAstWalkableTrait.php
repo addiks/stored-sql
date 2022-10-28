@@ -14,9 +14,10 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 use Psalm\Issue\RedundantConditionGivenDocblockType;
 use Webmozart\Assert\Assert;
 
+/** @psalm-import-type SqlNodeWalker from SqlAstNode */
 trait SqlAstWalkableTrait
 {
-    /** @param array<callable> $callbacks */
+    /** @param array<SqlNodeWalker> $callbacks */
     public function walk(array $callbacks = array()): void
     {
         Assert::isInstanceOf($this, SqlAstNode::class);

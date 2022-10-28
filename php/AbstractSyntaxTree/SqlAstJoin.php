@@ -12,6 +12,7 @@
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
+use Addiks\StoredSQL\SqlUtils;
 use Webmozart\Assert\Assert;
 
 final class SqlAstJoin implements SqlAstNode
@@ -186,6 +187,11 @@ final class SqlAstJoin implements SqlAstNode
         return $this->tableName;
     }
 
+    public function joinedTableName(): string
+    {
+        return SqlUtils::unquote($this->tableName->toSql());
+    }
+
     public function innerOuterJoinType(): ?SqlAstTokenNode
     {
         return $this->innerOuterJoinType;
@@ -204,6 +210,15 @@ final class SqlAstJoin implements SqlAstNode
     public function condition(): ?SqlAstExpression
     {
         return $this->condition;
+    }
+
+    /**
+     * Is this a "... JOIN foo ON(a = b)" or "... JOIN foo USING(a)" join?
+     * This returns true for the "USING" version.
+     */
+    public function isUsingColumnCondition(): bool
+    {
+        return $this->onOrUsing?->is(SqlToken::USING()) ?? false;
     }
 
     public function toSql(): string

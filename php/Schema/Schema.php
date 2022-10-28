@@ -18,6 +18,8 @@ interface Schema
     /** @return array<Table> */
     public function tables(): array;
 
+    public function table(string $tableName): ?Table;
+
     /** @return array<Column> */
     public function allColumns(): array;
 

@@ -22,7 +22,7 @@ final class SqlAstParenthesis implements SqlAstExpression
 
     private SqlAstTokenNode $bracketOpening;
 
-    /** @var array<SqlAstExpression> */
+    /** @var array<int, SqlAstExpression> */
     private array $expressions = array();
 
     public function __construct(
@@ -130,5 +130,22 @@ final class SqlAstParenthesis implements SqlAstExpression
     public function canBeExecutedAsIs(): bool
     {
         return false;
+    }
+
+    public function extractFundamentalEquations(): array
+    {
+        /** @var array<SqlAstOperation> $fundamentalEquations */
+        $fundamentalEquations = array();
+
+        /** @var SqlAstExpression $expression */
+        foreach ($this->expressions as $expression) {
+            $fundamentalEquations = array_merge(
+                $fundamentalEquations,
+                $expression->extractFundamentalEquations(
+                )
+            );
+        }
+
+        return $fundamentalEquations;
     }
 }

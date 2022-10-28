@@ -11,9 +11,10 @@
 
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
+/** @psalm-type SqlNodeWalker = callable(SqlAstNode, int, SqlAstNode): void */
 interface SqlAstNode
 {
-    /** @return array<self> */
+    /** @return array<int, self> */
     public function children(): array;
 
     /**
@@ -23,7 +24,7 @@ interface SqlAstNode
      *
      * The node will be the first parameter for the callback.
      *
-     * @param array<callable> $callbacks
+     * @param array<SqlNodeWalker> $callbacks
      */
     public function walk(array $callbacks = array()): void;
 

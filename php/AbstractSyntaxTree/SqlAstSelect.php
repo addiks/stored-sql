@@ -12,7 +12,9 @@
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Exception\UnparsableSqlException;
+use Addiks\StoredSQL\ExecutionContext;
 use Addiks\StoredSQL\Lexing\SqlToken;
+use Addiks\StoredSQL\Schema\Schemas;
 use Webmozart\Assert\Assert;
 
 final class SqlAstSelect implements SqlAstNode
@@ -274,6 +276,22 @@ final class SqlAstSelect implements SqlAstNode
         }
     }
 
+    public function createContext(Schemas $schemas): ExecutionContext
+    {
+        $context = new ExecutionContext($schemas);
+
+        if (is_object($this->from)) {
+            $context->includeTable($this->from->tableName());
+        }
+
+        /** @var SqlAstJoin $join */
+        foreach ($this->joins as $join) {
+            $context->includeTable($join->joinedTableName());
+        }
+
+        return $context;
+    }
+
     public function selectToken(): SqlAstTokenNode
     {
         return $this->selectToken;
@@ -330,7 +348,7 @@ final class SqlAstSelect implements SqlAstNode
 
     public function children(): array
     {
-        return array_filter(array_merge(
+        return array_values(array_filter(array_merge(
             $this->columns,
             [
                 $this->from,
@@ -338,7 +356,7 @@ final class SqlAstSelect implements SqlAstNode
                 $this->orderBy,
             ],
             $this->joins
-        ));
+        )));
     }
 
     public function hash(): string

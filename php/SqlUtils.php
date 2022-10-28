@@ -9,20 +9,24 @@
  * @author Gerrit Addiks <gerrit@addiks.de>
  */
 
-namespace Addiks\StoredSQL\Schema;
+namespace Addiks\StoredSQL;
 
-interface Schemas
+/**
+ * Yeah, yeah, I know. Yet another stupid util class ...
+ * Feel free to optimize this away.
+ */
+final class SqlUtils
 {
-    /** @return array<Schema> */
-    public function schemas(): array;
+    private function __construct()
+    {
+    }
 
-    public function defaultSchema(): Schema|null;
+    public static function unquote(string $sql): string
+    {
+        if ($sql[0] === '`' && $sql[-1] === '`') {
+            $sql = substr($sql, 1, -1);
+        }
 
-    public function schema(string $schemaName): ?Schema;
-
-    /** @return array<Table> */
-    public function allTables(): array;
-
-    /** @return array<Column> */
-    public function allColumns(): array;
+        return $sql;
+    }
 }

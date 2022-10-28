@@ -91,4 +91,9 @@ final class SqlAstLiteral implements SqlAstExpression
     {
         return false;
     }
+
+    public function extractFundamentalEquations(): array
+    {
+        return [];
+    }
 }

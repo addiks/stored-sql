@@ -83,6 +83,11 @@ final class SchemasClass implements Schemas
         return $this->schemas;
     }
 
+    public function schema(string $schemaName): ?Schema
+    {
+        return $this->schemas[$schemaName] ?? null;
+    }
+
     public function defaultSchema(): Schema|null
     {
         return $this->schemas[$this->defaultSchemaName] ?? null;

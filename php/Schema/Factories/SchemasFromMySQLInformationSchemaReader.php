@@ -39,7 +39,7 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
         SQL;
 
     private const SQL_READ_COLUMNS = <<<SQL
-        SELECT `COLUMN_NAME`, `DATA_TYPE`, `IS_NULLABLE`
+        SELECT `COLUMN_NAME`, `DATA_TYPE`, `IS_NULLABLE`, `COLUMN_KEY`
         FROM `information_schema`.`COLUMNS` 
         WHERE `TABLE_SCHEMA` = ?
         AND `TABLE_NAME` = ?
@@ -106,12 +106,13 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
         foreach ($this->query(
             self::SQL_READ_COLUMNS,
             [$table->schema()->name(), $table->name()]
-        ) as [$columnName, $sqlType, $nullable]) {
+        ) as [$columnName, $sqlType, $nullable, $columnKey]) {
             $table->addColumn(new ColumnClass(
                 $table,
                 $columnName,
                 SqlTypeClass::fromName($sqlType),
-                $nullable === 'YES'
+                $nullable === 'YES',
+                in_array($columnKey, ['PRI', 'UNI'], true)
             ));
         }
     }

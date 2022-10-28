@@ -12,6 +12,7 @@
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
+use Addiks\StoredSQL\SqlUtils;
 use Webmozart\Assert\Assert;
 
 final class SqlAstColumn implements SqlAstExpression
@@ -131,6 +132,46 @@ final class SqlAstColumn implements SqlAstExpression
         return $this->parent->root();
     }
 
+    public function columnName(): SqlAstTokenNode
+    {
+        return $this->column;
+    }
+
+    public function columnNameString(): string
+    {
+        return SqlUtils::unquote($this->column->toSql());
+    }
+
+    public function tableName(): ?SqlAstTokenNode
+    {
+        return $this->table;
+    }
+
+    public function tableNameString(): ?string
+    {
+        if (is_object($this->table)) {
+            return SqlUtils::unquote($this->table->toSql());
+
+        } else {
+            return null;
+        }
+    }
+
+    public function schemaName(): ?SqlAstTokenNode
+    {
+        return $this->database;
+    }
+
+    public function schemaNameString(): ?string
+    {
+        if (is_object($this->database)) {
+            return SqlUtils::unquote($this->database->toSql());
+
+        } else {
+            return null;
+        }
+    }
+
     public function line(): int
     {
         return $this->column->line();
@@ -164,6 +205,11 @@ final class SqlAstColumn implements SqlAstExpression
         }
 
         return $table;
+    }
+
+    public function extractFundamentalEquations(): array
+    {
+        return [];
     }
 
     public function canBeExecutedAsIs(): bool

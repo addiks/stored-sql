@@ -37,6 +37,11 @@ final class SchemaClass implements Schema
         return $this->tables;
     }
 
+    public function table(string $tableName): ?Table
+    {
+        return $this->tables[$tableName] ?? null;
+    }
+
     /** @return array<Column> */
     public function allColumns(): array
     {

@@ -19,7 +19,8 @@ final class ColumnClass implements Column
         private Table $table,
         private string $name,
         private SqlType $type,
-        private bool $nullable
+        private bool $nullable,
+        private bool $unique
     ) {
         $table->addColumn($this);
     }
@@ -37,6 +38,11 @@ final class ColumnClass implements Column
     public function type(): SqlType
     {
         return $this->type;
+    }
+
+    public function unique(): bool
+    {
+        return $this->unique;
     }
 
     public function nullable(): bool

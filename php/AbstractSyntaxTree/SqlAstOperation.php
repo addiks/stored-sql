@@ -162,4 +162,84 @@ final class SqlAstOperation implements SqlAstExpression
     {
         return false;
     }
+
+    public function extractFundamentalEquations(): array
+    {
+        return $this->isFundamentalEquation() ? [$this] : [];
+    }
+
+    public function isFundamentalEquation(): bool
+    {
+        /** @var bool $isFundamentalEquation */
+        $isFundamentalEquation = $this->operator->isCode('=');
+
+        /** @var SqlAstExpression $side */
+        foreach ([$this->leftSide, $this->rightSide] as $side) {
+            if ($side instanceof SqlAstTokenNode) {
+                if (!in_array($side->token()->token(), [
+                    SqlToken::SYMBOL(),
+                    SqlToken::NUMERIC(),
+                    SqlToken::LITERAL(),
+                ], true)) {
+                    $isFundamentalEquation = false;
+                }
+
+            } else {
+                $isFundamentalEquation = false;
+            }
+        }
+
+        return $isFundamentalEquation;
+    }
+
+    public function isAlwaysTrue(): bool
+    {
+        if ($this->operator->isCode('=') && $this->bothSidesAreAlwaysEqual()) {
+            return true;
+        }
+
+        if ($this->operator->isCode('!=') && $this->bothSidesAreAlwaysUnequal()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function isAlwaysFalse(): bool
+    {
+        if ($this->operator->isCode('=') && $this->bothSidesAreAlwaysUnequal()) {
+            return true;
+        }
+
+        if ($this->operator->isCode('!=') && $this->bothSidesAreAlwaysEqual()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function bothSidesAreAlwaysEqual(): bool
+    {
+        return ($this->bothSidesAreLiterals() || $this->bothSidesAreColumns()) && $this->bothSidesHaveSameDefinition();
+    }
+
+    private function bothSidesAreAlwaysUnequal(): bool
+    {
+        return ($this->bothSidesAreLiterals() || $this->bothSidesAreColumns()) && !$this->bothSidesHaveSameDefinition();
+    }
+
+    private function bothSidesHaveSameDefinition(): bool
+    {
+        return $this->leftSide->toSql() === $this->rightSide->toSql();
+    }
+
+    private function bothSidesAreLiterals(): bool
+    {
+        return $this->leftSide instanceof SqlAstLiteral && $this->rightSide instanceof SqlAstLiteral;
+    }
+
+    private function bothSidesAreColumns(): bool
+    {
+        return $this->leftSide instanceof SqlAstColumn && $this->rightSide instanceof SqlAstColumn;
+    }
 }

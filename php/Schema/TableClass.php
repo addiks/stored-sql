@@ -44,6 +44,11 @@ final class TableClass implements Table
         return $this->columns;
     }
 
+    public function column(string $columnName): ?Column
+    {
+        return $this->columns[$columnName] ?? null;
+    }
+
     public function addColumn(Column $column): void
     {
         $this->columns[$column->name()] = $column;

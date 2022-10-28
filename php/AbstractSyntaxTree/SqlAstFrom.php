@@ -12,6 +12,7 @@
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
+use Addiks\StoredSQL\SqlUtils;
 use Webmozart\Assert\Assert;
 
 final class SqlAstFrom implements SqlAstNode
@@ -93,6 +94,11 @@ final class SqlAstFrom implements SqlAstNode
     public function column(): int
     {
         return $this->fromToken->column();
+    }
+
+    public function tableName(): string
+    {
+        return SqlUtils::unquote($this->fromToken->toSql());
     }
 
     public function toSql(): string

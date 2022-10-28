@@ -21,5 +21,9 @@ interface Column
 
     public function type(): SqlType;
 
+    public function nullable(): bool;
+
+    public function unique(): bool;
+
     public function fullName(): string;
 }

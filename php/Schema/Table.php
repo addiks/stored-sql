@@ -20,5 +20,7 @@ interface Table
     /** @return array<Column> */
     public function columns(): array;
 
+    public function column(string $columnName): ?Column;
+
     public function addColumn(Column $column): void;
 }

@@ -18,7 +18,11 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Webmozart\Assert\Assert;
 
-/** @psalm-type MockAstNode = MockObject&SqlAstNode */
+/**
+ * @psalm-type MockAstNode = MockObject&SqlAstNode
+ *
+ * @psalm-import-type SqlNodeWalker from SqlAstNode
+ */
 final class SqlAstBranchTest extends TestCase
 {
     private SqlAstBranch $subject;
@@ -98,7 +102,7 @@ final class SqlAstBranchTest extends TestCase
             $this->assertSame(array_shift($mutatorBExpectedChilds), $child);
         };
 
-        /** @var array<callable> $mutators */
+        /** @var array<SqlNodeWalker> $mutators */
         $mutators = array($mutatorA, $mutatorB);
 
         $this->childB->expects($this->exactly(2))->method('walk')->with($this->equalTo($mutators));

@@ -93,7 +93,7 @@ final class SqlAstOrderBy implements SqlAstNode
 
     public function children(): array
     {
-        /** @var array<SqlAstNode> $children */
+        /** @var array<int, SqlAstNode> $children */
         $children = array();
 
         /**

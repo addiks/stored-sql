@@ -101,7 +101,7 @@ final class SqlAstConjunction implements SqlAstExpression
 
     public function children(): array
     {
-        /** @var array<SqlAstNode|null> $children */
+        /** @var array<int, SqlAstNode|null> $children */
         $children = array();
 
         foreach ($this->parts as [$operator, $expression]) {
@@ -162,5 +162,34 @@ final class SqlAstConjunction implements SqlAstExpression
     public function canBeExecutedAsIs(): bool
     {
         return false;
+    }
+
+    public function extractFundamentalEquations(): array
+    {
+        /** @var array<SqlAstOperation> $fundamentalEquations */
+        $fundamentalEquations = array();
+
+        /** @var bool $hasOnlyAndOperations */
+        $hasOnlyAndOperations = true;
+
+        /** @var SqlAstTokenNode $operator */
+        foreach (array_filter(array_column($this->parts, 0)) as $operator) {
+            if (!$operator->is(SqlToken::AND())) {
+                $hasOnlyAndOperations = false;
+            }
+        }
+
+        if ($hasOnlyAndOperations) {
+            /** @var SqlAstExpression $expression */
+            foreach (array_column($this->parts, 1) as $expression) {
+                $fundamentalEquations = array_merge(
+                    $fundamentalEquations,
+                    $expression->extractFundamentalEquations(
+                    )
+                );
+            }
+        }
+
+        return $fundamentalEquations;
     }
 }
