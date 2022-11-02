@@ -90,6 +90,17 @@ final class ExecutionContext
         return $this->table($tableNameCandidates[0]);
     }
 
+    public function columnByNode(SqlAstColumn $columnNode): ?Column
+    {
+        /** @var string $columnName */
+        $columnName = $columnNode->columnNameString();
+
+        /** @var string $tableName */
+        $tableName = $columnNode->tableNameString() ?? $this->findTableWithColumn($columnName);
+
+        return $this->table($tableName)?->column($columnName);
+    }
+
     public function isEquationOneOnOneRelation(SqlAstOperation $equation): bool
     {
         if ($equation->isFundamentalEquation()) {

@@ -53,6 +53,7 @@ final class SchemasClass implements Schemas
 
         if (is_object($cache)) {
             $cacheKey = self::class . ':' . $factory->cacheKey();
+            $cacheKey = preg_replace('/[\{\}\(\)\\\\\@\:]+/is', '_', $cacheKey);
 
             /** @var string|null $serializedSchemas */
             $serializedSchemas = $cache->get($cacheKey);

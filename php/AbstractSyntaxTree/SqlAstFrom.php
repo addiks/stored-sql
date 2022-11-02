@@ -98,7 +98,12 @@ final class SqlAstFrom implements SqlAstNode
 
     public function tableName(): string
     {
-        return SqlUtils::unquote($this->fromToken->toSql());
+        return SqlUtils::unquote($this->tableName->toSql());
+    }
+
+    public function aliasName(): string
+    {
+        return SqlUtils::unquote($this->alias?->toSql() ?? '');
     }
 
     public function toSql(): string

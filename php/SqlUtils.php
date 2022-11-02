@@ -23,7 +23,7 @@ final class SqlUtils
 
     public static function unquote(string $sql): string
     {
-        if ($sql[0] === '`' && $sql[-1] === '`') {
+        if (!empty($sql) && $sql[0] === '`' && $sql[-1] === '`') {
             $sql = substr($sql, 1, -1);
         }
 

@@ -11,7 +11,6 @@
 
 namespace Addiks\StoredSQL\Exception;
 
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstMutableNode;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstTokenNode;
 use Addiks\StoredSQL\Lexing\AbstractSqlToken;
@@ -40,10 +39,15 @@ final class UnparsableSqlException extends Exception
         parent::__construct($message, 0, $parent);
     }
 
-    public static function assertSql(SqlAstMutableNode $parent, int $offset, string $expectedSql): void
+    public function __toString(): string
+    {
+        return parent::__toString() . $this->asciiLocationDump();
+    }
+
+    public static function assertSql(SqlAstNode $parent, int $offset, string $expectedSql): void
     {
         /** @var SqlAstNode|null $actualNode */
-        $actualNode = $parent[$offset];
+        $actualNode = $parent->children()[$offset] ?? null;
 
         $expectedSql = strtoupper($expectedSql);
 
@@ -57,10 +61,10 @@ final class UnparsableSqlException extends Exception
         }
     }
 
-    public static function assertToken(SqlAstMutableNode $parent, int $offset, AbstractSqlToken $expectedToken): void
+    public static function assertToken(SqlAstNode $parent, int $offset, AbstractSqlToken $expectedToken): void
     {
         /** @var SqlAstNode|null $actualNode */
-        $actualNode = $parent[$offset];
+        $actualNode = $parent->children()[$offset] ?? null;
 
         if (is_null($actualNode) || !($actualNode instanceof SqlAstTokenNode) || !$actualNode->is($expectedToken)) {
             throw new UnparsableSqlException(sprintf(
@@ -73,12 +77,12 @@ final class UnparsableSqlException extends Exception
     }
 
     /** @param class-string $expectedClassName */
-    public static function assertType(SqlAstMutableNode $parent, int $offset, string $expectedClassName): void
+    public static function assertType(SqlAstNode $parent, int $offset, string $expectedClassName): void
     {
         Assert::true($expectedClassName === SqlAstNode::class || is_subclass_of($expectedClassName, SqlAstNode::class));
 
         /** @var SqlAstNode|null $actualNode */
-        $actualNode = $parent[$offset];
+        $actualNode = $parent->children()[$offset] ?? null;
 
         if (is_null($actualNode) || !($actualNode instanceof $expectedClassName)) {
             throw new UnparsableSqlException(sprintf(

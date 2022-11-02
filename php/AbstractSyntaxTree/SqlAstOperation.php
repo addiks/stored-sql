@@ -184,7 +184,7 @@ final class SqlAstOperation implements SqlAstExpression
                     $isFundamentalEquation = false;
                 }
 
-            } else {
+            } elseif (!$side instanceof SqlAstColumn) {
                 $isFundamentalEquation = false;
             }
         }
@@ -225,7 +225,7 @@ final class SqlAstOperation implements SqlAstExpression
 
     private function bothSidesAreAlwaysUnequal(): bool
     {
-        return ($this->bothSidesAreLiterals() || $this->bothSidesAreColumns()) && !$this->bothSidesHaveSameDefinition();
+        return $this->bothSidesAreLiterals() && !$this->bothSidesHaveSameDefinition();
     }
 
     private function bothSidesHaveSameDefinition(): bool

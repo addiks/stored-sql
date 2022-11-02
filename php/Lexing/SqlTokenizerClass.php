@@ -57,7 +57,7 @@ final class SqlTokenizerClass implements SqlTokenizer
             $token = $this->readToken($sql, $tokenSql);
 
             if (is_null($token)) {
-                throw new UnlexableSqlException($originalSql, $line, $offset);
+                throw new UnlexableSqlException($originalSql, $line, $offset, $tokens);
             }
 
             $tokens[] = new SqlTokenInstanceClass($tokenSql, $token, $line, $offset);
@@ -194,9 +194,11 @@ final class SqlTokenizerClass implements SqlTokenizer
         /** @var AbstractSqlToken $token */
         foreach ($this->keywords as $keyword => $token) {
             if (strcasecmp($keyword, substr($sql, 0, strlen($keyword))) === 0) {
-                $readSql = substr($sql, 0, strlen($keyword));
+                if (!$this->isSymbolCharacter($keyword[-1]) || !$this->isSymbolCharacter($sql[strlen($keyword)] ?? '')) {
+                    $readSql = substr($sql, 0, strlen($keyword));
 
-                return $token;
+                    return $token;
+                }
             }
         }
 
@@ -221,6 +223,53 @@ final class SqlTokenizerClass implements SqlTokenizer
             return SqlToken::SYMBOL();
         }
 
+        if (preg_match('/^(\?|\:[a-zA-Z_][a-zA-Z0-9_]*)/is', $sql, $match)) {
+            $readSql = $match[0];
+
+            return SqlToken::PREPARED_ARGUMENT();
+        }
+
         return null;
+    }
+
+    private function isSymbolCharacter(string $char): bool
+    {
+        if (empty($char)) {
+            return false;
+        }
+
+        if (in_array($char, ['_'], true)) {
+            return true;
+        }
+
+        /** @var int $dec */
+        $dec = ord($char);
+
+        if ($dec < 48) {
+            return false;
+        }
+
+        if ($dec < 58) {
+            return true; # 0 - 9
+        }
+
+        if ($dec < 65) {
+            return false;
+        }
+
+        if ($dec < 91) {
+            return true; # A - Z
+        }
+
+        if ($dec < 97) {
+            return false;
+        }
+
+        if ($dec < 123) {
+            return true; # a - z
+
+        } else {
+            return false;
+        }
     }
 }

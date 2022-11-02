@@ -44,7 +44,7 @@ final class SqlAstGroupBy implements SqlAstMergable
             /** @var SqlAstNode|null $by */
             $by = $parent[$offset + 1];
 
-            if ($by instanceof SqlAstTokenNode && $node->is(SqlToken::BY())) {
+            if ($by instanceof SqlAstTokenNode && $by->is(SqlToken::BY())) {
                 /** @var SqlAstExpression $expression */
                 $expression = $parent[$offset + 2];
 

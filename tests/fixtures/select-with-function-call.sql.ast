@@ -1,0 +1,11 @@
+SqlAstSelect
+-SqlAstTokenNode
+-SqlAstFunctionCall
+--SqlAstTokenNode
+--SqlAstTokenNode
+--SqlAstColumn
+---SqlAstTokenNode
+--SqlAstColumn
+---SqlAstTokenNode
+--SqlAstColumn
+---SqlAstTokenNode

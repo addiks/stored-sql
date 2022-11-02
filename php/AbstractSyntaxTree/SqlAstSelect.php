@@ -25,6 +25,8 @@ final class SqlAstSelect implements SqlAstNode
 
     private SqlAstTokenNode $selectToken;
 
+    private ?SqlAstTokenNode $distinctToken;
+
     /** @var array<string|int, SqlAstExpression> */
     private array $columns;
 
@@ -50,6 +52,7 @@ final class SqlAstSelect implements SqlAstNode
     public function __construct(
         SqlAstMutableNode $parent,
         SqlAstTokenNode $selectToken,
+        ?SqlAstTokenNode $distinctToken,
         array $columns,
         ?SqlAstFrom $from,
         array $joins,
@@ -65,6 +68,7 @@ final class SqlAstSelect implements SqlAstNode
 
         $this->parent = $parent;
         $this->selectToken = $selectToken;
+        $this->distinctToken = $distinctToken;
         $this->columns = array();
         $this->from = $from;
         $this->joins = array();
@@ -98,6 +102,16 @@ final class SqlAstSelect implements SqlAstNode
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::SELECT())) {
             /** @var int $beginOffset */
             $beginOffset = $offset;
+
+            /** @var SqlAstNode|null $distinct */
+            $distinct = $parent[$offset + 1];
+
+            if ($distinct instanceof SqlAstTokenNode && $distinct->is(SqlToken::DISTINCT())) {
+                $offset++;
+
+            } else {
+                $distinct = null;
+            }
 
             /** @var array<string|int, SqlAstExpression> $columns */
             $columns = array();
@@ -261,6 +275,7 @@ final class SqlAstSelect implements SqlAstNode
                 $parent->replace($beginOffset, 1 + $offset - $beginOffset, new SqlAstSelect(
                     $parent,
                     $node,
+                    $distinct,
                     $columns,
                     $from,
                     $joins,
@@ -281,12 +296,18 @@ final class SqlAstSelect implements SqlAstNode
         $context = new ExecutionContext($schemas);
 
         if (is_object($this->from)) {
-            $context->includeTable($this->from->tableName());
+            $context->includeTable(
+                $this->from->tableName(),
+                $this->from->aliasName()
+            );
         }
 
         /** @var SqlAstJoin $join */
         foreach ($this->joins as $join) {
-            $context->includeTable($join->joinedTableName());
+            $context->includeTable(
+                $join->joinedTableName(),
+                $join->aliasName()
+            );
         }
 
         return $context;
@@ -349,13 +370,17 @@ final class SqlAstSelect implements SqlAstNode
     public function children(): array
     {
         return array_values(array_filter(array_merge(
+            [$this->selectToken, $this->distinctToken],
             $this->columns,
+            [$this->from],
+            $this->joins,
             [
-                $this->from,
                 $this->where,
+                $this->groupBy,
+                $this->having,
                 $this->orderBy,
-            ],
-            $this->joins
+                $this->union,
+            ]
         )));
     }
 
@@ -391,12 +416,16 @@ final class SqlAstSelect implements SqlAstNode
         /** @var string $sql */
         $sql = 'SELECT ';
 
+        if (is_object($this->distinctToken)) {
+            $sql .= $this->distinctToken->toSql() . ' ';
+        }
+
         /** @var array<string> $columnsSql */
         $columnsSql = array();
 
         /** @var SqlAstExpression $column */
         foreach ($this->columns as $alias => $column) {
-            $columnsSql[] = $column->toSql() . (is_string($alias) ? (' ' . $alias) : '');
+            $columnsSql[] = $column->toSql() . (is_string($alias) ? (' AS ' . $alias) : '');
         }
 
         $sql .= implode(', ', $columnsSql);
@@ -414,8 +443,28 @@ final class SqlAstSelect implements SqlAstNode
             $sql .= ' ' . $this->where->toSql();
         }
 
+        if (is_object($this->groupBy)) {
+            $sql .= ' ' . $this->groupBy->toSql();
+        }
+
+        if (is_object($this->having)) {
+            $sql .= ' ' . $this->having->toSql();
+        }
+
         if (is_object($this->orderBy)) {
             $sql .= ' ' . $this->orderBy->toSql();
+        }
+
+        if (!is_null($this->limit)) {
+            $sql .= ' LIMIT ' . $this->limit;
+
+            if (!is_null($this->offset)) {
+                $sql .= ', ' . $this->offset;
+            }
+        }
+
+        if (is_object($this->union)) {
+            $sql .= ' UNION ' . $this->union->toSql();
         }
 
         return $sql;

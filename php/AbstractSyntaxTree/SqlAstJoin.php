@@ -197,6 +197,11 @@ final class SqlAstJoin implements SqlAstNode
         return $this->innerOuterJoinType;
     }
 
+    public function isOuterJoin(): bool
+    {
+        return is_object($this->innerOuterJoinType) && $this->innerOuterJoinType->is(SqlToken::OUTER());
+    }
+
     public function leftRightJoinType(): ?SqlAstTokenNode
     {
         return $this->leftRightJoinType;
@@ -205,6 +210,11 @@ final class SqlAstJoin implements SqlAstNode
     public function alias(): ?SqlAstTokenNode
     {
         return $this->alias;
+    }
+
+    public function aliasName(): string
+    {
+        return SqlUtils::unquote($this->alias?->toSql() ?? $this->joinedTableName());
     }
 
     public function condition(): ?SqlAstExpression

@@ -12,7 +12,7 @@
 namespace Addiks\StoredSQL\Tests\Behaviour;
 
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstJoin;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstRoot;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstSelect;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstWhere;
 use Addiks\StoredSQL\Exception\UnlexableSqlException;
@@ -30,8 +30,8 @@ final class ParseSqlTest extends TestCase
         $parser = SqlParserClass::defaultParser();
 
         try {
-            /** @var array<SqlAstNode> $detectedContent */
-            $detectedContent = $parser->parseSql("
+            /** @var SqlAstRoot $root */
+            $root = $parser->parseSql("
                 SELECT u.name, u.email, f.name, f.size
                 FROM users u
                 LEFT JOIN files f ON(u.id = f.owner_id)
@@ -52,10 +52,10 @@ final class ParseSqlTest extends TestCase
             throw $exception;
         }
 
-        $this->assertEquals(1, count($detectedContent));
+        $this->assertEquals(1, count($root->children()));
 
         /** @var SqlAstSelect $select */
-        $select = $detectedContent[0];
+        $select = $root->children()[0];
 
         $this->assertTrue($select instanceof SqlAstSelect);
 
@@ -72,8 +72,8 @@ final class ParseSqlTest extends TestCase
         $parser = SqlParserClass::defaultParser();
 
         try {
-            /** @var array<SqlAstNode> $detectedContent */
-            $detectedContent = $parser->parseSql("
+            /** @var SqlAstRoot $root */
+            $root = $parser->parseSql("
                 LEFT JOIN files f ON(u.id = f.owner_id)
                 WHERE f.name LIKE '%.pdf'
                 AND f.type = 'symbolic'
@@ -91,8 +91,8 @@ final class ParseSqlTest extends TestCase
             throw $exception;
         }
 
-        $this->assertEquals(2, count($detectedContent));
-        $this->assertTrue($detectedContent[0] instanceof SqlAstJoin);
-        $this->assertTrue($detectedContent[1] instanceof SqlAstWhere);
+        $this->assertEquals(2, count($root->children()));
+        $this->assertTrue($root->children()[0] instanceof SqlAstJoin);
+        $this->assertTrue($root->children()[1] instanceof SqlAstWhere);
     }
 }

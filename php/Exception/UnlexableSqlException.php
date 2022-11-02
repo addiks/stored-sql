@@ -11,6 +11,7 @@
 
 namespace Addiks\StoredSQL\Exception;
 
+use Addiks\StoredSQL\Lexing\SqlTokenInstance;
 use Exception;
 
 final class UnlexableSqlException extends Exception
@@ -23,11 +24,16 @@ final class UnlexableSqlException extends Exception
 
     private int $sqlOffset;
 
-    public function __construct(string $sql, int $line, int $offset)
+    /** @var array<int, SqlTokenInstance>|null $tokens */
+    private ?array $tokens;
+
+    /** @param array<int, SqlTokenInstance>|null $tokens */
+    public function __construct(string $sql, int $line, int $offset, array $tokens = null)
     {
         $this->sql = $sql;
         $this->sqlLine = $line;
         $this->sqlOffset = $offset;
+        $this->tokens = $tokens;
 
         parent::__construct(sprintf(
             'There was an error while lexing the given SQL code at line %d, offset %d!',
@@ -38,7 +44,16 @@ final class UnlexableSqlException extends Exception
 
     public function __toString(): string
     {
-        return parent::__toString() . $this->asciiLocationDump();
+        /** @var string $string */
+        $string = parent::__toString() . $this->asciiLocationDump();
+
+        if (!empty($this->tokens)) {
+            $string .= "\nTokens so far: " . implode(', ', array_map(function (SqlTokenInstance $token): string {
+                return $token->token()->name() . '(' . $token->code() . ')';
+            }, $this->tokens));
+        }
+
+        return $string;
     }
 
     public function sql(): string

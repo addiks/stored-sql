@@ -66,6 +66,8 @@ namespace Addiks\StoredSQL\Lexing;
  */
 final class SqlToken extends AbstractSqlToken
 {
+    protected const PREPARED_ARGUMENT = null;
+
     protected const SPACE = null;
     protected const COMMENT = null;
     protected const DOT = null;

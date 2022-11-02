@@ -105,8 +105,8 @@ final class SqlParserClassTest extends TestCase
         $parser = SqlParserClass::defaultParser();
 
         try {
-            /** @var array<SqlAstNode> $detectedContent */
-            $detectedContent = $parser->parseSql($sql);
+            /** @var SqlAstRoot $root */
+            $root = $parser->parseSql($sql);
 
         } catch (UnparsableSqlException $exception) {
             echo $exception->asciiLocationDump();
@@ -115,10 +115,10 @@ final class SqlParserClassTest extends TestCase
         }
 
         /** @var string $actualDump */
-        $actualDump = $this->dumpNodes($detectedContent);
+        $actualDump = $this->dumpNodes($root->children());
 
         if ($expectedDump !== $actualDump) {
-            #file_put_contents('/tmp/ga_debug.ast', $this->dumpNodes($detectedContent, 0, false));
+            #file_put_contents('/tmp/ga_debug.ast', $this->dumpNodes($root->children(), 0, false));
         }
 
         $this->assertEquals($expectedDump, $actualDump);

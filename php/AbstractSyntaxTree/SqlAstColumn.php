@@ -11,6 +11,7 @@
 
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
+use Addiks\StoredSQL\Exception\UnparsableSqlException;
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Addiks\StoredSQL\SqlUtils;
 use Webmozart\Assert\Assert;
@@ -33,14 +34,19 @@ final class SqlAstColumn implements SqlAstExpression
         ?SqlAstTokenNode $table,
         ?SqlAstTokenNode $database
     ) {
-        Assert::true($column->is(SqlToken::SYMBOL()), 'Column-name must be symbol!');
+        /** @var int $offset */
+        $offset = (int) array_search($column, $parent->children(), true);
+
+        UnparsableSqlException::assertToken($parent, $offset, SqlToken::SYMBOL());
 
         if (is_object($table)) {
-            Assert::true($column->is(SqlToken::SYMBOL()), 'Table-name must be symbol!');
+            $offset = (int) array_search($table, $parent->children(), true);
+            UnparsableSqlException::assertToken($parent, $offset, SqlToken::SYMBOL());
         }
 
         if (is_object($database)) {
-            Assert::true($column->is(SqlToken::SYMBOL()), 'Schema-name must be symbol!');
+            $offset = (int) array_search($table, $database->children(), true);
+            UnparsableSqlException::assertToken($parent, $offset, SqlToken::SYMBOL());
         }
 
         $this->parent = $parent;

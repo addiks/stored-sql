@@ -97,7 +97,11 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
     private function readTables(Schema $schema): void
     {
         foreach ($this->query(self::SQL_READ_TABLES, [$schema->name()]) as [$tableName]) {
-            $schema->addTable(new TableClass($schema, $tableName));
+            $table = new TableClass($schema, $tableName);
+
+            $this->readColumns($table);
+
+            $schema->addTable($table);
         }
     }
 

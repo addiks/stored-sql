@@ -44,6 +44,7 @@ final class SqlAstLiteral implements SqlAstExpression
                 $token->is(SqlToken::LITERAL()),
                 $token->is(SqlToken::NUMERIC()),
                 $token->is(SqlToken::T_NULL()),
+                $token->is(SqlToken::PREPARED_ARGUMENT()),
             );
 
             if ($isSomeLiteralNode) {

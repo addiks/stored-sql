@@ -14,6 +14,7 @@ namespace Addiks\StoredSQL\Parsing;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstColumn;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstConjunction;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstFrom;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstFunctionCall;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstGroupBy;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstHaving;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstJoin;
@@ -76,6 +77,7 @@ final class SqlParserClass implements SqlParser
             Closure::fromCallable([SqlAstHaving::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstGroupBy::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstOrderBy::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstFunctionCall::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstParenthesis::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstFrom::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstJoin::class, 'mutateAstNode']),
@@ -88,7 +90,7 @@ final class SqlParserClass implements SqlParser
         string $sql,
         array $expectedResultTypes = array(),
         array $validationCallbacks = array()
-    ): array {
+    ): SqlAstRoot {
         /** @var SqlTokens $tokens */
         $tokens = $this->tokenizer->tokenize($sql);
 
@@ -108,12 +110,9 @@ final class SqlParserClass implements SqlParser
             }
         } while ($hashBefore !== $syntaxTree->hash());
 
-        /** @var array<SqlAstNode> $detectedContent */
-        $detectedContent = $syntaxTree->children();
-
         if (!empty($expectedResultTypes) || !empty($validationCallbacks)) {
             /** @var SqlAstNode $detectedNode */
-            foreach ($detectedContent as $detectedNode) {
+            foreach ($syntaxTree->children() as $detectedNode) {
                 if (!empty($validationCallbacks)) {
                     $detectedNode->walk($validationCallbacks);
                 }
@@ -135,7 +134,7 @@ final class SqlParserClass implements SqlParser
             }
         }
 
-        return $detectedContent;
+        return $syntaxTree;
     }
 
     public function tokenizer(): SqlTokenizer

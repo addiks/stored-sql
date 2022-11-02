@@ -14,6 +14,7 @@ namespace Addiks\StoredSQL\Tests\Unit\AbstractSyntaxTree;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstBranch;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstMutableNode;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstRoot;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Webmozart\Assert\Assert;
@@ -36,15 +37,28 @@ final class SqlAstBranchTest extends TestCase
     /** @var MockAstNode $childC */
     private SqlAstNode $childC;
 
+    private SqlAstRoot $root;
+
     public function setUp(): void
     {
         $this->childA = $this->createMock(SqlAstNode::class);
         $this->childB = $this->createMock(SqlAstMutableNode::class);
         $this->childC = $this->createMock(SqlAstNode::class);
+        $this->root = $this->createMock(SqlAstRoot::class);
 
         $this->subject = $this->getMockForAbstractClass(SqlAstBranch::class, [
             [$this->childA, $this->childB, $this->childC],
         ]);
+
+        $this->subject->method('parent')->willReturn($this->root);
+        $this->childA->method('parent')->willReturn($this->subject);
+        $this->childB->method('parent')->willReturn($this->subject);
+        $this->childC->method('parent')->willReturn($this->subject);
+
+        $this->subject->method('root')->willReturn($this->root);
+        $this->childB->method('root')->willReturn($this->root);
+        $this->childC->method('root')->willReturn($this->root);
+        $this->childC->method('root')->willReturn($this->root);
     }
 
     /**
@@ -84,10 +98,15 @@ final class SqlAstBranchTest extends TestCase
         $mutatorA = function (SqlAstNode $child, int $offset, SqlAstMutableNode $subject) use (&$mutatorAExpectedChilds): void {
             Assert::isArray($mutatorAExpectedChilds);
 
-            $this->assertSame($this->subject, $subject);
-            $this->assertNotEmpty($mutatorAExpectedChilds);
-            $this->assertEquals(3 - count($mutatorAExpectedChilds), $offset);
-            $this->assertSame(array_shift($mutatorAExpectedChilds), $child);
+            if ($child === $this->subject) {
+                $this->assertSame($this->root, $subject);
+
+            } else {
+                $this->assertSame($this->subject, $subject);
+                $this->assertNotEmpty($mutatorAExpectedChilds);
+                $this->assertEquals(3 - count($mutatorAExpectedChilds), $offset);
+                $this->assertSame(array_shift($mutatorAExpectedChilds), $child);
+            }
         };
 
         /** @var array<MockAstNode> $mutatorBExpectedChilds */
@@ -96,10 +115,15 @@ final class SqlAstBranchTest extends TestCase
         $mutatorB = function (SqlAstNode $child, int $offset, SqlAstMutableNode $subject) use (&$mutatorBExpectedChilds): void {
             Assert::isArray($mutatorBExpectedChilds);
 
-            $this->assertSame($this->subject, $subject);
-            $this->assertNotEmpty($mutatorBExpectedChilds);
-            $this->assertEquals(3 - count($mutatorBExpectedChilds), $offset);
-            $this->assertSame(array_shift($mutatorBExpectedChilds), $child);
+            if ($child === $this->subject) {
+                $this->assertSame($this->root, $subject);
+
+            } else {
+                $this->assertSame($this->subject, $subject);
+                $this->assertNotEmpty($mutatorBExpectedChilds);
+                $this->assertEquals(3 - count($mutatorBExpectedChilds), $offset);
+                $this->assertSame(array_shift($mutatorBExpectedChilds), $child);
+            }
         };
 
         /** @var array<SqlNodeWalker> $mutators */

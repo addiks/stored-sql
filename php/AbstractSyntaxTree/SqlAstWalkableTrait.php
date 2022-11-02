@@ -29,23 +29,27 @@ trait SqlAstWalkableTrait
             /** @psalm-suppress RedundantConditionGivenDocblockType */
             Assert::isCallable($callback);
 
+            /** @var SqlAstNode $parent */
+            $parent = $this->parent() ?? $this->root();
+
+            /** @var int $offset */
+            $offset = (int) array_search($this, $parent->children(), true);
+
+            $callback($this, $offset, $parent);
+
+            /** @var string $hashAfter */
+            $hashAfter = $this->hash();
+
+            Assert::same($hashBefore, $hashAfter, sprintf(
+                'Illegal mutation of SQL-AST-Node "%s" during walk operation! ("%s" != "%s")',
+                get_class($this),
+                $hashBefore,
+                $hashAfter
+            ));
+
             /** SqlAstNode $child */
-            foreach ($this->children() as $offset => $child) {
-                $callback($child, $offset, $this);
-
-                /** @var string $hashAfter */
-                $hashAfter = $this->hash();
-
-                Assert::same($hashBefore, $hashAfter, sprintf(
-                    'Illegal mutation of SQL-AST-Node "%s" during walk operation! ("%s" != "%s")',
-                    get_class($this),
-                    $hashBefore,
-                    $hashAfter
-                ));
-
-                if ($child instanceof SqlAstMutableNode) {
-                    $child->walk($callbacks);
-                }
+            foreach ($this->children() as $child) {
+                $child->walk($callbacks);
             }
         }
     }

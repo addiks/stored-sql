@@ -59,18 +59,31 @@ abstract class SqlAstBranch implements SqlAstMutableNode
                 /** @psalm-suppress RedundantConditionGivenDocblockType */
                 Assert::isCallable($callback);
 
-                /** SqlAstNode $child */
-                foreach ($this->children as $offset => $child) {
-                    $callback($child, $offset, $this);
+                /** @var list<SqlAstNode> $processedNodes */
+                $processedNodes = array();
 
-                    if ($hashBefore !== $this->hash()) {
-                        break;
-                    }
+                do {
+                    /** @var array<int, SqlAstNode> $nodesToProcess */
+                    $nodesToProcess = array_filter(
+                        $this->children,
+                        function (SqlAstNode $node) use ($processedNodes): bool {
+                            return !in_array($node, $processedNodes, true);
+                        }
+                    );
 
-                    if ($child instanceof SqlAstMutableNode) {
-                        $child->mutate($mutators);
+
+                    [$offset, $child] = [key($nodesToProcess), current($nodesToProcess)];
+
+                    if (is_int($offset) && is_object($child)) {
+                        $callback($child, $offset, $this);
+
+                        if ($child instanceof SqlAstMutableNode) {
+                            $child->mutate($mutators);
+                        }
+
+                        $processedNodes[] = $child;
                     }
-                }
+                } while (!empty($nodesToProcess));
             }
         } while ($hashBefore !== $this->hash());
     }

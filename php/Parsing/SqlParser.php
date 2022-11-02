@@ -12,6 +12,7 @@
 namespace Addiks\StoredSQL\Parsing;
 
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstNode;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstRoot;
 
 /** @psalm-import-type SqlNodeWalker from SqlAstNode */
 interface SqlParser
@@ -21,12 +22,10 @@ interface SqlParser
      *
      * @param array<class-string>  $expectedResultTypes
      * @param array<SqlNodeWalker> $validationCallbacks
-     *
-     * @return array<SqlAstNode>
      */
     public function parseSql(
         string $sql,
         array $expectedResultTypes = array(),
         array $validationCallbacks = array()
-    ): array;
+    ): SqlAstRoot;
 }
