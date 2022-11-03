@@ -23,10 +23,12 @@ namespace Addiks\StoredSQL\Lexing;
  * @method static self BRACKET_CLOSING()
  * @method static self COMMA()
  * @method static self SEMICOLON()
+ * @method static self STAR()
  * @method static self SELECT()
  * @method static self FROM()
  * @method static self LEFT()
  * @method static self RIGHT()
+ * @method static self FULL()
  * @method static self INNER()
  * @method static self OUTER()
  * @method static self JOIN()
@@ -80,12 +82,14 @@ final class SqlToken extends AbstractSqlToken
     protected const BRACKET_CLOSING = null;
     protected const COMMA = null;
     protected const SEMICOLON = null;
+    protected const STAR = null;
 
     protected const SELECT = null;
     protected const AS = null;
     protected const FROM = null;
     protected const LEFT = null;
     protected const RIGHT = null;
+    protected const FULL = null;
     protected const INNER = null;
     protected const OUTER = null;
     protected const JOIN = null;

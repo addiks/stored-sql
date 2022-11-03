@@ -90,12 +90,18 @@ final class SqlTokenizerClass implements SqlTokenizer
             ',' => SqlToken::COMMA(),
             ';' => SqlToken::SEMICOLON(),
 
+            '*' => SqlToken::STAR(),
+
             '<=' => SqlToken::OPERATOR(),
             '>=' => SqlToken::OPERATOR(),
             '!=' => SqlToken::OPERATOR(),
             '=' => SqlToken::OPERATOR(),
             '<' => SqlToken::OPERATOR(),
             '>' => SqlToken::OPERATOR(),
+
+            '+' => SqlToken::OPERATOR(),
+            '-' => SqlToken::OPERATOR(),
+            '/' => SqlToken::OPERATOR(),
 
             'SELECT' => SqlToken::SELECT(),
             'FROM' => SqlToken::FROM(),

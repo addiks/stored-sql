@@ -25,9 +25,9 @@ final class SqlAstJoin implements SqlAstNode
 
     private SqlAstTokenNode $tableName;
 
-    private ?SqlAstTokenNode $innerOuterJoinType;
+    private bool $isLeftOuterJoin;
 
-    private ?SqlAstTokenNode $leftRightJoinType;
+    private bool $isRightOuterJoin;
 
     private ?SqlAstTokenNode $alias;
 
@@ -39,16 +39,16 @@ final class SqlAstJoin implements SqlAstNode
         SqlAstNode $parent,
         SqlAstTokenNode $joinToken,
         SqlAstTokenNode $tableName,
-        ?SqlAstTokenNode $innerOuterJoinType,
-        ?SqlAstTokenNode $leftRightJoinType,
+        bool $isLeftOuterJoin,
+        bool $isRightOuterJoin,
         ?SqlAstTokenNode $alias,
         ?SqlAstTokenNode $onOrUsing,
         ?SqlAstExpression $condition
     ) {
         $this->parent = $parent;
         $this->joinToken = $joinToken;
-        $this->innerOuterJoinType = $innerOuterJoinType;
-        $this->leftRightJoinType = $leftRightJoinType;
+        $this->isLeftOuterJoin = $isLeftOuterJoin;
+        $this->isRightOuterJoin = $isRightOuterJoin;
         $this->tableName = $tableName;
         $this->alias = $alias;
         $this->onOrUsing = $onOrUsing;
@@ -61,32 +61,41 @@ final class SqlAstJoin implements SqlAstNode
         SqlAstMutableNode $parent
     ): void {
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::JOIN())) {
-            /** @var SqlAstTokenNode|null $innerOuterJoinType */
-            $innerOuterJoinType = null;
+            /** @var int $beginOffset */
+            $beginOffset = $offset;
 
-            /** @var SqlAstTokenNode|null $leftRightJoinType */
-            $leftRightJoinType = null;
+            /** @var bool $isLeftOuterJoin */
+            $isLeftOuterJoin = false;
 
-            if ($parent[$offset - 1] instanceof SqlAstTokenNode) {
-                /** @var SqlAstTokenNode $joinType */
-                $joinType = $parent[$offset - 1];
+            /** @var bool $isRightOuterJoin */
+            $isRightOuterJoin = false;
 
-                if ($joinType->is(SqlToken::LEFT()) || $joinType->is(SqlToken::RIGHT())) {
-                    $leftRightJoinType = $joinType;
+            /** @var SqlAstNode|null $joinType */
+            $joinType = $parent[$offset - 1];
 
-                } elseif ($joinType->is(SqlToken::INNER()) || $joinType->is(SqlToken::OUTER())) {
-                    $innerOuterJoinType = $joinType;
+            if ($joinType instanceof SqlAstTokenNode) {
+                if ($joinType->is(SqlToken::OUTER())) {
+                    /** @var SqlAstNode|null $joinType */
+                    $joinType = $parent[$offset - 2];
+                    $beginOffset--;
                 }
 
-                if ($parent[$offset - 2] instanceof SqlAstTokenNode) {
-                    /** @var SqlAstTokenNode $joinType */
-                    $joinType = $parent[$offset - 2];
+                if ($joinType instanceof SqlAstTokenNode) {
+                    if ($joinType->is(SqlToken::LEFT())) {
+                        $isLeftOuterJoin = true;
+                        $beginOffset--;
 
-                    if ($joinType->is(SqlToken::LEFT()) || $joinType->is(SqlToken::RIGHT())) {
-                        $leftRightJoinType = $joinType;
+                    } elseif ($joinType->is(SqlToken::RIGHT())) {
+                        $isRightOuterJoin = true;
+                        $beginOffset--;
 
-                    } elseif ($joinType->is(SqlToken::INNER()) || $joinType->is(SqlToken::OUTER())) {
-                        $innerOuterJoinType = $joinType;
+                    } elseif ($joinType->is(SqlToken::FULL())) {
+                        $isLeftOuterJoin = true;
+                        $isRightOuterJoin = true;
+                        $beginOffset--;
+
+                    } elseif ($joinType->is(SqlToken::INNER())) {
+                        $beginOffset--;
                     }
                 }
             }
@@ -99,17 +108,6 @@ final class SqlAstJoin implements SqlAstNode
 
             if (!($alias instanceof SqlAstTokenNode && $alias->is(SqlToken::SYMBOL()))) {
                 $alias = null;
-            }
-
-            /** @var int $beginOffset */
-            $beginOffset = $offset;
-
-            if (is_object($innerOuterJoinType)) {
-                $beginOffset--;
-            }
-
-            if (is_object($leftRightJoinType)) {
-                $beginOffset--;
             }
 
             /** @var int $endOffset */
@@ -134,8 +132,8 @@ final class SqlAstJoin implements SqlAstNode
                 $parent,
                 $node,
                 $tableName,
-                $innerOuterJoinType,
-                $leftRightJoinType,
+                $isLeftOuterJoin,
+                $isRightOuterJoin,
                 $alias,
                 $onOrUsing,
                 $condition
@@ -146,8 +144,6 @@ final class SqlAstJoin implements SqlAstNode
     public function children(): array
     {
         return array_filter([
-            $this->innerOuterJoinType,
-            $this->leftRightJoinType,
             $this->tableName,
             $this->alias,
             $this->onOrUsing,
@@ -192,19 +188,29 @@ final class SqlAstJoin implements SqlAstNode
         return SqlUtils::unquote($this->tableName->toSql());
     }
 
-    public function innerOuterJoinType(): ?SqlAstTokenNode
+    public function isLeftOuterJoin(): bool
     {
-        return $this->innerOuterJoinType;
+        return $this->isLeftOuterJoin;
+    }
+
+    public function isRightOuterJoin(): bool
+    {
+        return $this->isRightOuterJoin;
+    }
+
+    public function isFullOuterJoin(): bool
+    {
+        return $this->isLeftOuterJoin && $this->isRightOuterJoin;
+    }
+
+    public function isInnerJoin(): bool
+    {
+        return !$this->isLeftOuterJoin && !$this->isRightOuterJoin;
     }
 
     public function isOuterJoin(): bool
     {
-        return is_object($this->innerOuterJoinType) && $this->innerOuterJoinType->is(SqlToken::OUTER());
-    }
-
-    public function leftRightJoinType(): ?SqlAstTokenNode
-    {
-        return $this->leftRightJoinType;
+        return $this->isLeftOuterJoin || $this->isRightOuterJoin;
     }
 
     public function alias(): ?SqlAstTokenNode
@@ -236,12 +242,14 @@ final class SqlAstJoin implements SqlAstNode
         /** @var string $sql */
         $sql = 'JOIN ' . $this->tableName->toSql();
 
-        if (is_object($this->innerOuterJoinType)) {
-            $sql = $this->innerOuterJoinType->toSql() . ' ' . $sql;
-        }
+        if ($this->isFullOuterJoin()) {
+            $sql = 'FULL ' . $sql;
 
-        if (is_object($this->leftRightJoinType)) {
-            $sql = $this->leftRightJoinType->toSql() . ' ' . $sql;
+        } elseif ($this->isLeftOuterJoin()) {
+            $sql = 'LEFT ' . $sql;
+
+        } elseif ($this->isRightOuterJoin()) {
+            $sql = 'RIGHT ' . $sql;
         }
 
         if (is_object($this->alias)) {
