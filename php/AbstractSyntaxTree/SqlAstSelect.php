@@ -365,6 +365,16 @@ final class SqlAstSelect implements SqlAstNode
         return $this->where;
     }
 
+    public function groupBy(): ?SqlAstGroupBy
+    {
+        return $this->groupBy;
+    }
+
+    public function replaceGroupBy(?SqlAstGroupBy $groupBy): void
+    {
+        $this->groupBy = $groupBy;
+    }
+
     public function orderBy(): ?SqlAstOrderBy
     {
         return $this->orderBy;

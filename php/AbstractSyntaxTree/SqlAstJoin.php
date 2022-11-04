@@ -11,7 +11,10 @@
 
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
+use Addiks\StoredSQL\ExecutionContext;
 use Addiks\StoredSQL\Lexing\SqlToken;
+use Addiks\StoredSQL\Schema\Column;
+use Addiks\StoredSQL\Schema\Table;
 use Addiks\StoredSQL\SqlUtils;
 use Webmozart\Assert\Assert;
 
@@ -223,6 +226,11 @@ final class SqlAstJoin implements SqlAstNode
         return SqlUtils::unquote($this->alias?->toSql() ?? $this->joinedTableName());
     }
 
+    public function schemaName(): ?string
+    {
+        return null; # TODO: add support for JOIN from other schema
+    }
+
     public function condition(): ?SqlAstExpression
     {
         return $this->condition;
@@ -266,5 +274,142 @@ final class SqlAstJoin implements SqlAstNode
     public function canBeExecutedAsIs(): bool
     {
         return false;
+    }
+
+    private function canChangeResultSetSize(ExecutionContext $context): bool
+    {
+        /** @var SqlAstExpression|null $condition */
+        $condition = $this->condition();
+
+        if ($this->isUsingColumnCondition()) {
+            # "... JOIN foo USING(bar_id)"
+
+            if ($condition instanceof SqlAstColumn) {
+                return $this->canUsingJoinChangeResultSetSize($context);
+            }
+
+        } elseif (is_object($condition)) {
+            # "... JOIN foo ON(foo.id = bar.foo_id)"
+
+            return $this->canOnJoinChangeResultSetSize($context);
+        }
+
+        return true;
+    }
+
+    private function canUsingJoinChangeResultSetSize(ExecutionContext $context): bool
+    {
+        /** @var SqlAstExpression|null $column */
+        $column = $this->condition();
+
+        Assert::isInstanceOf($column, SqlAstColumn::class);
+
+        /** @var string $columnName */
+        $columnName = $column->columnNameString();
+
+        /** @var Table|null $joiningTable */
+        $joiningTable = $context->findTableWithColumn($columnName);
+
+        if (is_null($joiningTable)) {
+            return true;
+        }
+
+        return !$context->isOneToOneRelation(
+            $joiningTable->name(),
+            $columnName,
+            $this->joinedTableName(),
+            $columnName
+        );
+    }
+
+    private function canOnJoinChangeResultSetSize(ExecutionContext $context): bool
+    {
+        /** @var SqlAstExpression|null $condition */
+        $condition = $this->condition();
+
+        if (is_null($condition)) {
+            return true;
+        }
+
+        /** @var array<SqlAstOperation> $equations */
+        $equations = $condition->extractFundamentalEquations();
+
+        /** @var array<SqlAstOperation> $alwaysFalseEquations */
+        $alwaysFalseEquations = array_filter($equations, function (SqlAstOperation $equation): bool {
+            return $equation->isAlwaysFalse();
+        });
+
+        if (!empty($alwaysFalseEquations)) {
+            return true;
+        }
+
+        $equations = array_filter($equations, function (SqlAstOperation $equation): bool {
+            return !$equation->isAlwaysTrue();
+        });
+
+        /** @var string $joinAlias */
+        $joinAlias = $this->aliasName();
+
+        foreach ($equations as $equation) {
+            /** @var SqlAstExpression $leftSide */
+            $leftSide = $equation->leftSide();
+
+            /** @var SqlAstExpression $rightSide */
+            $rightSide = $equation->rightSide();
+
+            if ($leftSide instanceof SqlAstColumn && $leftSide->tableNameString() === $joinAlias) {
+                /** @var SqlAstExpression $joiningSide */
+                $joiningSide = $rightSide;
+
+                /** @var SqlAstExpression $joinedSide */
+                $joinedSide = $leftSide;
+
+            } elseif ($rightSide instanceof SqlAstColumn && $rightSide->tableNameString() === $joinAlias) {
+                /** @var SqlAstExpression $joiningSide */
+                $joiningSide = $leftSide;
+
+                /** @var SqlAstExpression $joinedSide */
+                $joinedSide = $rightSide;
+
+            } else {
+                # Unknown condition, let's assume that this JOIN can change result size to be safe.
+                return true;
+            }
+
+            if ($joinedSide instanceof SqlAstColumn && $joiningSide instanceof SqlAstColumn) {
+                /** @var Column|null $joinedColumn */
+                $joinedColumn = $context->columnByNode($joinedSide);
+
+                /** @var Column|null $joiningColumn */
+                $joiningColumn = $context->columnByNode($joiningSide);
+
+                if (is_object($joinedColumn) && is_object($joiningColumn)) {
+                    foreach ([
+                        [$this->isRightOuterJoin(), $joiningColumn],
+                        [$this->isLeftOuterJoin(), $joinedColumn],
+                    ] as [$isOuterJoin, $column]) {
+                        if ($isOuterJoin) {
+                            if ($column->nullable() || !$column->unique()) {
+                                return true;
+                            }
+
+                        } else {
+                            if (!$column->unique()) {
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
+                }
+
+            } else {
+                # Either a literal (which will change result size), or an unknown condition (which might change it).
+                return true;
+            }
+        }
+
+        # All equations are either always true or always false. Either way, this JOIN changes the result size.
+        return true;
     }
 }
