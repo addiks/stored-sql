@@ -60,6 +60,14 @@ final class SqlTokenizerClass implements SqlTokenizer
                 throw new UnlexableSqlException($originalSql, $line, $offset, $tokens);
             }
 
+            if ($token === SqlToken::OPERATOR() && $tokenSql === '*' && !empty($tokens)) {
+                if (!in_array(end($tokens)->token(), [SqlToken::SYMBOL(), SqlToken::NUMERIC()], true)) {
+                    # This is not a multiplication ("SELECT 3 * 3 as nine"),
+                    # this is a all-columns-selector ("SELECT foo.* FROM foo JOIN bar")
+                    $token = SqlToken::STAR();
+                }
+            }
+
             $tokens[] = new SqlTokenInstanceClass($tokenSql, $token, $line, $offset);
 
             $sql = substr($sql, strlen($tokenSql));
@@ -90,8 +98,6 @@ final class SqlTokenizerClass implements SqlTokenizer
             ',' => SqlToken::COMMA(),
             ';' => SqlToken::SEMICOLON(),
 
-            '*' => SqlToken::STAR(),
-
             '<=' => SqlToken::OPERATOR(),
             '>=' => SqlToken::OPERATOR(),
             '!=' => SqlToken::OPERATOR(),
@@ -102,6 +108,7 @@ final class SqlTokenizerClass implements SqlTokenizer
             '+' => SqlToken::OPERATOR(),
             '-' => SqlToken::OPERATOR(),
             '/' => SqlToken::OPERATOR(),
+            '*' => SqlToken::OPERATOR(),
 
             'SELECT' => SqlToken::SELECT(),
             'FROM' => SqlToken::FROM(),

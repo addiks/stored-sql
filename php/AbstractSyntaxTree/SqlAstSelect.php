@@ -27,7 +27,7 @@ final class SqlAstSelect implements SqlAstNode
 
     private ?SqlAstTokenNode $distinctToken;
 
-    /** @var array<string|int, SqlAstExpression> */
+    /** @var array<string|int, SqlAstExpression|SqlAstAllColumnsSelector> */
     private array $columns;
 
     private ?SqlAstFrom $from;
@@ -80,9 +80,9 @@ final class SqlAstSelect implements SqlAstNode
         $this->offset = $offset;
         $this->union = $union;
 
-        /** @var SqlAstExpression $column */
+        /** @var SqlAstExpression|SqlAstAllColumnsSelector $column */
         foreach ($columns as $alias => $column) {
-            Assert::isInstanceOf($column, SqlAstExpression::class);
+            Assert::isInstanceOfAny($column, [SqlAstExpression::class, SqlAstAllColumnsSelector::class]);
 
             $this->columns[$alias] = $column;
         }
@@ -113,7 +113,7 @@ final class SqlAstSelect implements SqlAstNode
                 $distinct = null;
             }
 
-            /** @var array<string|int, SqlAstExpression> $columns */
+            /** @var array<string|int, SqlAstExpression|SqlAstAllColumnsSelector> $columns */
             $columns = array();
 
             do {
@@ -123,9 +123,12 @@ final class SqlAstSelect implements SqlAstNode
                     $parent->replaceNode($parent[$offset], new SqlAstColumn($parent, $parent[$offset], null, null));
                 }
 
-                UnparsableSqlException::assertType($parent, $offset, SqlAstExpression::class);
+                UnparsableSqlException::assertTypes($parent, $offset, [
+                    SqlAstExpression::class,
+                    SqlAstAllColumnsSelector::class,
+                ]);
 
-                /** @var SqlAstExpression $column */
+                /** @var SqlAstExpression|SqlAstAllColumnsSelector $column */
                 $column = $parent[$offset];
 
                 /** @var string|null $alias */
@@ -318,7 +321,7 @@ final class SqlAstSelect implements SqlAstNode
         return $this->selectToken;
     }
 
-    /** @return array<string|int, SqlAstExpression> */
+    /** @return array<string|int, SqlAstExpression|SqlAstAllColumnsSelector> */
     public function columns(): array
     {
         return $this->columns;
@@ -423,9 +426,14 @@ final class SqlAstSelect implements SqlAstNode
         /** @var array<string> $columnsSql */
         $columnsSql = array();
 
-        /** @var SqlAstExpression $column */
+        /** @var SqlAstExpression|SqlAstAllColumnsSelector $column */
         foreach ($this->columns as $alias => $column) {
-            $columnsSql[] = $column->toSql() . (is_string($alias) ? (' AS ' . $alias) : '');
+            if ($column instanceof SqlAstExpression) {
+                $columnsSql[] = $column->toSql() . (is_string($alias) ? (' AS ' . $alias) : '');
+
+            } else {
+                $columnsSql[] = $column->toSql();
+            }
         }
 
         $sql .= implode(', ', $columnsSql);

@@ -94,6 +94,35 @@ final class UnparsableSqlException extends Exception
         }
     }
 
+    /** @param array<class-string> $expectedClassNames */
+    public static function assertTypes(SqlAstNode $parent, int $offset, array $expectedClassNames): void
+    {
+        /** @var bool $isOfExpectedType */
+        $isOfExpectedType = false;
+
+        /** @var SqlAstNode|null $actualNode */
+        $actualNode = $parent->children()[$offset] ?? null;
+
+        /** @var class-string $expectedClassName */
+        foreach ($expectedClassNames as $expectedClassName) {
+            Assert::true($expectedClassName === SqlAstNode::class
+             || is_subclass_of($expectedClassName, SqlAstNode::class));
+
+            if ($actualNode instanceof $expectedClassName) {
+                $isOfExpectedType = true;
+            }
+        }
+
+        if (!$isOfExpectedType) {
+            throw new UnparsableSqlException(sprintf(
+                "Expected node of '%s' at offset %d, found %s instead!",
+                implode("' or '", $expectedClassNames),
+                $offset,
+                is_object($actualNode) ? get_class($actualNode) : 'nothing'
+            ), $actualNode ?? $parent);
+        }
+    }
+
     public function node(): SqlAstNode
     {
         return $this->node;

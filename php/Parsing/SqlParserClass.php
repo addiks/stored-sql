@@ -11,6 +11,7 @@
 
 namespace Addiks\StoredSQL\Parsing;
 
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstAllColumnsSelector;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstColumn;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstConjunction;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstFrom;
@@ -71,6 +72,7 @@ final class SqlParserClass implements SqlParser
         return array(
             Closure::fromCallable([SqlAstLiteral::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstColumn::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstAllColumnsSelector::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstOperation::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstConjunction::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstWhere::class, 'mutateAstNode']),
