@@ -276,7 +276,7 @@ final class SqlAstJoin implements SqlAstNode
         return false;
     }
 
-    private function canChangeResultSetSize(ExecutionContext $context): bool
+    public function canChangeResultSetSize(ExecutionContext $context): bool
     {
         /** @var SqlAstExpression|null $condition */
         $condition = $this->condition();
