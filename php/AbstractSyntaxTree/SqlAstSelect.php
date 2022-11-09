@@ -274,28 +274,23 @@ final class SqlAstSelect implements SqlAstNode
                 $semicolon = null;
             }
             
-            if (!is_null($semicolon)) {
-                throw new UnparsableSqlException(sprintf(
-                    'Unparsed contents (%s) after SELECT statement!',
-                    $semicolon instanceof SqlAstTokenNode ?$semicolon->token()->token()->name() :get_class($semicolon)
-                ), $semicolon);
+            if (is_null($semicolon)) {
+                $parent->replace($beginOffset, 1 + $offset - $beginOffset, new SqlAstSelect(
+                    $parent,
+                    $node,
+                    $distinct,
+                    $columns,
+                    $from,
+                    $joins,
+                    $where,
+                    $groupBy,
+                    $having,
+                    $orderBy,
+                    $limit,
+                    $limitOffset,
+                    $union
+                ));
             }
-
-            $parent->replace($beginOffset, 1 + $offset - $beginOffset, new SqlAstSelect(
-                $parent,
-                $node,
-                $distinct,
-                $columns,
-                $from,
-                $joins,
-                $where,
-                $groupBy,
-                $having,
-                $orderBy,
-                $limit,
-                $limitOffset,
-                $union
-            ));
         }
     }
 

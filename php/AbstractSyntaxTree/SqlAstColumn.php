@@ -76,6 +76,10 @@ final class SqlAstColumn implements SqlAstExpression
             return;
         }
         
+        if ($previousNode instanceof SqlAstTable) {
+            return;
+        }
+
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::SYMBOL())) {
             /** @var int $length */
             $length = 1;
