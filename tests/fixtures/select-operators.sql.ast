@@ -18,7 +18,7 @@ SqlAstSelect
 --SqlAstTokenNode
 --SqlAstColumn
 ---SqlAstTokenNode
--SqlAstOperation
+-SqlAstInOperation
 --SqlAstColumn
 ---SqlAstTokenNode
 --SqlAstTokenNode

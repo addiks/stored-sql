@@ -17,6 +17,8 @@ use Addiks\StoredSQL\Schema\Column;
 use Addiks\StoredSQL\Schema\Table;
 use Addiks\StoredSQL\SqlUtils;
 use Webmozart\Assert\Assert;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstTable;
+use Addiks\StoredSQL\Exception\UnparsableSqlException;
 
 final class SqlAstJoin implements SqlAstNode
 {
@@ -26,7 +28,7 @@ final class SqlAstJoin implements SqlAstNode
 
     private SqlAstTokenNode $joinToken;
 
-    private SqlAstTokenNode $tableName;
+    private SqlAstTable $tableName;
 
     private bool $isLeftOuterJoin;
 
@@ -41,7 +43,7 @@ final class SqlAstJoin implements SqlAstNode
     public function __construct(
         SqlAstNode $parent,
         SqlAstTokenNode $joinToken,
-        SqlAstTokenNode $tableName,
+        SqlAstTable $tableName,
         bool $isLeftOuterJoin,
         bool $isRightOuterJoin,
         ?SqlAstTokenNode $alias,
@@ -103,8 +105,25 @@ final class SqlAstJoin implements SqlAstNode
                 }
             }
 
-            /** @var SqlAstTokenNode $tableName */
+            /** @var SqlAstTokenNode|null $tableName */
             $tableName = $parent[$offset + 1];
+            
+            if ($tableName instanceof SqlAstTokenNode && $tableName->is(SqlToken::SYMBOL())) {
+                SqlAstColumn::mutateAstNode($tableName, $offset + 1, $parent);
+                $tableName = $parent[$offset + 1];
+            }
+
+            if ($tableName instanceof SqlAstColumn) {
+                $tableName = $tableName->convertToTable();
+            }
+            
+            if ($tableName instanceof SqlAstTokenNode && $tableName->is(SqlToken::SYMBOL())) {
+                $parent->replaceNode($tableName, new SqlAstTable($parent, $tableName, null));
+                $tableName = $parent[$offset + 1];
+            }
+
+            UnparsableSqlException::assertType($parent, $offset + 1, SqlAstTable::class);
+            Assert::isInstanceOf($tableName, SqlAstTable::class);
 
             /** @var SqlAstNode|null $alias */
             $alias = $parent[$offset + 2];
@@ -127,8 +146,13 @@ final class SqlAstJoin implements SqlAstNode
                     $condition = $parent[$endOffset + 2];
                     $endOffset += 2;
 
-                    Assert::isInstanceOf($condition, SqlAstExpression::class);
+                    if (!$condition instanceof SqlAstExpression) {
+                        return;
+                    }
                 }
+                
+            } else {
+                $onOrUsing = null;
             }
 
             $parent->replace($beginOffset, 1 + $endOffset - $beginOffset, new SqlAstJoin(
@@ -181,14 +205,14 @@ final class SqlAstJoin implements SqlAstNode
         return $this->joinToken->column();
     }
 
-    public function joinedTable(): SqlAstTokenNode
+    public function joinedTable(): SqlAstTable
     {
         return $this->tableName;
     }
 
     public function joinedTableName(): string
     {
-        return SqlUtils::unquote($this->tableName->toSql());
+        return $this->tableName->tableName();
     }
 
     public function isLeftOuterJoin(): bool

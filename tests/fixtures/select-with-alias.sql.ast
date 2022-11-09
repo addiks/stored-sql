@@ -3,4 +3,5 @@ SqlAstSelect
 -SqlAstColumn
 --SqlAstTokenNode
 -SqlAstFrom
---SqlAstTokenNode
+--SqlAstTable
+---SqlAstTokenNode

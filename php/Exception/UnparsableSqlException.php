@@ -56,7 +56,7 @@ final class UnparsableSqlException extends Exception
                 "Expected SQL code '%s' at offset %d, found %s instead!",
                 $expectedSql,
                 $offset,
-                is_object($actualNode) ? get_class($actualNode) : 'nothing'
+                $this->describeNode($actualNode)
             ), $actualNode ?? $parent);
         }
     }
@@ -71,7 +71,7 @@ final class UnparsableSqlException extends Exception
                 "Expected token '%s' at offset %d, found %s instead!",
                 $expectedToken->name(),
                 $offset,
-                is_object($actualNode) ? get_class($actualNode) : 'nothing'
+                $this->describeNode($actualNode)
             ), $actualNode ?? $parent);
         }
     }
@@ -89,7 +89,7 @@ final class UnparsableSqlException extends Exception
                 "Expected node of '%s' at offset %d, found %s instead!",
                 $expectedClassName,
                 $offset,
-                is_object($actualNode) ? get_class($actualNode) : 'nothing'
+                $this->describeNode($actualNode)
             ), $actualNode ?? $parent);
         }
     }
@@ -141,5 +141,14 @@ final class UnparsableSqlException extends Exception
     public function sqlOffset(): int
     {
         return $this->sqlOffset;
+    }
+    
+    private function describeNode(object|null $node): string
+    {
+        return is_object($node) 
+            ? ($node instanceof SqlAstTokenNode 
+                ? $node->token()->token()->name() 
+                : get_class($node)) 
+            : 'nothing';
     }
 }

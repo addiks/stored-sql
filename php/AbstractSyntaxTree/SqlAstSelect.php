@@ -273,24 +273,29 @@ final class SqlAstSelect implements SqlAstNode
             if ($semicolon instanceof SqlAstTokenNode && $semicolon->is(SqlToken::SEMICOLON())) {
                 $semicolon = null;
             }
-
-            if ($semicolon === null) {
-                $parent->replace($beginOffset, 1 + $offset - $beginOffset, new SqlAstSelect(
-                    $parent,
-                    $node,
-                    $distinct,
-                    $columns,
-                    $from,
-                    $joins,
-                    $where,
-                    $groupBy,
-                    $having,
-                    $orderBy,
-                    $limit,
-                    $limitOffset,
-                    $union
-                ));
+            
+            if (!is_null($semicolon)) {
+                throw new UnparsableSqlException(sprintf(
+                    'Unparsed contents (%s) after SELECT statement!',
+                    $semicolon instanceof SqlAstTokenNode ?$semicolon->token()->token()->name() :get_class($semicolon)
+                ), $semicolon);
             }
+
+            $parent->replace($beginOffset, 1 + $offset - $beginOffset, new SqlAstSelect(
+                $parent,
+                $node,
+                $distinct,
+                $columns,
+                $from,
+                $joins,
+                $where,
+                $groupBy,
+                $having,
+                $orderBy,
+                $limit,
+                $limitOffset,
+                $union
+            ));
         }
     }
 

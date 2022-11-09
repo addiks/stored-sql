@@ -13,6 +13,8 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstColumn;
+use Addiks\StoredSQL\Exception\UnparsableSqlException;
 
 final class SqlAstOrderBy implements SqlAstNode
 {
@@ -22,10 +24,10 @@ final class SqlAstOrderBy implements SqlAstNode
 
     private SqlAstTokenNode $orderToken;
 
-    /** @var array<array{0:SqlAstExpression, 1:SqlAstTokenNode}> */
+    /** @var array<array{0:SqlAstExpression, 1:SqlAstTokenNode|null}> */
     private array $columns;
 
-    /** @param array<array{0:SqlAstExpression, 1:SqlAstTokenNode}> $columns */
+    /** @param array<array{0:SqlAstExpression, 1:SqlAstTokenNode|null}> $columns */
     public function __construct(
         SqlAstNode $parent,
         SqlAstTokenNode $orderToken,
@@ -38,9 +40,11 @@ final class SqlAstOrderBy implements SqlAstNode
         foreach ($columns as [$expression, $direction]) {
             Assert::isInstanceOf($expression, SqlAstExpression::class);
 
-            /** @psalm-suppress RedundantConditionGivenDocblockType */
-            Assert::isInstanceOf($direction, SqlAstTokenNode::class);
-            Assert::oneOf($direction->token()->token(), [SqlToken::ASC(), SqlToken::DESC()]);
+            if (!is_null($direction)) {
+                /** @psalm-suppress RedundantConditionGivenDocblockType */
+                Assert::isInstanceOf($direction, SqlAstTokenNode::class);
+                Assert::oneOf($direction->token()->token(), [SqlToken::ASC(), SqlToken::DESC()]);
+            }
 
             $this->columns[] = [$expression, $direction];
         }
@@ -67,20 +71,34 @@ final class SqlAstOrderBy implements SqlAstNode
             do {
                 /** @var SqlAstExpression $expression */
                 $expression = $parent[$offset];
-
+                if ($expression instanceof SqlAstTokenNode && $expression->is(SqlToken::SYMBOL())) {
+                    SqlAstColumn::mutateAstNode($expression, $offset, $parent);
+                    
+                    $expression = $parent[$offset];
+                }
+                
+                UnparsableSqlException::assertType($parent, $offset, SqlAstExpression::class);
                 Assert::isInstanceOf($expression, SqlAstExpression::class);
 
                 $direction = $parent[$offset + 1];
 
-                Assert::isInstanceOf($direction, SqlAstTokenNode::class);
-                Assert::oneOf($direction->token()->token(), [SqlToken::ASC(), SqlToken::DESC()]);
+                if ($direction instanceof SqlAstTokenNode) {
+                    if (in_array($direction->token()->token(), [SqlToken::ASC(), SqlToken::DESC()], true)) {
+                        $offset++;
+
+                    } else {
+                        $direction = null;
+                    }
+                    
+                } else {
+                    $direction = null;
+                }
 
                 $columns[] = [$expression, $direction];
 
                 /** @var SqlAstNode|null $comma */
-                $comma = $parent[$offset + 2];
-
-                $offset += 3;
+                $comma = $parent[$offset + 1];
+                $offset += 2;
             } while ($comma instanceof SqlAstTokenNode && $comma->isCode(','));
 
             $parent->replace(
@@ -97,12 +115,15 @@ final class SqlAstOrderBy implements SqlAstNode
         $children = array();
 
         /**
-         * @var SqlAstExpression $expression
-         * @var SqlAstTokenNode  $direction
+         * @var SqlAstExpression     $expression
+         * @var SqlAstTokenNode|null $direction
          */
         foreach ($this->columns as [$expression, $direction]) {
             $children[] = $expression;
-            $children[] = $direction;
+            
+            if (is_object($direction)) {
+                $children[] = $direction;
+            }
         }
 
         return $children;
@@ -144,11 +165,11 @@ final class SqlAstOrderBy implements SqlAstNode
         $columns = array();
 
         /**
-         * @var SqlAstExpression $expression
-         * @var SqlAstTokenNode  $direction
+         * @var SqlAstExpression     $expression
+         * @var SqlAstTokenNode|null $direction
          */
         foreach ($this->columns as [$expression, $direction]) {
-            $columns[] = ' ' . $expression->toSql() . ' ' . $direction->toSql();
+            $columns[] = ' ' . trim($expression->toSql() . ' ' . (string)$direction?->toSql());
         }
 
         return 'ORDER BY' . implode(',', $columns);

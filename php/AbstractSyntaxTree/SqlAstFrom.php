@@ -14,6 +14,8 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Addiks\StoredSQL\SqlUtils;
 use Webmozart\Assert\Assert;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstColumn;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstTable;
 
 final class SqlAstFrom implements SqlAstNode
 {
@@ -23,14 +25,14 @@ final class SqlAstFrom implements SqlAstNode
 
     private SqlAstTokenNode $fromToken;
 
-    private SqlAstTokenNode $tableName;
+    private SqlAstTable $tableName;
 
     private ?SqlAstTokenNode $alias;
 
     public function __construct(
         SqlAstNode $parent,
         SqlAstTokenNode $fromToken,
-        SqlAstTokenNode $tableName,
+        SqlAstTable $tableName,
         ?SqlAstTokenNode $alias
     ) {
         $this->parent = $parent;
@@ -46,9 +48,17 @@ final class SqlAstFrom implements SqlAstNode
     ): void {
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::FROM())) {
             $tableName = $parent[$offset + 1];
-
-            Assert::isInstanceOf($tableName, SqlAstTokenNode::class);
-            Assert::true($tableName->is(SqlToken::SYMBOL()));
+            
+            if ($tableName instanceof SqlAstColumn) {
+                $tableName = $tableName->convertToTable();
+            }
+            
+            if (!$tableName instanceof SqlAstTable) {
+                Assert::isInstanceOf($tableName, SqlAstTokenNode::class);
+                Assert::true($tableName->is(SqlToken::SYMBOL()));
+                
+                $tableName = new SqlAstTable($parent, $tableName, null);
+            }
 
             /** @var SqlAstNode|null $alias */
             $alias = $parent[$offset + 2];
@@ -98,7 +108,7 @@ final class SqlAstFrom implements SqlAstNode
 
     public function tableName(): string
     {
-        return SqlUtils::unquote($this->tableName->toSql());
+        return $this->tableName->tableName();
     }
 
     public function aliasName(): string

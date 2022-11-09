@@ -13,6 +13,7 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstParenthesis;
 
 final class SqlAstFunctionCall implements SqlAstExpression
 {
@@ -22,25 +23,31 @@ final class SqlAstFunctionCall implements SqlAstExpression
 
     private SqlAstTokenNode $functionNode;
 
-    private ?SqlAstTokenNode $distinct;
-
     /** @var array<int, SqlAstExpression> */
     private array $expressions = array();
+
+    /** @var array<int, SqlAstTokenNode> */
+    private array $flags = array();
 
     public function __construct(
         SqlAstNode $parent,
         SqlAstTokenNode $functionNode,
-        ?SqlAstTokenNode $distinct,
-        array $expressions
+        array $expressions,
+        array $flags
     ) {
         $this->parent = $parent;
         $this->functionNode = $functionNode;
-        $this->distinct = $distinct;
 
         foreach ($expressions as $expression) {
             Assert::isInstanceOf($expression, SqlAstExpression::class);
 
             $this->expressions[] = $expression;
+        }
+
+        foreach ($flags as $flag) {
+            Assert::isInstanceOf($flag, SqlAstTokenNode::class);
+
+            $this->flags[] = $flag;
         }
     }
 
@@ -52,12 +59,24 @@ final class SqlAstFunctionCall implements SqlAstExpression
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::SYMBOL())) {
             /** @var SqlAstNode|null $bracketOpening */
             $bracketOpening = $parent[$offset + 1];
-
-            if ($bracketOpening instanceof SqlAstTokenNode && $bracketOpening->is(SqlToken::BRACKET_OPENING())) {
+            
+            if ($bracketOpening instanceof SqlAstParenthesis) {
+                $parent->replace(
+                    $offset,
+                    2,
+                    new SqlAstFunctionCall(
+                        $parent,
+                        $node,
+                        $bracketOpening->expressions(),
+                        $bracketOpening->flags()
+                    )
+                );
+                
+            } elseif ($bracketOpening instanceof SqlAstTokenNode && $bracketOpening->is(SqlToken::BRACKET_OPENING())) {
                 /** @var int $currentOffset */
                 $currentOffset = $offset + 1;
 
-                /** @var SqlAstNode|null $distinct */
+                /** @var SqlAstTokenNode|null $distinct */
                 $distinct = $parent[$currentOffset + 1];
 
                 if ($distinct instanceof SqlAstTokenNode && $distinct->is(SqlToken::DISTINCT())) {
@@ -67,7 +86,7 @@ final class SqlAstFunctionCall implements SqlAstExpression
                     $distinct = null;
                 }
 
-                /** @var array<SqlAstExpression> $expressions */
+                /** @var array<int, SqlAstExpression> $expressions */
                 $expressions = array();
 
                 do {
@@ -104,8 +123,8 @@ final class SqlAstFunctionCall implements SqlAstExpression
                     new SqlAstFunctionCall(
                         $parent,
                         $node,
-                        $distinct,
-                        $expressions
+                        $expressions,
+                        array_filter([$distinct])
                     )
                 );
             }
@@ -114,14 +133,14 @@ final class SqlAstFunctionCall implements SqlAstExpression
 
     public function children(): array
     {
-        return array_filter(array_merge([$this->functionNode, $this->distinct], $this->expressions));
+        return array_filter(array_merge([$this->functionNode], $this->flags, $this->expressions));
     }
 
     public function hash(): string
     {
-        return md5(implode('.', array_map(function (SqlAstExpression $expression) {
+        return md5(implode('.', array_map(function (SqlAstNode $expression): string {
             return $expression->hash();
-        }, $this->expressions)));
+        }, $this->children())));
     }
 
     public function parent(): ?SqlAstNode
@@ -149,7 +168,7 @@ final class SqlAstFunctionCall implements SqlAstExpression
         return implode('', [
             $this->functionNode->toSql(),
             '(',
-            (is_object($this->distinct) ? $this->distinct->toSql() . ' ' : ''),
+            (!empty($this->flags) ? implode(' ', array_map(fn($flag) => $flag->toSql(), $this->flags)) . ' ' : ''),
             implode(', ', array_map(function (SqlAstExpression $expression) {
                 return $expression->toSql();
             }, $this->expressions)),

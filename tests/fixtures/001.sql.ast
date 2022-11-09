@@ -8,10 +8,12 @@ SqlAstSelect
 --SqlAstTokenNode
 --SqlAstTokenNode
 -SqlAstFrom
---SqlAstTokenNode
+--SqlAstTable
+---SqlAstTokenNode
 --SqlAstTokenNode
 -SqlAstJoin
---SqlAstTokenNode
+--SqlAstTable
+---SqlAstTokenNode
 --SqlAstTokenNode
 --SqlAstTokenNode
 --SqlAstOperation
@@ -23,7 +25,8 @@ SqlAstSelect
 ----SqlAstTokenNode
 ----SqlAstTokenNode
 -SqlAstJoin
---SqlAstTokenNode
+--SqlAstTable
+---SqlAstTokenNode
 --SqlAstTokenNode
 --SqlAstTokenNode
 --SqlAstOperation
@@ -35,7 +38,8 @@ SqlAstSelect
 ----SqlAstTokenNode
 ----SqlAstTokenNode
 -SqlAstJoin
---SqlAstTokenNode
+--SqlAstTable
+---SqlAstTokenNode
 --SqlAstTokenNode
 --SqlAstTokenNode
 --SqlAstOperation
@@ -47,7 +51,8 @@ SqlAstSelect
 ----SqlAstTokenNode
 ----SqlAstTokenNode
 -SqlAstJoin
---SqlAstTokenNode
+--SqlAstTable
+---SqlAstTokenNode
 --SqlAstTokenNode
 --SqlAstTokenNode
 --SqlAstOperation

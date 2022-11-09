@@ -35,6 +35,7 @@ use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
 use Addiks\StoredSQL\Lexing\SqlTokens;
 use Closure;
 use Webmozart\Assert\Assert;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstInOperation;
 
 /** @psalm-import-type Mutator from SqlAstMutableNode */
 final class SqlParserClass implements SqlParser
@@ -73,14 +74,15 @@ final class SqlParserClass implements SqlParser
             Closure::fromCallable([SqlAstLiteral::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstColumn::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstAllColumnsSelector::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstParenthesis::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstFunctionCall::class, 'mutateAstNode']),
+            Closure::fromCallable([SqlAstInOperation::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstOperation::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstConjunction::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstWhere::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstHaving::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstGroupBy::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstOrderBy::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstFunctionCall::class, 'mutateAstNode']),
-            Closure::fromCallable([SqlAstParenthesis::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstFrom::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstJoin::class, 'mutateAstNode']),
             Closure::fromCallable([SqlAstSelect::class, 'mutateAstNode']),

@@ -162,15 +162,15 @@ final class SqlTokenizerClass implements SqlTokenizer
             return SqlToken::SPACE();
         }
 
-        if ($sql[0] === '#' || ($sql[0] === '-' && $sql[1] === '-')) {
+        if ($sql[0] === '#' || ($sql[0] === '-' && $sql[1] === '-') || ($sql[0] === '/' && $sql[1] === '*')) {
             /** @var int|bool $newLinePosition */
             $newLinePosition = strpos($sql, "\n");
 
             /** @var int $commentEndPosition */
             $commentEndPosition = PHP_INT_MAX;
 
-            if ($sql[0] === '-') {
-                $commentEndPosition = strpos($sql, '--', 2);
+            if ($sql[0] === '-' || $sql[0] === '/') {
+                $commentEndPosition = strpos($sql, ($sql[0] === '-' ?'--' :'*/'), 2);
 
                 if (!$commentEndPosition) {
                     if (is_int($newLinePosition)) {

@@ -11,6 +11,8 @@
 
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
+use Addiks\StoredSQL\SqlUtils;
+
 final class SqlAstTable implements SqlAstExpression
 {
     use SqlAstWalkableTrait;
@@ -71,6 +73,21 @@ final class SqlAstTable implements SqlAstExpression
         return implode('.', array_map(function (SqlAstNode $node) {
             return $node->toSql();
         }, $this->children()));
+    }
+    
+    public function tableName(): string
+    {
+        return SqlUtils::unquote($this->table->toSql());
+    }
+
+    public function schemaName(): ?string
+    {
+        if (is_object($this->database)) {
+            return SqlUtils::unquote($this->database->toSql());
+
+        } else {
+            return null;
+        }
     }
 
     public function canBeExecutedAsIs(): bool
