@@ -62,20 +62,20 @@ final class SqlAstColumn implements SqlAstExpression
     ): void {
         /** @var SqlAstNode|null $previousNode */
         $previousNode = $parent[$offset - 1];
-        
+
         /** @var SqlAstNode|null $nextNode */
         $nextNode = $parent[$offset + 1];
-        
+
         if (($previousNode instanceof SqlAstTokenNode && $previousNode->is(SqlToken::SYMBOL()))
         || ($nextNode instanceof SqlAstTokenNode && $nextNode->is(SqlToken::SYMBOL()))) {
             # If two symbols follow each other, none of them are column references
             return;
         }
-        
+
         if ($nextNode instanceof SqlAstTokenNode && $nextNode->is(SqlToken::BRACKET_OPENING())) {
             return;
         }
-        
+
         if ($previousNode instanceof SqlAstTable) {
             return;
         }

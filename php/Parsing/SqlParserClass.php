@@ -18,6 +18,7 @@ use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstFrom;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstFunctionCall;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstGroupBy;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstHaving;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstInOperation;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstJoin;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstLiteral;
 use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstMutableNode;
@@ -35,7 +36,6 @@ use Addiks\StoredSQL\Lexing\SqlTokenizerClass;
 use Addiks\StoredSQL\Lexing\SqlTokens;
 use Closure;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstInOperation;
 
 /** @psalm-import-type Mutator from SqlAstMutableNode */
 final class SqlParserClass implements SqlParser

@@ -13,7 +13,6 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstParenthesis;
 
 final class SqlAstFunctionCall implements SqlAstExpression
 {
@@ -59,7 +58,7 @@ final class SqlAstFunctionCall implements SqlAstExpression
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::SYMBOL())) {
             /** @var SqlAstNode|null $bracketOpening */
             $bracketOpening = $parent[$offset + 1];
-            
+
             if ($bracketOpening instanceof SqlAstParenthesis) {
                 $parent->replace(
                     $offset,
@@ -71,7 +70,7 @@ final class SqlAstFunctionCall implements SqlAstExpression
                         $bracketOpening->flags()
                     )
                 );
-                
+
             } elseif ($bracketOpening instanceof SqlAstTokenNode && $bracketOpening->is(SqlToken::BRACKET_OPENING())) {
                 /** @var int $currentOffset */
                 $currentOffset = $offset + 1;
@@ -168,7 +167,7 @@ final class SqlAstFunctionCall implements SqlAstExpression
         return implode('', [
             $this->functionNode->toSql(),
             '(',
-            (!empty($this->flags) ? implode(' ', array_map(fn($flag) => $flag->toSql(), $this->flags)) . ' ' : ''),
+            (!empty($this->flags) ? implode(' ', array_map(fn ($flag) => $flag->toSql(), $this->flags)) . ' ' : ''),
             implode(', ', array_map(function (SqlAstExpression $expression) {
                 return $expression->toSql();
             }, $this->expressions)),

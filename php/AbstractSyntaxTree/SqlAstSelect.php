@@ -43,9 +43,9 @@ final class SqlAstSelect implements SqlAstNode
 
     private ?SqlAstOrderBy $orderBy;
 
-    private ?int $limit;
+    private ?SqlAstExpression $limit;
 
-    private ?int $offset;
+    private ?SqlAstExpression $offset;
 
     private ?SqlAstSelect $union;
 
@@ -60,8 +60,8 @@ final class SqlAstSelect implements SqlAstNode
         ?SqlAstGroupBy $groupBy,
         ?SqlAstHaving $having,
         ?SqlAstOrderBy $orderBy,
-        ?int $limit,
-        ?int $offset,
+        ?SqlAstExpression $limit,
+        ?SqlAstExpression $offset,
         ?SqlAstSelect $union
     ) {
         Assert::notEmpty($columns);
@@ -226,26 +226,35 @@ final class SqlAstSelect implements SqlAstNode
             /** @var SqlAstNode|null $limitToken */
             $limitToken = $parent[$offset + 1];
 
-            /** @var int|null $limit */
+            /** @var SqlAstExpression|null $limit */
             $limit = null;
 
-            /** @var int|null $limitOffset */
+            /** @var SqlAstExpression|null $limitOffset */
             $limitOffset = null;
 
             if ($limitToken instanceof SqlAstTokenNode && $limitToken->is(SqlToken::LIMIT())) {
-                $limit = (int) $parent[$offset + 2]->toSql();
-                $offset += 2;
+                $limit = $parent[$offset + 2];
+
+                if ($limit instanceof SqlAstExpression) {
+                    $offset += 2;
+
+                } else {
+                    $limit = null;
+                }
 
                 /** @var SqlAstNode|null $comma */
                 $comma = $parent[$offset + 1];
 
                 if ($comma instanceof SqlAstTokenNode && $comma->is(SqlToken::COMMA())) {
-                    $limitOffset = (int) $parent[$offset + 2]->toSql();
-                    $offset += 2;
-                }
+                    $limitOffset = $parent[$offset + 2];
 
-            } else {
-                $orderBy = null;
+                    if ($limitOffset instanceof SqlAstExpression) {
+                        $offset += 2;
+
+                    } else {
+                        $limitOffset = null;
+                    }
+                }
             }
 
             /** @var SqlAstNode|null $union */
@@ -273,7 +282,7 @@ final class SqlAstSelect implements SqlAstNode
             if ($semicolon instanceof SqlAstTokenNode && $semicolon->is(SqlToken::SEMICOLON())) {
                 $semicolon = null;
             }
-            
+
             if (is_null($semicolon)) {
                 $parent->replace($beginOffset, 1 + $offset - $beginOffset, new SqlAstSelect(
                     $parent,
@@ -474,10 +483,10 @@ final class SqlAstSelect implements SqlAstNode
         }
 
         if (!is_null($this->limit)) {
-            $sql .= ' LIMIT ' . $this->limit;
+            $sql .= ' LIMIT ' . $this->limit->toSql();
 
             if (!is_null($this->offset)) {
-                $sql .= ', ' . $this->offset;
+                $sql .= ', ' . $this->offset->toSql();
             }
         }
 

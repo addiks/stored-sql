@@ -14,8 +14,6 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Addiks\StoredSQL\SqlUtils;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstColumn;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstTable;
 
 final class SqlAstFrom implements SqlAstNode
 {
@@ -48,15 +46,15 @@ final class SqlAstFrom implements SqlAstNode
     ): void {
         if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::FROM())) {
             $tableName = $parent[$offset + 1];
-            
+
             if ($tableName instanceof SqlAstColumn) {
                 $tableName = $tableName->convertToTable();
             }
-            
+
             if (!$tableName instanceof SqlAstTable) {
                 Assert::isInstanceOf($tableName, SqlAstTokenNode::class);
                 Assert::true($tableName->is(SqlToken::SYMBOL()));
-                
+
                 $tableName = new SqlAstTable($parent, $tableName, null);
             }
 

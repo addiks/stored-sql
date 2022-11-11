@@ -142,13 +142,13 @@ final class UnparsableSqlException extends Exception
     {
         return $this->sqlOffset;
     }
-    
+
     private static function describeNode(object|null $node): string
     {
-        return is_object($node) 
-            ? ($node instanceof SqlAstTokenNode 
-                ? $node->token()->token()->name() 
-                : get_class($node)) 
+        return is_object($node)
+            ? ($node instanceof SqlAstTokenNode
+                ? $node->token()->token()->name()
+                : get_class($node))
             : 'nothing';
     }
 }

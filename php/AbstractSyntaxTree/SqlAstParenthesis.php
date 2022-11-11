@@ -11,9 +11,9 @@
 
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
+use Addiks\StoredSQL\Exception\UnparsableSqlException;
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\Exception\UnparsableSqlException;
 
 final class SqlAstParenthesis implements SqlAstExpression
 {
@@ -25,7 +25,7 @@ final class SqlAstParenthesis implements SqlAstExpression
 
     /** @var array<int, SqlAstExpression> */
     private array $expressions = array();
-    
+
     /** @var array<int, SqlAstTokenNode> */
     private array $flags = array();
 
@@ -62,10 +62,10 @@ final class SqlAstParenthesis implements SqlAstExpression
 
             /** @var SqlAstNode|null $distinct */
             $distinct = $parent[$currentOffset + 1];
-            
+
             if ($distinct instanceof SqlAstTokenNode && $distinct->is(SqlToken::DISTINCT())) {
                 $currentOffset++;
-                
+
             } else {
                 $distinct = null;
             }
@@ -75,16 +75,16 @@ final class SqlAstParenthesis implements SqlAstExpression
 
             do {
                 $currentOffset++;
-                
+
                 /** @var SqlAstNode|null $expression */
                 $expression = $parent[$currentOffset];
 
-                if (!$expression instanceof SqlAstTokenNode 
-                 || !$expression->is(SqlToken::BRACKET_CLOSING()) 
+                if (!$expression instanceof SqlAstTokenNode
+                 || !$expression->is(SqlToken::BRACKET_CLOSING())
                 ) {
                     if ($expression instanceof SqlAstTokenNode && $expression->is(SqlToken::SYMBOL())) {
                         $expression = new SqlAstColumn($parent, $expression, null, null);
-                        
+
                         $parent->replace($currentOffset, 1, $expression);
                     }
 
@@ -102,11 +102,11 @@ final class SqlAstParenthesis implements SqlAstExpression
                 /** @var SqlAstTokenNode|null $close */
                 $close = $parent[$currentOffset];
             } while (is_object($close) && $close->is(SqlToken::COMMA()));
-            
+
             if (!$close instanceof SqlAstTokenNode || !$close->is(SqlToken::BRACKET_CLOSING())) {
                 return;
             }
-            
+
             UnparsableSqlException::assertToken($parent, $currentOffset, SqlToken::BRACKET_CLOSING());
 
             $parent->replace(
@@ -121,13 +121,13 @@ final class SqlAstParenthesis implements SqlAstExpression
     {
         return array_filter(array_merge($this->flags, $this->expressions));
     }
-    
+
     /** @return array<int, SqlAstExpression> */
     public function expressions(): array
     {
         return $this->expressions;
     }
-    
+
     /** @return array<int, SqlAstTokenNode> */
     public function flags(): array
     {
@@ -165,13 +165,13 @@ final class SqlAstParenthesis implements SqlAstExpression
     {
         /** @var string $flagsSql */
         $flagsSql = '';
-        
+
         if (!empty($this->flags)) {
             $flagsSql = implode(' ', array_map(function (SqlAstTokenNode $flag): string {
                 return $flag->toSql();
             }, $this->flags)) . ' ';
         }
-        
+
         return '(' . $flagsSql . implode(', ', array_map(function (SqlAstExpression $expression) {
             return $expression->toSql();
         }, $this->expressions)) . ')';

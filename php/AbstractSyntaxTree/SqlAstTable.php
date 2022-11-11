@@ -74,7 +74,7 @@ final class SqlAstTable implements SqlAstExpression
             return $node->toSql();
         }, $this->children()));
     }
-    
+
     public function tableName(): string
     {
         return SqlUtils::unquote($this->table->toSql());

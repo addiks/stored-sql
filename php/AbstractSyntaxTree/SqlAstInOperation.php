@@ -13,7 +13,6 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstParenthesis;
 
 final class SqlAstInOperation implements SqlAstExpression
 {
@@ -48,7 +47,6 @@ final class SqlAstInOperation implements SqlAstExpression
             /** @var SqlAstExpression|SqlAstTokenNode $leftSide */
             $leftSide = $node;
 
-            /** @var SqlAstNode $operator */
             $inOperator = $parent[$offset + 1];
 
             /** @var SqlAstParenthesis|null $parenthesis */

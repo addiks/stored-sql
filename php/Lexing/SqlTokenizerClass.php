@@ -170,7 +170,7 @@ final class SqlTokenizerClass implements SqlTokenizer
             $commentEndPosition = PHP_INT_MAX;
 
             if ($sql[0] === '-' || $sql[0] === '/') {
-                $commentEndPosition = strpos($sql, ($sql[0] === '-' ?'--' :'*/'), 2);
+                $commentEndPosition = strpos($sql, ($sql[0] === '-' ? '--' : '*/'), 2);
 
                 if (!$commentEndPosition) {
                     if (is_int($newLinePosition)) {

@@ -11,14 +11,13 @@
 
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
+use Addiks\StoredSQL\Exception\UnparsableSqlException;
 use Addiks\StoredSQL\ExecutionContext;
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Addiks\StoredSQL\Schema\Column;
 use Addiks\StoredSQL\Schema\Table;
 use Addiks\StoredSQL\SqlUtils;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstTable;
-use Addiks\StoredSQL\Exception\UnparsableSqlException;
 
 final class SqlAstJoin implements SqlAstNode
 {
@@ -107,7 +106,7 @@ final class SqlAstJoin implements SqlAstNode
 
             /** @var SqlAstTokenNode|null $tableName */
             $tableName = $parent[$offset + 1];
-            
+
             if ($tableName instanceof SqlAstTokenNode && $tableName->is(SqlToken::SYMBOL())) {
                 SqlAstColumn::mutateAstNode($tableName, $offset + 1, $parent);
                 $tableName = $parent[$offset + 1];
@@ -116,7 +115,7 @@ final class SqlAstJoin implements SqlAstNode
             if ($tableName instanceof SqlAstColumn) {
                 $tableName = $tableName->convertToTable();
             }
-            
+
             if ($tableName instanceof SqlAstTokenNode && $tableName->is(SqlToken::SYMBOL())) {
                 $parent->replaceNode($tableName, new SqlAstTable($parent, $tableName, null));
                 $tableName = $parent[$offset + 1];
@@ -150,7 +149,7 @@ final class SqlAstJoin implements SqlAstNode
                         return;
                     }
                 }
-                
+
             } else {
                 $onOrUsing = null;
             }
@@ -397,31 +396,32 @@ final class SqlAstJoin implements SqlAstNode
 
             } else {
                 # Unknown condition, let's assume that this JOIN can change result size to be safe.
+
                 return true;
             }
 
+            # Caution: From this point on "left" and "right" refer to different things.
+            #   Above this point, left/right mean the side of the column inside of the join-condition equation.
+            #   Below this point, left/right refers to the joined table in relation to the type of join.
+
             if ($joinedSide instanceof SqlAstColumn && $joiningSide instanceof SqlAstColumn) {
-                /** @var Column|null $joinedColumn */
-                $joinedColumn = $context->columnByNode($joinedSide);
+                /** @var Column|null $rightJoinColumn */
+                $rightJoinColumn = $context->columnByNode($joinedSide);
 
-                /** @var Column|null $joiningColumn */
-                $joiningColumn = $context->columnByNode($joiningSide);
+                /** @var Column|null $leftJoinColumn */
+                $leftJoinColumn = $context->columnByNode($joiningSide);
 
-                if (is_object($joinedColumn) && is_object($joiningColumn)) {
-                    foreach ([
-                        [$this->isRightOuterJoin(), $joiningColumn],
-                        [$this->isLeftOuterJoin(), $joinedColumn],
-                    ] as [$isOuterJoin, $column]) {
-                        if ($isOuterJoin) {
-                            if ($column->nullable() || !$column->unique()) {
-                                return true;
-                            }
+                if (is_object($rightJoinColumn) && is_object($leftJoinColumn)) {
+                    if (!$this->isLeftOuterJoin() && $leftJoinColumn->nullable()) {
+                        return true;
+                    }
 
-                        } else {
-                            if (!$column->unique()) {
-                                return true;
-                            }
-                        }
+                    if ($this->isRightOuterJoin() && ($rightJoinColumn->nullable() || !$rightJoinColumn->unique())) {
+                        return true;
+                    }
+
+                    if (!$this->isRightOuterJoin() && !$rightJoinColumn->unique()) {
+                        return true;
                     }
 
                     return false;

@@ -11,10 +11,9 @@
 
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
+use Addiks\StoredSQL\Exception\UnparsableSqlException;
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
-use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstColumn;
-use Addiks\StoredSQL\Exception\UnparsableSqlException;
 
 final class SqlAstOrderBy implements SqlAstNode
 {
@@ -71,12 +70,13 @@ final class SqlAstOrderBy implements SqlAstNode
             do {
                 /** @var SqlAstExpression $expression */
                 $expression = $parent[$offset];
+
                 if ($expression instanceof SqlAstTokenNode && $expression->is(SqlToken::SYMBOL())) {
                     SqlAstColumn::mutateAstNode($expression, $offset, $parent);
-                    
+
                     $expression = $parent[$offset];
                 }
-                
+
                 UnparsableSqlException::assertType($parent, $offset, SqlAstExpression::class);
                 Assert::isInstanceOf($expression, SqlAstExpression::class);
 
@@ -89,7 +89,7 @@ final class SqlAstOrderBy implements SqlAstNode
                     } else {
                         $direction = null;
                     }
-                    
+
                 } else {
                     $direction = null;
                 }
@@ -120,7 +120,7 @@ final class SqlAstOrderBy implements SqlAstNode
          */
         foreach ($this->columns as [$expression, $direction]) {
             $children[] = $expression;
-            
+
             if (is_object($direction)) {
                 $children[] = $direction;
             }
@@ -169,7 +169,7 @@ final class SqlAstOrderBy implements SqlAstNode
          * @var SqlAstTokenNode|null $direction
          */
         foreach ($this->columns as [$expression, $direction]) {
-            $columns[] = ' ' . trim($expression->toSql() . ' ' . (string)$direction?->toSql());
+            $columns[] = ' ' . trim($expression->toSql() . ' ' . (string) $direction?->toSql());
         }
 
         return 'ORDER BY' . implode(',', $columns);
