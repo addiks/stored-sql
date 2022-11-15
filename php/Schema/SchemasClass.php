@@ -13,6 +13,7 @@ namespace Addiks\StoredSQL\Schema;
 
 use Addiks\StoredSQL\Schema\Factories\SchemasFactory;
 use Addiks\StoredSQL\Schema\Factories\SchemasFromMySQLInformationSchemaReader;
+use Addiks\StoredSQL\Schema\Factories\SchemasFromSqliteReader;
 use PDO;
 use Psr\SimpleCache\CacheInterface;
 use Webmozart\Assert\Assert;
@@ -47,8 +48,12 @@ final class SchemasClass implements Schemas
         ?SchemasFactory $factory = null
     ): Schemas {
         if (is_null($factory)) {
-            # TODO: Select actually correct reader here ...
-            $factory = new SchemasFromMySQLInformationSchemaReader($pdo);
+            if ($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite') {
+                $factory = new SchemasFromSqliteReader($pdo);
+
+            } else {
+                $factory = new SchemasFromMySQLInformationSchemaReader($pdo);
+            }
         }
 
         if (is_object($cache)) {

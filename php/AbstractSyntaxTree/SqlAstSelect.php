@@ -119,8 +119,22 @@ final class SqlAstSelect implements SqlAstNode
             do {
                 $offset++;
 
-                if ($parent[$offset] instanceof SqlAstTokenNode) {
-                    $parent->replaceNode($parent[$offset], new SqlAstColumn($parent, $parent[$offset], null, null));
+                /** @var SqlNode|null $column */
+                $column = $parent[$offset];
+
+                if ($column instanceof SqlAstTokenNode) {
+                    if ($column->is(SqlToken::STAR())) {
+                        $parent->replaceNode(
+                            $parent[$offset],
+                            new SqlAstAllColumnsSelector($parent, $column, null, null)
+                        );
+
+                    } else {
+                        $parent->replaceNode(
+                            $column,
+                            new SqlAstColumn($parent, $column, null, null)
+                        );
+                    }
                 }
 
                 UnparsableSqlException::assertTypes($parent, $offset, [
