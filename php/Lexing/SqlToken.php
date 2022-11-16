@@ -92,6 +92,7 @@ final class SqlToken extends AbstractSqlToken
     protected const FULL = null;
     protected const INNER = null;
     protected const OUTER = null;
+    protected const CROSS = null;
     protected const JOIN = null;
     protected const ON = null;
     protected const USING = null;

@@ -45,6 +45,17 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
         AND `TABLE_NAME` = ?
         ORDER BY `ORDINAL_POSITION` ASC
         SQL;
+        
+    private const SQL_READ_FOREIGN_KEYS = <<<SQL
+        SELECT 
+            `TABLE_SCHEMA`,
+            `TABLE_NAME`,
+            `COLUMN_NAME`,
+            `REFERENCED_TABLE_SCHEMA`, 
+            `REFERENCED_TABLE_NAME`, 
+            `REFERENCED_COLUMN_NAME`
+        FROM `information_schema`.`KEY_COLUMN_USAGE` 
+        SQL;
 
     private const SQL_GET_CACHE_KEY = <<<SQL
         SELECT CONCAT(@@hostname, '.', DATABASE(), '.', USER())
@@ -65,13 +76,14 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
 
     public function createSchemas(): Schemas
     {
-        /** @var array<string, Schema> $schemas */
-        $schemas = $this->readSchemas();
+        $schemas = new SchemasClass();
+        
+        $this->readSchemas($schemas);
+        $schemas->defineDefaultSchema($schemas->schema($this->defaultSchemaName()));
 
-        /** @var Schema $defaultSchema */
-        $defaultSchema = $schemas[$this->defaultSchemaName()];
+        $this->readForeignKeys($schemas);
 
-        return new SchemasClass($schemas, $defaultSchema);
+        return $schemas;
     }
 
     private function defaultSchemaName(): string
@@ -80,13 +92,13 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
     }
 
     /** @return array<string, Schema> */
-    private function readSchemas(): array
+    private function readSchemas(Schemas $schemas): array
     {
         /** @var array<string, Schema> $schemas */
         $schemas = array();
 
         foreach ($this->query(self::SQL_READ_SCHEMA_NAMES) as [$schemaName]) {
-            $schemas[$schemaName] = new SchemaClass($schemaName);
+            $schemas[$schemaName] = new SchemaClass($schemas, $schemaName);
 
             $this->readTables($schemas[$schemaName]);
         }
@@ -118,6 +130,32 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
                 $nullable === 'YES',
                 in_array($columnKey, ['PRI', 'UNI'], true)
             ));
+        }
+    }
+
+    private function readForeignKeys(Schemas $schemas): void
+    {
+        foreach ($this->query(self::SQL_READ_FOREIGN_KEYS) as [
+            $schemaName, 
+            $tableName, 
+            $columnName,
+            $referencedSchemaName,
+            $referencedTableName,
+            $referencedColumnName,
+        ]) {
+            $column = $schemas
+                ->schema($schemaName)
+                ?->table($tableName)
+                ?->column($columnName);
+
+            $foreignKeyColumn = $schemas
+                ->schema($referencedSchemaName)
+                ?->table($referencedTableName)
+                ?->column($referencedColumnName);
+
+            if (is_object($column) && is_object($foreignKeyColumn)) {
+                $column->defineForeignKey($foreignKeyColumn);
+            }
         }
     }
 

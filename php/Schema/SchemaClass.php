@@ -10,6 +10,7 @@
  */
 
 namespace Addiks\StoredSQL\Schema;
+use Addiks\StoredSQL\Schema\Schemas;
 
 final class SchemaClass implements Schema
 {
@@ -18,12 +19,15 @@ final class SchemaClass implements Schema
 
     /** @param array<array-key, Table> $tables */
     public function __construct(
+        private Schemas $schemas,
         private string $name,
         array $tables = array()
     ) {
         foreach ($tables as $table) {
             $this->addTable($table);
         }
+        
+        $schemas->addSchema($this);
     }
 
     public function name(): string
@@ -31,6 +35,11 @@ final class SchemaClass implements Schema
         return $this->name;
     }
 
+    public function schemas(): Schemas
+    {
+        return $this->schemas;
+    }
+    
     /** @return array<Table> */
     public function tables(): array
     {

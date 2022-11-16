@@ -26,4 +26,8 @@ interface Column
     public function unique(): bool;
 
     public function fullName(): string;
+
+    public function foreignKey(): ?Column;
+
+    public function defineForeignKey(Column|null $foreignKey): void;
 }

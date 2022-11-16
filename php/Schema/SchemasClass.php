@@ -26,8 +26,8 @@ final class SchemasClass implements Schemas
     private string|null $defaultSchemaName = null;
 
     public function __construct(
-        array $schemas,
-        ?Schema $defaultSchema
+        array $schemas = array(),
+        ?Schema $defaultSchema = null
     ) {
         foreach ($schemas as $schema) {
             Assert::isInstanceOf($schema, Schema::class);
@@ -97,6 +97,16 @@ final class SchemasClass implements Schemas
     public function defaultSchema(): Schema|null
     {
         return $this->schemas[$this->defaultSchemaName] ?? null;
+    }
+    
+    public function addSchema(Schema $schema): void
+    {
+        $this->schemas[$schema->name()] = $schema;
+    }
+    
+    public function defineDefaultSchema(Schema $schema): void
+    {
+        $this->defaultSchemaName = $schema->name();
     }
 
     public function allTables(): array

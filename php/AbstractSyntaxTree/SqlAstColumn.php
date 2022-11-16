@@ -120,6 +120,10 @@ final class SqlAstColumn implements SqlAstExpression
                             $column = $node;
                         }
                     }
+
+                } elseif ($node->is(SqlToken::STAR())) {
+                    # This is not a column (`table`.`column`), this is a all-column-selector (`table`.*)
+                    return;
                 }
             }
 

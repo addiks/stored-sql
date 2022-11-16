@@ -13,6 +13,8 @@ namespace Addiks\StoredSQL\Schema;
 
 interface Schema
 {
+    public function schemas(): Schemas;
+    
     public function name(): string;
 
     /** @return array<Table> */

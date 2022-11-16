@@ -15,14 +15,26 @@ use Addiks\StoredSQL\Types\SqlType;
 
 final class ColumnClass implements Column
 {
+    /** @var array<int, string>|null */
+    private ?array $foreignKeyRef = null;
+
     public function __construct(
         private Table $table,
         private string $name,
         private SqlType $type,
         private bool $nullable,
-        private bool $unique
+        private bool $unique,
+        ?Column $foreignKey
     ) {
         $table->addColumn($this);
+
+        if (is_object($foreignKey)) {
+            $this->foreignKeyRef = [
+                $foreignKey->table()->schema()->name(),
+                $foreignKey->table()->name(),
+                $foreignKey->name()
+            ];
+        }
     }
 
     public function table(): Table
@@ -57,5 +69,26 @@ final class ColumnClass implements Column
             $this->table->name(),
             $this->name,
         ]);
+    }
+
+    public function foreignKey(): ?Column
+    {
+        return $this->table->schema()->schemas()
+            ->schema($this->foreignKeyRef[0])
+            ?->table($this->foreignKeyRef[1])
+            ?->column($this->foreignKeyRef[2]);
+    }
+
+    public function defineForeignKey(Column|null $foreignKey): void
+    {
+        if (is_object($foreignKey)) {
+            $this->foreignKeyRef = [
+                $foreignKey->table()->schema()->name(),
+                $foreignKey->table()->name(),
+                $foreignKey->name()
+            ];
+        } else {
+            $this->foreignKeyRef = null;
+        }
     }
 }

@@ -15,6 +15,8 @@ interface Schemas
 {
     /** @return array<Schema> */
     public function schemas(): array;
+    
+    public function addSchema(Schema $schema): void;
 
     public function defaultSchema(): Schema|null;
 

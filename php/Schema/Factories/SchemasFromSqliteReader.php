@@ -121,7 +121,7 @@ final class SchemasFromSqliteReader implements SchemasFactory
                 $table,
                 $columnName,
                 SqlTypeClass::fromName($sqlType),
-                $notnull === '0' && $pk === '0',
+                $notnull === 0 && $pk === 0,
                 isset($uniqueColumns[$columnName])
             ));
         }

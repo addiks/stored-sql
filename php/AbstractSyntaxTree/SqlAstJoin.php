@@ -33,6 +33,8 @@ final class SqlAstJoin implements SqlAstNode
 
     private bool $isRightOuterJoin;
 
+    private bool $isCrossJoin;
+
     private ?SqlAstTokenNode $alias;
 
     private ?SqlAstTokenNode $onOrUsing;
@@ -45,14 +47,21 @@ final class SqlAstJoin implements SqlAstNode
         SqlAstTable $tableName,
         bool $isLeftOuterJoin,
         bool $isRightOuterJoin,
+        bool $isCrossJoin,
         ?SqlAstTokenNode $alias,
         ?SqlAstTokenNode $onOrUsing,
         ?SqlAstExpression $condition
     ) {
+        if ($isCrossJoin) {
+            Assert::false($isLeftOuterJoin, 'JOIN cannot be CROSS and LEFT at the same time!');
+            Assert::false($isRightOuterJoin, 'JOIN cannot be CROSS and RIGHT at the same time!');
+        }
+
         $this->parent = $parent;
         $this->joinToken = $joinToken;
         $this->isLeftOuterJoin = $isLeftOuterJoin;
         $this->isRightOuterJoin = $isRightOuterJoin;
+        $this->isCrossJoin = $isCrossJoin;
         $this->tableName = $tableName;
         $this->alias = $alias;
         $this->onOrUsing = $onOrUsing;
@@ -74,11 +83,22 @@ final class SqlAstJoin implements SqlAstNode
             /** @var bool $isRightOuterJoin */
             $isRightOuterJoin = false;
 
+            /** @var bool $isCrossJoin */
+            $isCrossJoin = false;
+
             /** @var SqlAstNode|null $joinType */
             $joinType = $parent[$offset - 1];
 
             if ($joinType instanceof SqlAstTokenNode) {
                 if ($joinType->is(SqlToken::OUTER())) {
+                    /** @var SqlAstNode|null $joinType */
+                    $joinType = $parent[$offset - 2];
+                    $beginOffset--;
+                }
+
+                if ($joinType->is(SqlToken::CROSS())) {
+                    $isCrossJoin = true;
+
                     /** @var SqlAstNode|null $joinType */
                     $joinType = $parent[$offset - 2];
                     $beginOffset--;
@@ -160,6 +180,7 @@ final class SqlAstJoin implements SqlAstNode
                 $tableName,
                 $isLeftOuterJoin,
                 $isRightOuterJoin,
+                $isCrossJoin,
                 $alias,
                 $onOrUsing,
                 $condition
@@ -224,6 +245,11 @@ final class SqlAstJoin implements SqlAstNode
         return $this->isRightOuterJoin;
     }
 
+    public function isCrossJoin(): bool
+    {
+        return $this->isCrossJoin;
+    }
+
     public function isFullOuterJoin(): bool
     {
         return $this->isLeftOuterJoin && $this->isRightOuterJoin;
@@ -273,8 +299,11 @@ final class SqlAstJoin implements SqlAstNode
         /** @var string $sql */
         $sql = 'JOIN ' . $this->tableName->toSql();
 
-        if ($this->isFullOuterJoin()) {
-            $sql = 'FULL ' . $sql;
+        if ($this->isCrossJoin) {
+            $sql = 'CROSS ' . $sql;
+
+        } if ($this->isFullOuterJoin()) {
+            $sql = 'FULL OUTER ' . $sql;
 
         } elseif ($this->isLeftOuterJoin()) {
             $sql = 'LEFT ' . $sql;
@@ -351,11 +380,18 @@ final class SqlAstJoin implements SqlAstNode
         $condition = $this->condition();
 
         if (is_null($condition)) {
+            # Joins without a condition will most likely have an impact on the result-set.
+            # (unless the joined table is empty)
             return true;
         }
 
         /** @var array<SqlAstOperation> $equations */
         $equations = $condition->extractFundamentalEquations();
+
+        if (empty($equations)) {
+            # Not a testable condition (like "ON(1)"), it will probably change the result-set.
+            return true;
+        }
 
         /** @var array<SqlAstOperation> $alwaysFalseEquations */
         $alwaysFalseEquations = array_filter($equations, function (SqlAstOperation $equation): bool {
@@ -363,6 +399,11 @@ final class SqlAstJoin implements SqlAstNode
         });
 
         if (!empty($alwaysFalseEquations)) {
+            # Has a condition like "ON(FALSE && ...)", so it will empty (and thus change) the result-set
+            #
+            # TODO: I just tested the above claim to not be the case for LEFT OUTER and RIGHT OUTER joins,
+            #       will need to further research this case to determine what to do here...
+
             return true;
         }
 
@@ -400,9 +441,13 @@ final class SqlAstJoin implements SqlAstNode
                 return true;
             }
 
-            # Caution: From this point on "left" and "right" refer to different things.
-            #   Above this point, left/right mean the side of the column inside of the join-condition equation.
-            #   Below this point, left/right refers to the joined table in relation to the type of join.
+            # CAUTION: From this point on "left" and "right" refer to different things!
+            #
+            # Above this point, left/right mean the side of the column inside of the join-condition equation.
+            #   (leftTable.leftColumn = rightTable.rightColumn)
+            #
+            # Below this point, left/right refers to the joined table in relation to the type of join.
+            #   ("LEFT JOIN" / "RIGHT JOIN" / "INNER JOIN" / "FULL OUTER JOIN" / "CROSS JOIN")
 
             if ($joinedSide instanceof SqlAstColumn && $joiningSide instanceof SqlAstColumn) {
                 /** @var Column|null $rightJoinColumn */
@@ -412,16 +457,70 @@ final class SqlAstJoin implements SqlAstNode
                 $leftJoinColumn = $context->columnByNode($joiningSide);
 
                 if (is_object($rightJoinColumn) && is_object($leftJoinColumn)) {
-                    if (!$this->isLeftOuterJoin() && $leftJoinColumn->nullable()) {
+
+                    if (!$rightJoinColumn->unique()) {
                         return true;
                     }
 
-                    if ($this->isRightOuterJoin() && ($rightJoinColumn->nullable() || !$rightJoinColumn->unique())) {
-                        return true;
-                    }
+                    if ($this->isCrossJoin()) {
+                        if (!$rightJoinColumn->nullable() && $rightJoinColumn->unique()) {
+                            return true;
+                        }
 
-                    if (!$this->isRightOuterJoin() && !$rightJoinColumn->unique()) {
-                        return true;
+                        if (!$leftJoinColumn->nullable()) {
+                            #return true;
+                        }
+
+                        if ($leftJoinColumn->nullable()) {
+                            return true;
+                        }
+
+                        if ($rightJoinColumn->nullable()) {
+                            return true;
+                        }
+
+                    } elseif ($this->isFullOuterJoin()) {
+                        return true; # FULL OUTER is MS-SQL only, thus untested and unknown.
+
+                    } elseif ($this->isLeftOuterJoin()) {
+
+                    } elseif ($this->isRightOuterJoin()) {
+                        if ($leftJoinColumn->nullable()) {
+                            return true;
+                        }
+
+                        if (!$leftJoinColumn->nullable() && $leftJoinColumn->unique()) {
+                            return true;
+                        }
+
+                        if ($rightJoinColumn->nullable()) {
+                            return true;
+                        }
+
+                        if (!$leftJoinColumn->unique()) {
+                            return true;
+                        }
+
+                    } else { # Inner Join
+                        if (!$leftJoinColumn->nullable() && $leftJoinColumn->unique() && !$rightJoinColumn->nullable() && $rightJoinColumn->unique()) {
+                            return true;
+                        }
+
+                        if (!$rightJoinColumn->unique()) {
+                            return true;
+                        }
+
+                        if (!$leftJoinColumn->nullable()) {
+                            #return true;
+                        }
+
+                        if ($leftJoinColumn->nullable()) {
+                            return true;
+                        }
+
+                        if ($rightJoinColumn->nullable()) {
+                            return true;
+                        }
                     }
 
                     return false;

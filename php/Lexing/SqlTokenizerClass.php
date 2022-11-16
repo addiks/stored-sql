@@ -116,6 +116,7 @@ final class SqlTokenizerClass implements SqlTokenizer
             'RIGHT' => SqlToken::RIGHT(),
             'INNER' => SqlToken::INNER(),
             'OUTER' => SqlToken::OUTER(),
+            'CROSS' => SqlToken::CROSS(),
             'JOIN' => SqlToken::JOIN(),
             'ON' => SqlToken::ON(),
             'IN' => SqlToken::IN(),
