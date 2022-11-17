@@ -62,7 +62,12 @@ final class SchemasFromSqliteReader implements SchemasFactory
 
         $this->readSchemas($schemas);
 
-        $schemas->defineDefaultSchema($schemas->schema($this->defaultSchemaName()));
+        /** @var Schema|null $defaultSchema */
+        $defaultSchema = $schemas->schema($this->defaultSchemaName());
+
+        if (is_object($defaultSchema)) {
+            $schemas->defineDefaultSchema($defaultSchema);
+        }
 
         return $schemas;
     }
@@ -85,7 +90,7 @@ final class SchemasFromSqliteReader implements SchemasFactory
     private function readTables(Schema $schema): void
     {
         foreach ($this->query(self::SQL_READ_TABLES) as [$tableName]) {
-            $table = new TableClass($schema, $tableName);
+            $table = new TableClass($schema, (string) $tableName);
 
             $this->readColumns($table);
 
@@ -119,15 +124,15 @@ final class SchemasFromSqliteReader implements SchemasFactory
         ]) {
             $table->addColumn(new ColumnClass(
                 $table,
-                $columnName,
-                SqlTypeClass::fromName($sqlType),
-                $notnull === 0 && $pk === 0,
-                isset($uniqueColumns[$columnName])
+                (string) $columnName,
+                SqlTypeClass::fromName((string) $sqlType),
+                ((int) $notnull === 0) && ((int) $pk === 0),
+                isset($uniqueColumns[(string) $columnName])
             ));
         }
     }
 
-    /** @return list<array<int|string, string>> */
+    /** @return list<array<int|string, string|int>> */
     private function query(string $sql, array $arguments = []): array
     {
         /** @var PDOStatement $statement */

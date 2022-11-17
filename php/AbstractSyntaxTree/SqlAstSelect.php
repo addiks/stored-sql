@@ -119,7 +119,7 @@ final class SqlAstSelect implements SqlAstNode
             do {
                 $offset++;
 
-                /** @var SqlNode|null $column */
+                /** @var SqlAstNode|null $column */
                 $column = $parent[$offset];
 
                 if ($column instanceof SqlAstTokenNode) {

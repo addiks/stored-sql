@@ -96,7 +96,7 @@ final class SqlAstJoin implements SqlAstNode
                     $beginOffset--;
                 }
 
-                if ($joinType->is(SqlToken::CROSS())) {
+                if ($joinType instanceof SqlAstTokenNode && $joinType->is(SqlToken::CROSS())) {
                     $isCrossJoin = true;
 
                     /** @var SqlAstNode|null $joinType */
@@ -303,7 +303,7 @@ final class SqlAstJoin implements SqlAstNode
             $sql = 'CROSS ' . $sql;
         }
 
-if ($this->isFullOuterJoin()) {
+        if ($this->isFullOuterJoin()) {
             $sql = 'FULL OUTER ' . $sql;
 
         } elseif ($this->isLeftOuterJoin()) {
@@ -421,6 +421,8 @@ if ($this->isFullOuterJoin()) {
         }
 
         $equation = $equations[0];
+
+        /** @psalm-suppress RedundantConditionGivenDocblockType */
         Assert::isInstanceOf($equation, SqlAstOperation::class);
 
         /** @var SqlAstExpression $leftSide */

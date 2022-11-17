@@ -80,7 +80,13 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
         $schemas = new SchemasClass();
 
         $this->readSchemas($schemas);
-        $schemas->defineDefaultSchema($schemas->schema($this->defaultSchemaName()));
+
+        /** @var Schema|null $defaultSchema */
+        $defaultSchema = $schemas->schema($this->defaultSchemaName());
+
+        if (is_object($defaultSchema)) {
+            $schemas->defineDefaultSchema($defaultSchema);
+        }
 
         $this->readForeignKeys($schemas);
 
@@ -92,7 +98,6 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
         return $this->query(self::SQL_READ_DEFAULT_SCHEMA_NAME)[0][0];
     }
 
-    /** @return array<string, Schema> */
     private function readSchemas(Schemas $schemas): void
     {
         foreach ($this->query(self::SQL_READ_SCHEMA_NAMES) as [$schemaName]) {
