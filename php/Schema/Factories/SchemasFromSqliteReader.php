@@ -58,13 +58,13 @@ final class SchemasFromSqliteReader implements SchemasFactory
 
     public function createSchemas(): Schemas
     {
-        /** @var array<string, Schema> $schemas */
-        $schemas = $this->readSchemas();
+        $schemas = new SchemasClass();
 
-        /** @var Schema $defaultSchema */
-        $defaultSchema = $schemas[$this->defaultSchemaName()];
+        $this->readSchemas($schemas);
 
-        return new SchemasClass($schemas, $defaultSchema);
+        $schemas->defineDefaultSchema($schemas->schema($this->defaultSchemaName()));
+
+        return $schemas;
     }
 
     private function defaultSchemaName(): string
@@ -73,9 +73,9 @@ final class SchemasFromSqliteReader implements SchemasFactory
     }
 
     /** @return array<string, Schema> */
-    private function readSchemas(): array
+    private function readSchemas(Schemas $schemas): array
     {
-        $schema = new SchemaClass($this->defaultSchemaName());
+        $schema = new SchemaClass($schemas, $this->defaultSchemaName());
 
         $this->readTables($schema);
 

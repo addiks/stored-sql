@@ -45,7 +45,7 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
         AND `TABLE_NAME` = ?
         ORDER BY `ORDINAL_POSITION` ASC
         SQL;
-        
+
     private const SQL_READ_FOREIGN_KEYS = <<<SQL
         SELECT 
             `TABLE_SCHEMA`,
@@ -55,6 +55,7 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
             `REFERENCED_TABLE_NAME`, 
             `REFERENCED_COLUMN_NAME`
         FROM `information_schema`.`KEY_COLUMN_USAGE` 
+        WHERE `REFERENCED_COLUMN_NAME` IS NOT NULL
         SQL;
 
     private const SQL_GET_CACHE_KEY = <<<SQL
@@ -77,7 +78,7 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
     public function createSchemas(): Schemas
     {
         $schemas = new SchemasClass();
-        
+
         $this->readSchemas($schemas);
         $schemas->defineDefaultSchema($schemas->schema($this->defaultSchemaName()));
 
@@ -92,18 +93,11 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
     }
 
     /** @return array<string, Schema> */
-    private function readSchemas(Schemas $schemas): array
+    private function readSchemas(Schemas $schemas): void
     {
-        /** @var array<string, Schema> $schemas */
-        $schemas = array();
-
         foreach ($this->query(self::SQL_READ_SCHEMA_NAMES) as [$schemaName]) {
-            $schemas[$schemaName] = new SchemaClass($schemas, $schemaName);
-
-            $this->readTables($schemas[$schemaName]);
+            $this->readTables(new SchemaClass($schemas, $schemaName));
         }
-
-        return $schemas;
     }
 
     private function readTables(Schema $schema): void
@@ -136,8 +130,8 @@ final class SchemasFromMySQLInformationSchemaReader implements SchemasFactory
     private function readForeignKeys(Schemas $schemas): void
     {
         foreach ($this->query(self::SQL_READ_FOREIGN_KEYS) as [
-            $schemaName, 
-            $tableName, 
+            $schemaName,
+            $tableName,
             $columnName,
             $referencedSchemaName,
             $referencedTableName,

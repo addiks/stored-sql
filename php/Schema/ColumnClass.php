@@ -24,7 +24,7 @@ final class ColumnClass implements Column
         private SqlType $type,
         private bool $nullable,
         private bool $unique,
-        ?Column $foreignKey
+        ?Column $foreignKey = null
     ) {
         $table->addColumn($this);
 
@@ -32,7 +32,7 @@ final class ColumnClass implements Column
             $this->foreignKeyRef = [
                 $foreignKey->table()->schema()->name(),
                 $foreignKey->table()->name(),
-                $foreignKey->name()
+                $foreignKey->name(),
             ];
         }
     }
@@ -73,6 +73,10 @@ final class ColumnClass implements Column
 
     public function foreignKey(): ?Column
     {
+        if (is_null($this->foreignKeyRef)) {
+            return null;
+        }
+
         return $this->table->schema()->schemas()
             ->schema($this->foreignKeyRef[0])
             ?->table($this->foreignKeyRef[1])
@@ -85,8 +89,9 @@ final class ColumnClass implements Column
             $this->foreignKeyRef = [
                 $foreignKey->table()->schema()->name(),
                 $foreignKey->table()->name(),
-                $foreignKey->name()
+                $foreignKey->name(),
             ];
+
         } else {
             $this->foreignKeyRef = null;
         }

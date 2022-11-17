@@ -301,8 +301,9 @@ final class SqlAstJoin implements SqlAstNode
 
         if ($this->isCrossJoin) {
             $sql = 'CROSS ' . $sql;
+        }
 
-        } if ($this->isFullOuterJoin()) {
+if ($this->isFullOuterJoin()) {
             $sql = 'FULL OUTER ' . $sql;
 
         } elseif ($this->isLeftOuterJoin()) {
@@ -414,122 +415,116 @@ final class SqlAstJoin implements SqlAstNode
         /** @var string $joinAlias */
         $joinAlias = $this->aliasName();
 
-        foreach ($equations as $equation) {
-            /** @var SqlAstExpression $leftSide */
-            $leftSide = $equation->leftSide();
+        if (count($equations) !== 1) {
+            # Something like 'ON(a.id = b.foo AND a.bar = b.baz)' is pretty hard to evaluate and very uncommon.
+            return true;
+        }
 
-            /** @var SqlAstExpression $rightSide */
-            $rightSide = $equation->rightSide();
+        $equation = $equations[0];
+        Assert::isInstanceOf($equation, SqlAstOperation::class);
 
-            if ($leftSide instanceof SqlAstColumn && $leftSide->tableNameString() === $joinAlias) {
-                /** @var SqlAstExpression $joiningSide */
-                $joiningSide = $rightSide;
+        /** @var SqlAstExpression $leftSide */
+        $leftSide = $equation->leftSide();
 
-                /** @var SqlAstExpression $joinedSide */
-                $joinedSide = $leftSide;
+        /** @var SqlAstExpression $rightSide */
+        $rightSide = $equation->rightSide();
 
-            } elseif ($rightSide instanceof SqlAstColumn && $rightSide->tableNameString() === $joinAlias) {
-                /** @var SqlAstExpression $joiningSide */
-                $joiningSide = $leftSide;
+        if ($leftSide instanceof SqlAstColumn && $leftSide->tableNameString() === $joinAlias) {
+            /** @var SqlAstExpression $joiningSide */
+            $joiningSide = $rightSide;
 
-                /** @var SqlAstExpression $joinedSide */
-                $joinedSide = $rightSide;
+            /** @var SqlAstExpression $joinedSide */
+            $joinedSide = $leftSide;
 
-            } else {
-                # Unknown condition, let's assume that this JOIN can change result size to be safe.
+        } elseif ($rightSide instanceof SqlAstColumn && $rightSide->tableNameString() === $joinAlias) {
+            /** @var SqlAstExpression $joiningSide */
+            $joiningSide = $leftSide;
 
-                return true;
-            }
+            /** @var SqlAstExpression $joinedSide */
+            $joinedSide = $rightSide;
 
-            # CAUTION: From this point on "left" and "right" refer to different things!
-            #
-            # Above this point, left/right mean the side of the column inside of the join-condition equation.
-            #   (leftTable.leftColumn = rightTable.rightColumn)
-            #
-            # Below this point, left/right refers to the joined table in relation to the type of join.
-            #   ("LEFT JOIN" / "RIGHT JOIN" / "INNER JOIN" / "FULL OUTER JOIN" / "CROSS JOIN")
+        } else {
+            # Unknown condition, let's assume that this JOIN can change result size to be safe.
 
-            if ($joinedSide instanceof SqlAstColumn && $joiningSide instanceof SqlAstColumn) {
-                /** @var Column|null $rightJoinColumn */
-                $rightJoinColumn = $context->columnByNode($joinedSide);
+            return true;
+        }
 
-                /** @var Column|null $leftJoinColumn */
-                $leftJoinColumn = $context->columnByNode($joiningSide);
+        # CAUTION: From this point on "left" and "right" refer to different things!
+        #
+        # Above this point, left/right mean the side of the column inside of the join-condition equation.
+        #   (leftTable.leftColumn = rightTable.rightColumn)
+        #
+        # Below this point, left/right refers to the joined table in relation to the type of join.
+        #   ("LEFT JOIN" / "RIGHT JOIN" / "INNER JOIN" / "FULL OUTER JOIN" / "CROSS JOIN")
 
-                if (is_object($rightJoinColumn) && is_object($leftJoinColumn)) {
+        if ($joinedSide instanceof SqlAstColumn && $joiningSide instanceof SqlAstColumn) {
+            /** @var Column|null $rightJoinColumn */
+            $rightJoinColumn = $context->columnByNode($joinedSide);
 
-                    if (!$rightJoinColumn->unique()) {
-                        return true;
-                    }
+            /** @var Column|null $leftJoinColumn */
+            $leftJoinColumn = $context->columnByNode($joiningSide);
 
-                    if ($this->isCrossJoin()) {
-                        if (!$rightJoinColumn->nullable() && $rightJoinColumn->unique()) {
-                            return true;
-                        }
+            if (is_object($rightJoinColumn) && is_object($leftJoinColumn)) {
+                if ($this->isFullOuterJoin()) {
+                    return true; # FULL OUTER is MS-SQL only, thus untested and unknown.
+                }
 
-                        if (!$leftJoinColumn->nullable()) {
-                            #return true;
-                        }
-
-                        if ($leftJoinColumn->nullable()) {
-                            return true;
-                        }
-
-                        if ($rightJoinColumn->nullable()) {
-                            return true;
-                        }
-
-                    } elseif ($this->isFullOuterJoin()) {
-                        return true; # FULL OUTER is MS-SQL only, thus untested and unknown.
-
-                    } elseif ($this->isLeftOuterJoin()) {
-
-                    } elseif ($this->isRightOuterJoin()) {
-                        if ($leftJoinColumn->nullable()) {
-                            return true;
-                        }
-
-                        if (!$leftJoinColumn->nullable() && $leftJoinColumn->unique()) {
-                            return true;
-                        }
-
-                        if ($rightJoinColumn->nullable()) {
-                            return true;
-                        }
-
-                        if (!$leftJoinColumn->unique()) {
-                            return true;
-                        }
-
-                    } else { # Inner Join
-                        if (!$leftJoinColumn->nullable() && $leftJoinColumn->unique() && !$rightJoinColumn->nullable() && $rightJoinColumn->unique()) {
-                            return true;
-                        }
+                if ($this->isLeftOuterJoin()) {
+                    if ($leftJoinColumn->foreignKey() === $rightJoinColumn) {
+                        # In this case we are guaranteed that for every left row, there exists a right row.
+                        # It also does not matter here wether the joining column is nullable or unique.
+                        # (As long as we are actually joining a unique column on the other side)
 
                         if (!$rightJoinColumn->unique()) {
                             return true;
                         }
 
-                        if (!$leftJoinColumn->nullable()) {
-                            #return true;
-                        }
-
-                        if ($leftJoinColumn->nullable()) {
+                    } elseif ($rightJoinColumn->foreignKey() === $leftJoinColumn) {
+                        if (!$rightJoinColumn->unique()) {
                             return true;
                         }
 
-                        if ($rightJoinColumn->nullable()) {
-                            return true;
+                        if ($leftJoinColumn->nullable() || !$leftJoinColumn->unique()) {
+                            return true; # joining column is not primary key
                         }
+
+                    } else {
+                        return true; # No foreign key => no guarantees about set intersectionality
                     }
 
-                    return false;
+                } elseif ($this->isRightOuterJoin()) {
+                    # There seems to be no way to guarantee by schema that a RIGHT JOIN does not impact the result.
+                    return true;
+
+                } else { # INNER JOIN / (in MySQL "JOIN", "CROSS JOIN" and "INNER JOIN" behave identical)
+                    if ($leftJoinColumn->foreignKey() === $rightJoinColumn) {
+                        # In this case we are guaranteed that for every left row, there exists a right row.
+
+                        if ($leftJoinColumn->nullable() || !$leftJoinColumn->unique()) {
+                            return true; # exact one-to-one only guaranteed if unique and not nullable
+                        }
+
+                        if ($rightJoinColumn->nullable() || !$rightJoinColumn->unique()) {
+                            return true; # joined column is not primary key
+                        }
+
+                    } elseif ($rightJoinColumn->foreignKey() === $leftJoinColumn) {
+                        # Even if this is a non-nullable and unique join, the joined table might still be smaller,
+                        # thus still affecting the result set size.
+                        return true;
+
+                    } else {
+                        return true; # No foreign key => no guarantees about set intersectionality
+                    }
                 }
 
-            } else {
-                # Either a literal (which will change result size), or an unknown condition (which might change it).
-                return true;
+                # All above check passed
+                return false;
             }
+
+        } else {
+            # Either a literal (which will change result size), or an unknown condition (which might change it).
+            return true;
         }
 
         # All equations are either always true or always false. Either way, this JOIN changes the result size.
