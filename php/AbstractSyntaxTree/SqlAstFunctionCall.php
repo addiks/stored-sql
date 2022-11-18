@@ -113,19 +113,18 @@ final class SqlAstFunctionCall implements SqlAstExpression
                     $close = $parent[$currentOffset];
                 } while (is_object($close) && $close->is(SqlToken::COMMA()));
 
-                Assert::isInstanceOf($close, SqlAstTokenNode::class);
-                Assert::same($close->token()->token(), SqlToken::BRACKET_CLOSING());
-
-                $parent->replace(
-                    $offset,
-                    1 + $currentOffset - $offset,
-                    new SqlAstFunctionCall(
-                        $parent,
-                        $node,
-                        $expressions,
-                        array_filter([$distinct])
-                    )
-                );
+                if ($close instanceof SqlAstTokenNode && $close->is(SqlToken::BRACKET_CLOSING())) {
+                    $parent->replace(
+                        $offset,
+                        1 + $currentOffset - $offset,
+                        new SqlAstFunctionCall(
+                            $parent,
+                            $node,
+                            $expressions,
+                            array_filter([$distinct])
+                        )
+                    );
+                }
             }
         }
     }
