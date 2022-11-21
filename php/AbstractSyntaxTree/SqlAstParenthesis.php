@@ -99,9 +99,9 @@ final class SqlAstParenthesis implements SqlAstExpression
                     }
                 }
 
-                /** @var SqlAstTokenNode|null $close */
+                /** @var SqlAstNode|null $close */
                 $close = $parent[$currentOffset];
-            } while (is_object($close) && $close->is(SqlToken::COMMA()));
+            } while (is_object($close) && $close instanceof SqlAstTokenNode && $close->is(SqlToken::COMMA()));
 
             if (!$close instanceof SqlAstTokenNode || !$close->is(SqlToken::BRACKET_CLOSING())) {
                 return;
