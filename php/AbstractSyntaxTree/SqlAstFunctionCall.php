@@ -22,7 +22,7 @@ final class SqlAstFunctionCall implements SqlAstExpression
 
     private SqlAstTokenNode $functionNode;
 
-    /** @var array<int, SqlAstExpression> */
+    /** @var array<int, SqlAstExpression|SqlAstAllColumnsSelector> */
     private array $expressions = array();
 
     /** @var array<int, SqlAstTokenNode> */
@@ -37,8 +37,9 @@ final class SqlAstFunctionCall implements SqlAstExpression
         $this->parent = $parent;
         $this->functionNode = $functionNode;
 
+        /** @var SqlAstExpression|SqlAstAllColumnsSelector $expression */
         foreach ($expressions as $expression) {
-            Assert::isInstanceOf($expression, SqlAstExpression::class);
+            Assert::isInstanceOfAny($expression, [SqlAstExpression::class, SqlAstAllColumnsSelector::class]);
 
             $this->expressions[] = $expression;
         }
@@ -85,25 +86,36 @@ final class SqlAstFunctionCall implements SqlAstExpression
                     $distinct = null;
                 }
 
-                /** @var array<int, SqlAstExpression> $expressions */
+                /** @var array<int, SqlAstExpression|SqlAstAllColumnsSelector> $expressions */
                 $expressions = array();
 
                 do {
                     $currentOffset++;
 
-                    if ($parent[$currentOffset] instanceof SqlAstTokenNode) {
-                        $parent->replaceNode(
-                            $parent[$currentOffset],
-                            new SqlAstColumn($parent, $parent[$currentOffset], null, null)
-                        );
+                    /** @var SqlAstNode|null $expression */
+                    $expression = $parent[$currentOffset];
+
+                    if ($expression instanceof SqlAstTokenNode) {
+                        if ($expression->is(SqlToken::STAR())) {
+                            $parent->replaceNode(
+                                $expression,
+                                new SqlAstAllColumnsSelector($parent, $expression, null, null)
+                            );
+
+                        } elseif ($expression->is(SqlToken::SYMBOL())) {
+                            $parent->replaceNode(
+                                $expression,
+                                new SqlAstColumn($parent, $expression, null, null)
+                            );
+                        }
                     }
 
-                    /** @var SqlAstExpression $expression */
+                    /** @var SqlAstExpression|SqlAstAllColumnsSelector $expression */
                     $expression = $parent[$currentOffset];
 
                     # TODO: also allow SELECT in here, for sub-selects
 
-                    Assert::isInstanceOf($expression, SqlAstExpression::class);
+                    Assert::isInstanceOfAny($expression, [SqlAstAllColumnsSelector::class, SqlAstExpression::class]);
 
                     $expressions[] = $expression;
 
@@ -167,7 +179,7 @@ final class SqlAstFunctionCall implements SqlAstExpression
             $this->functionNode->toSql(),
             '(',
             (!empty($this->flags) ? implode(' ', array_map(fn ($flag) => $flag->toSql(), $this->flags)) . ' ' : ''),
-            implode(', ', array_map(function (SqlAstExpression $expression) {
+            implode(', ', array_map(function (SqlAstExpression|SqlAstAllColumnsSelector $expression) {
                 return $expression->toSql();
             }, $this->expressions)),
             ')',

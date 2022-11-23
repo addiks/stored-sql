@@ -44,9 +44,9 @@ final class SqlAstWhere implements SqlAstMergable
             /** @var SqlAstExpression $expression */
             $expression = $parent[$offset + 1];
 
-            Assert::isInstanceOf($expression, SqlAstExpression::class);
-
-            $parent->replace($offset, 2, new SqlAstWhere($parent, $node, $expression));
+            if ($expression instanceof SqlAstExpression) {
+                $parent->replace($offset, 2, new SqlAstWhere($parent, $node, $expression));
+            }
         }
     }
 
