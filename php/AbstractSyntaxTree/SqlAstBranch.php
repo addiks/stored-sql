@@ -21,6 +21,9 @@ abstract class SqlAstBranch implements SqlAstMutableNode
     /** @var list<SqlAstNode> $children */
     private array $children;
 
+    /** @var array<int, callable> */
+    private array $dirtyStack = array();
+
     /** @param array<SqlAstNode> $children */
     public function __construct(array $children)
     {
@@ -51,41 +54,46 @@ abstract class SqlAstBranch implements SqlAstMutableNode
 
     public function mutate(array $mutators = array()): void
     {
-        do {
-            /** @var string $hashBefore */
-            $hashBefore = $this->hash();
+        foreach ($mutators as $callback) {
+            /** @psalm-suppress RedundantConditionGivenDocblockType */
+            Assert::isCallable($callback);
 
-            foreach ($mutators as $callback) {
-                /** @psalm-suppress RedundantConditionGivenDocblockType */
-                Assert::isCallable($callback);
+            /** @var list<string, SqlAstNode> $processedNodes */
+            $processedNodes = array();
 
-                /** @var list<SqlAstNode> $processedNodes */
-                $processedNodes = array();
+            do {
+                try {
+                    /** @var bool $dirty */
+                    $dirty = false;
 
-                do {
-                    /** @var array<int, SqlAstNode> $nodesToProcess */
-                    $nodesToProcess = array_filter(
-                        $this->children,
-                        function (SqlAstNode $node) use ($processedNodes): bool {
-                            return !in_array($node, $processedNodes, true);
+                    $this->dirtyStack[] = function () use (&$dirty): void {
+                        $dirty = true;
+                    };
+
+                    /** @var SqlAstNode $child */
+                    foreach ($this->children as $offset => $child) {
+                        if (isset($processedNodes[spl_object_id($child)])) {
+                            continue;
                         }
-                    );
 
-
-                    [$offset, $child] = [key($nodesToProcess), current($nodesToProcess)];
-
-                    if (is_int($offset) && is_object($child)) {
                         $callback($child, $offset, $this);
 
                         if ($child instanceof SqlAstMutableNode) {
                             $child->mutate($mutators);
                         }
 
-                        $processedNodes[] = $child;
+                        $processedNodes[spl_object_id($child)] = $child;
+
+                        if ($dirty) {
+                            break;
+                        }
                     }
-                } while (!empty($nodesToProcess));
-            }
-        } while ($hashBefore !== $this->hash());
+
+                } finally {
+                    array_pop($this->dirtyStack);
+                }
+            } while ($dirty);
+        }
     }
 
     public function replace(
@@ -97,6 +105,7 @@ abstract class SqlAstBranch implements SqlAstMutableNode
         Assert::greaterThanEq($length, 0);
         Assert::lessThanEq($offset + $length, count($this->children) + 1);
 
+        $this->markDirty();
         $this->children = array_merge(
             array_slice($this->children, 0, $offset),
             [$newNode],
@@ -161,5 +170,12 @@ abstract class SqlAstBranch implements SqlAstMutableNode
         }
 
         return true;
+    }
+
+    private function markDirty(): void
+    {
+        if (!empty($this->dirtyStack)) {
+            $this->dirtyStack[count($this->dirtyStack) - 1]();
+        }
     }
 }

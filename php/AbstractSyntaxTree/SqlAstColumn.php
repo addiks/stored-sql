@@ -60,6 +60,10 @@ final class SqlAstColumn implements SqlAstExpression
         int $offset,
         SqlAstMutableNode $parent
     ): void {
+        if (!$node instanceof SqlAstTokenNode || !$node->is(SqlToken::SYMBOL())) {
+            return;
+        }
+
         /** @var SqlAstNode|null $previousNode */
         $previousNode = $parent[$offset - 1];
 
@@ -80,60 +84,58 @@ final class SqlAstColumn implements SqlAstExpression
             return;
         }
 
-        if ($node instanceof SqlAstTokenNode && $node->is(SqlToken::SYMBOL())) {
-            /** @var int $length */
-            $length = 1;
+        /** @var int $length */
+        $length = 1;
 
-            /** @var SqlAstTokenNode $column */
-            $column = $node;
+        /** @var SqlAstTokenNode $column */
+        $column = $node;
 
-            /** @var SqlAstTokenNode|null $table */
-            $table = null;
+        /** @var SqlAstTokenNode|null $table */
+        $table = null;
 
-            /** @var SqlAstTokenNode|null $database */
-            $database = null;
+        /** @var SqlAstTokenNode|null $database */
+        $database = null;
 
-            /** @var SqlAstNode $dot */
-            $dot = $parent[$offset + 1];
+        /** @var SqlAstNode $dot */
+        $dot = $parent[$offset + 1];
 
-            if ($dot instanceof SqlAstTokenNode && $dot->is(SqlToken::DOT())) {
-                $node = $parent[$offset + 2];
-                Assert::isInstanceOf($node, SqlAstTokenNode::class);
+        if ($dot instanceof SqlAstTokenNode && $dot->is(SqlToken::DOT())) {
+            $node = $parent[$offset + 2];
+            Assert::isInstanceOf($node, SqlAstTokenNode::class);
 
-                if ($node->is(SqlToken::SYMBOL())) {
-                    $length += 2;
+            if ($node->is(SqlToken::SYMBOL())) {
+                $length += 2;
 
-                    $table = $column;
-                    $column = $node;
+                $table = $column;
+                $column = $node;
 
-                    $dot = $parent[$offset + 3];
+                $dot = $parent[$offset + 3];
 
-                    if ($dot instanceof SqlAstTokenNode && $dot->is(SqlToken::DOT())) {
-                        $node = $parent[$offset + 4];
-                        Assert::isInstanceOf($node, SqlAstTokenNode::class);
+                if ($dot instanceof SqlAstTokenNode && $dot->is(SqlToken::DOT())) {
+                    $node = $parent[$offset + 4];
+                    Assert::isInstanceOf($node, SqlAstTokenNode::class);
 
-                        if ($node->is(SqlToken::SYMBOL())) {
-                            $length += 2;
+                    if ($node->is(SqlToken::SYMBOL())) {
+                        $length += 2;
 
-                            $database = $table;
-                            $table = $column;
-                            $column = $node;
-                        }
+                        $database = $table;
+                        $table = $column;
+                        $column = $node;
                     }
-
-                } elseif ($node->is(SqlToken::STAR())) {
-                    # This is not a column (`table`.`column`), this is a all-column-selector (`table`.*)
-                    return;
                 }
-            }
 
-            $parent->replace($offset, $length, new SqlAstColumn(
-                $parent,
-                $column,
-                $table,
-                $database
-            ));
+            } elseif ($node->is(SqlToken::STAR())) {
+                # This is not a column (`table`.`column`), this is a all-column-selector (`table`.*)
+                return;
+            }
         }
+
+        $parent->replace($offset, $length, new SqlAstColumn(
+            $parent,
+            $column,
+            $table,
+            $database
+        ));
     }
 
     public function children(): array
