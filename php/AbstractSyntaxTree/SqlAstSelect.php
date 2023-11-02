@@ -447,6 +447,11 @@ final class SqlAstSelect implements SqlAstNode
         return $this->selectToken->column();
     }
 
+    public function isDistinct(): bool
+    {
+        return is_object($this->distinctToken);
+    }
+
     public function toSql(): string
     {
         /** @var string $sql */
@@ -514,5 +519,10 @@ final class SqlAstSelect implements SqlAstNode
     public function canBeExecutedAsIs(): bool
     {
         return true;
+    }
+
+    public function removeDistinct(): void
+    {
+        $this->distinctToken = null;
     }
 }

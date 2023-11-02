@@ -173,6 +173,17 @@ final class SqlAstFunctionCall implements SqlAstExpression
         return $this->functionNode->column();
     }
 
+    public function name(): string
+    {
+        return $this->functionNode->toSql();
+    }
+
+    /** @return array<int, SqlAstExpression|SqlAstAllColumnsSelector> */
+    public function arguments(): array
+    {
+        return $this->expressions;
+    }
+
     public function toSql(): string
     {
         return implode('', [

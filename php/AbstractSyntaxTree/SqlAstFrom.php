@@ -104,6 +104,11 @@ final class SqlAstFrom implements SqlAstNode
         return $this->fromToken->column();
     }
 
+    public function table(): SqlAstTable
+    {
+        return $this->tableName;
+    }
+
     public function tableName(): string
     {
         return $this->tableName->tableName();
