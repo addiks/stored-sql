@@ -13,6 +13,7 @@ namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
 use Addiks\StoredSQL\Lexing\SqlToken;
 use Webmozart\Assert\Assert;
+use Addiks\StoredSQL\AbstractSyntaxTree\SqlAstTokenNode;
 
 final class SqlAstFunctionCall implements SqlAstExpression
 {
@@ -176,6 +177,21 @@ final class SqlAstFunctionCall implements SqlAstExpression
     public function name(): string
     {
         return $this->functionNode->toSql();
+    }
+    
+    /** @return array<int, SqlAstTokenNode> */
+    public function flags(): array
+    {
+        return $this->flags;
+    }
+    
+    public function removeFlag(SqlAstTokenNode|string $flag): void
+    {
+        if (is_object($flag)) {
+            $flag = $flag->toSql();
+        }
+        
+        $this->flags = array_filter($this->flags, fn($f) => !$f->isCode($flag));
     }
 
     /** @return array<int, SqlAstExpression|SqlAstAllColumnsSelector> */

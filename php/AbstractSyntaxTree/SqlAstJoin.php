@@ -349,7 +349,7 @@ final class SqlAstJoin implements SqlAstNode
 
         return true;
     }
-
+    
     private function canUsingJoinChangeResultSetSize(ExecutionContext $context): bool
     {
         /** @var SqlAstExpression|null $column */
@@ -360,8 +360,11 @@ final class SqlAstJoin implements SqlAstNode
         /** @var string $columnName */
         $columnName = $column->columnNameString();
 
+        /** @var string $joinedTableName */
+        $joinedTableName = $this->joinedTableName();
+
         /** @var Table|null $joiningTable */
-        $joiningTable = $context->findTableWithColumn($columnName);
+        $joiningTable = $context->findTableWithColumn($columnName, 'null', $joinedTableName);
 
         if (is_null($joiningTable)) {
             return true;
@@ -370,7 +373,7 @@ final class SqlAstJoin implements SqlAstNode
         return !$context->isOneToOneRelation(
             $joiningTable->name(),
             $columnName,
-            $this->joinedTableName(),
+            $joinedTableName,
             $columnName
         );
     }

@@ -58,23 +58,27 @@ final class ExecutionContext
 
     public function findTableWithColumn(
         string $columnName,
-        string $schemaName = 'null'
+        string $schemaName = 'null',
+        string|null $excludeTableName = null
     ): ?Table {
         /** @var Schema|null $schema */
         $schema = $this->schemas->schema($schemaName) ?? $this->schemas->defaultSchema();
 
         /** @var list<string> $allTableNames */
-        $allTableNames = array_unique(array_map(function (Table $table): string {
-            return $table->name();
-        }, $this->tables));
-
+        $allTableNames = array_unique(array_map(fn ($t) => $t->name(), $this->tables));
+        
         /** @var list<string> $tableNameCandidates */
         $tableNameCandidates = array_filter(
             $allTableNames,
-            function (string $tableName) use ($schema, $columnName): bool {
-                return is_object($schema?->table($tableName)?->column($columnName));
-            }
+            fn ($t) => is_object($schema?->table($t)?->column($columnName))
         );
+
+        if (is_string($excludeTableName)) {
+            $tableNameCandidates = array_filter(
+                $tableNameCandidates,
+                fn ($t) => ($t !== $excludeTableName)
+            );
+        }
 
         Assert::notEmpty($tableNameCandidates, sprintf(
             'Did not find referenced column "%s" in any table in this context!',

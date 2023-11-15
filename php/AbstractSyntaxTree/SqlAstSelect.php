@@ -32,7 +32,7 @@ final class SqlAstSelect implements SqlAstNode
 
     private ?SqlAstFrom $from;
 
-    /** @var array<SqlAstJoin> $joins */
+    /** @var array<int, SqlAstJoin> $joins */
     private array $joins;
 
     private ?SqlAstWhere $where;
@@ -355,7 +355,7 @@ final class SqlAstSelect implements SqlAstNode
         return $this->from;
     }
 
-    /** @return array<SqlAstJoin> */
+    /** @return array<int, SqlAstJoin> */
     public function joins(): array
     {
         return $this->joins;
