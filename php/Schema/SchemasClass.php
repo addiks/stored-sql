@@ -15,7 +15,8 @@ use Addiks\StoredSQL\Schema\Factories\SchemasFactory;
 use Addiks\StoredSQL\Schema\Factories\SchemasFromMySQLInformationSchemaReader;
 use Addiks\StoredSQL\Schema\Factories\SchemasFromSqliteReader;
 use PDO;
-use Psr\SimpleCache\CacheInterface;
+use Psr\SimpleCache\CacheInterface as PsrSimpleCache;
+use Symfony\Contracts\Cache\CacheInterface as SymfonyCache;
 use Webmozart\Assert\Assert;
 
 final class SchemasClass implements Schemas
@@ -44,7 +45,7 @@ final class SchemasClass implements Schemas
 
     public static function fromPDO(
         PDO $pdo,
-        ?CacheInterface $cache = null,
+        PsrSimpleCache|SymfonyCache|null $cache = null,
         ?SchemasFactory $factory = null
     ): Schemas {
         if (is_null($factory)) {
@@ -56,10 +57,10 @@ final class SchemasClass implements Schemas
             }
         }
 
-        if (is_object($cache)) {
-            $cacheKey = self::class . ':' . $factory->cacheKey();
-            $cacheKey = preg_replace('/[\{\}\(\)\\\\\@\:]+/is', '_', $cacheKey);
+        $cacheKey = self::class . ':' . $factory->cacheKey();
+        $cacheKey = preg_replace('/[\{\}\(\)\\\\\@\:]+/is', '_', $cacheKey);
 
+        if ($cache instanceof PsrSimpleCache) {
             /** @var string|null $serializedSchemas */
             $serializedSchemas = $cache->get($cacheKey);
 
@@ -75,6 +76,18 @@ final class SchemasClass implements Schemas
 
                 $cache->set($cacheKey, serialize($schemas));
             }
+
+        } elseif ($cache instanceof SymfonyCache) {
+            /** @var string|null $serializedSchemas */
+            $serializedSchemas = $cache->get(
+                $cacheKey,
+                fn() => serialize($factory->createSchemas())
+            );
+
+            /** @var Schemas|null $schemas */
+            $schemas = unserialize($serializedSchemas);
+
+            Assert::isInstanceOf($schemas, Schemas::class, 'Invalid cache contents!');
 
         } else {
             /** @var Schemas $schemas */
