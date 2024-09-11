@@ -115,6 +115,10 @@ final class SchemasClass implements Schemas
     public function addSchema(Schema $schema): void
     {
         $this->schemas[$schema->name()] = $schema;
+        
+        if (empty($this->defaultSchemaName)) {
+            $this->defaultSchemaName = $schema->name();
+        }
     }
 
     public function defineDefaultSchema(Schema $schema): void
