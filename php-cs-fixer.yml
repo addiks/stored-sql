@@ -5,7 +5,7 @@ PhpCsFixerCustomFixers/no_superfluous_concatenation: true
 PhpCsFixerCustomFixers/no_useless_comment: true
 PhpCsFixerCustomFixers/no_useless_sprintf: true
 PhpCsFixerCustomFixers/operator_linebreak: true
-PhpCsFixerCustomFixers/phpdoc_no_incorrect_var_annotation: true
+PhpCsFixerCustomFixers/phpdoc_no_incorrect_var_annotation: false
 PhpCsFixerCustomFixers/phpdoc_no_superfluous_param: false
 PhpCsFixerCustomFixers/phpdoc_param_order: true
 PhpCsFixerCustomFixers/phpdoc_param_type: true

@@ -23,7 +23,7 @@ final class SqlAstParenthesis implements SqlAstExpression
 
     private SqlAstTokenNode $bracketOpening;
 
-    /** @var array<int, SqlAstExpression> */
+    /** @var array<int, SqlAstExpression|SqlAstSelect> */
     private array $expressions = array();
 
     /** @var array<int, SqlAstTokenNode> */
@@ -39,7 +39,7 @@ final class SqlAstParenthesis implements SqlAstExpression
         $this->bracketOpening = $bracketOpening;
 
         foreach ($expressions as $expression) {
-            Assert::isInstanceOf($expression, SqlAstExpression::class);
+            Assert::isInstanceOfAny($expression, [SqlAstExpression::class, SqlAstSelect::class]);
 
             $this->expressions[] = $expression;
         }
@@ -70,13 +70,13 @@ final class SqlAstParenthesis implements SqlAstExpression
                 $distinct = null;
             }
 
-            /** @var array<int, SqlAstExpression> $expressions */
+            /** @var array<int, SqlAstExpression|SqlAstSelect> $expressions */
             $expressions = array();
 
             do {
                 $currentOffset++;
 
-                /** @var SqlAstNode|null $expression */
+                /** @var SqlAstNode|SqlAstExpression|SqlAstSelect|null $expression */
                 $expression = $parent[$currentOffset];
 
                 if (!$expression instanceof SqlAstTokenNode
@@ -88,10 +88,8 @@ final class SqlAstParenthesis implements SqlAstExpression
                         $parent->replace($currentOffset, 1, $expression);
                     }
 
-                    if ($expression instanceof SqlAstExpression) {
-                        # TODO: also allow SELECT in here, for sub-selects
-
-                        Assert::isInstanceOf($expression, SqlAstExpression::class);
+                    if ($expression instanceof SqlAstExpression || $expression instanceof SqlAstSelect) {
+                        Assert::isInstanceOfAny($expression, [SqlAstExpression::class, SqlAstSelect::class]);
 
                         $expressions[] = $expression;
 
@@ -172,7 +170,7 @@ final class SqlAstParenthesis implements SqlAstExpression
             }, $this->flags)) . ' ';
         }
 
-        return '(' . $flagsSql . implode(', ', array_map(function (SqlAstExpression $expression) {
+        return '(' . $flagsSql . implode(', ', array_map(function (SqlAstExpression|SqlAstSelect $expression) {
             return $expression->toSql();
         }, $this->expressions)) . ')';
     }

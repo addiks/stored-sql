@@ -118,7 +118,7 @@ final class SqlParserClassTest extends TestCase
         $actualDump = $this->dumpNodes($root->children());
 
         if ($expectedDump !== $actualDump) {
-            #file_put_contents('/tmp/ga_debug.ast', $this->dumpNodes($root->children(), 0, false));
+            file_put_contents('/tmp/ga_debug.ast', $this->dumpNodes($root->children(), 0, true));
         }
 
         $this->assertEquals($expectedDump, $actualDump);

@@ -119,11 +119,14 @@ final class SqlAstSelect implements SqlAstNode
             do {
                 $offset++;
 
-                /** @var SqlAstNode|null $column */
+                /** @var SqlAstNode|SqlAstParenthesis|null $column */
                 $column = $parent[$offset];
 
                 if ($column instanceof SqlAstTokenNode) {
-                    if ($column->is(SqlToken::STAR())) {
+                    if ($parent[$offset] instanceof SqlAstParenthesis) {
+                        $column = $parent[$offset];
+
+                    } elseif ($column->is(SqlToken::STAR())) {
                         $parent->replaceNode(
                             $parent[$offset],
                             new SqlAstAllColumnsSelector($parent, $column, null, null)
@@ -293,8 +296,10 @@ final class SqlAstSelect implements SqlAstNode
             /** @var SqlAstNode|null $semicolon */
             $semicolon = $parent[$offset + 1];
 
-            if ($semicolon instanceof SqlAstTokenNode && $semicolon->is(SqlToken::SEMICOLON())) {
-                $semicolon = null;
+            if ($semicolon instanceof SqlAstTokenNode) {
+                if ($semicolon->is(SqlToken::SEMICOLON()) || $semicolon->is(SqlToken::BRACKET_CLOSING())) {
+                    $semicolon = null;
+                }
             }
 
             if (is_null($semicolon)) {

@@ -11,6 +11,7 @@
 
 namespace Addiks\StoredSQL\AbstractSyntaxTree;
 
+use Addiks\StoredSQL\Exception\UnparsableSqlException;
 use ErrorException;
 use Webmozart\Assert\Assert;
 
@@ -76,13 +77,18 @@ abstract class SqlAstBranch implements SqlAstMutableNode
                             continue;
                         }
 
-                        $callback($child, $offset, $this);
+                        try {
+                            $callback($child, $offset, $this);
 
-                        if ($child instanceof SqlAstMutableNode) {
-                            $child->mutate($mutators);
+                            if ($child instanceof SqlAstMutableNode) {
+                                $child->mutate($mutators);
+                            }
+
+                            $processedNodes[spl_object_id($child)] = $child;
+
+                        } catch (UnparsableSqlException $exception) {
+                            continue;
                         }
-
-                        $processedNodes[spl_object_id($child)] = $child;
 
                         if ($dirty) {
                             break;

@@ -66,7 +66,7 @@ final class ExecutionContext
 
         /** @var list<string> $allTableNames */
         $allTableNames = array_unique(array_map(fn ($t) => $t->name(), $this->tables));
-        
+
         /** @var list<string> $tableNameCandidates */
         $tableNameCandidates = array_filter(
             $allTableNames,

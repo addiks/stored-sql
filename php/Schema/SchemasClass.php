@@ -81,7 +81,7 @@ final class SchemasClass implements Schemas
             /** @var string|null $serializedSchemas */
             $serializedSchemas = $cache->get(
                 $cacheKey,
-                fn() => serialize($factory->createSchemas())
+                fn () => serialize($factory->createSchemas())
             );
 
             /** @var Schemas|null $schemas */
@@ -115,7 +115,7 @@ final class SchemasClass implements Schemas
     public function addSchema(Schema $schema): void
     {
         $this->schemas[$schema->name()] = $schema;
-        
+
         if (empty($this->defaultSchemaName)) {
             $this->defaultSchemaName = $schema->name();
         }

@@ -349,7 +349,7 @@ final class SqlAstJoin implements SqlAstNode
 
         return true;
     }
-    
+
     private function canUsingJoinChangeResultSetSize(ExecutionContext $context): bool
     {
         /** @var SqlAstExpression|null $column */
